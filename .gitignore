@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# 包管理
+*.egg-info/
+dist/
+build/
+
+# 环境变量 & 敏感文件
+.env
+.env.local
+
+# IDE（PyCharm）
+.idea/
+*.iml
+
+# uWSGI 运行时文件 + 配置文件
+uwsgi.ini
+uwsgi.pid
+uwsgi.status
+*.socket
+uwsgi.log
+
+# Gunicorn 配置文件 + 日志
+gunicorn_conf.py
+gunicorn.log
+
+# 进程文件
+*.pid
+
+# Apache/Nginx 配置（根据情况选择）
+.htaccess
+
+# macOS操作系统
+.DS_Store
+.AppleDouble
+.LSOverride
+*~
+
+# 日志 & 临时文件
+*.log
+logs/
+
+# 视频文件
+*.mp4
+*.avi
+
+# 音频文件
+*.mp3
