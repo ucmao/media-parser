@@ -9,9 +9,9 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Python Version](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/) [![MySQL](https://img.shields.io/badge/database-MySQL-orange.svg)](https://www.mysql.com/) [![Support](https://img.shields.io/badge/support-8+%20Platforms-brightgreen.svg)](#💾-支持的平台矩阵)
 
 <p align="center">
-<a href="#📱-立即体验">在线体验</a> •
-<a href="#💎-核心解析逻辑">解析逻辑</a> •
-<a href="#🚀-快速开始">部署指南</a> •
+<a href="#-立即体验">在线体验</a> •
+<a href="#-核心解析逻辑">解析逻辑</a> •
+<a href="#-快速开始">部署指南</a> •
 <a href="[https://github.com/ucmao/parse-ucmao-backend/issues](https://github.com/ucmao/parse-ucmao-backend/issues)">提交Bug</a>
 </p>
 
