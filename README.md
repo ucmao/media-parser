@@ -163,14 +163,22 @@ parse-ucmao-backend/
 
 ---
 
+## 📩 联系作者
+
+如果您在安装、使用过程中遇到问题，或有定制需求，请通过以下方式联系：
+
+* **微信 (WeChat)**：csdnxr
+* **QQ**：294323976
+* **邮箱 (Email)**：leoucmao@gmail.com
+* **Bug反馈**：[GitHub Issues](https://github.com/ucmao/parse-ucmao-backend/issues)
+
+---
+
 ## ⚖️ 开源协议 & 免责声明
 
 1. 本项目基于 **[MIT LICENSE](LICENSE)** 协议开源。
 2. **免责声明**：本项目仅用于学习交流和技术研究。严禁用于任何非法目的。因滥用本项目造成的后果，由使用者自行承担。
 
----
-
 **Media Parser** - 高效解析，赋能创作。
-[提交 Bug](https://github.com/ucmao/parse-ucmao-backend/issues) | [联系作者](mailto:leoucmao@gmail.com)
 
 ---
