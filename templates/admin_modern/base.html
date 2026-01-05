@@ -33,6 +33,10 @@
                     <i class="fas fa-chart-line w-5 mr-3"></i>
                     <span class="font-medium">仪表盘概览</span>
                 </a>
+                <a href="{{ url_for('admin_modern.analysis') }}" class="flex items-center px-6 py-3 text-slate-600 hover:bg-slate-50 hover:text-indigo-600 transition-colors {{ 'sidebar-item-active' if request.endpoint == 'admin_modern.analysis' }}">
+                    <i class="fas fa-chart-pie w-5 mr-3"></i>
+                    <span class="font-medium">数据统计分析</span>
+                </a>
                 <a href="{{ url_for('admin_modern.videos') }}" class="flex items-center px-6 py-3 text-slate-600 hover:bg-slate-50 hover:text-indigo-600 transition-colors {{ 'sidebar-item-active' if request.endpoint == 'admin_modern.videos' }}">
                     <i class="fas fa-video w-5 mr-3"></i>
                     <span class="font-medium">视频库管理</span>

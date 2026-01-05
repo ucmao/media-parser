@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS `parse_library` (
   `video_url` text COLLATE utf8mb4_general_ci NOT NULL COMMENT '视频播放URL',
   `score` int(11) DEFAULT '0' COMMENT '视频评分',
   `is_visible` tinyint(1) DEFAULT '1' COMMENT '是否显示给前端 (0:隐藏, 1:显示)',
+  `last_user_id` int(11) DEFAULT NULL COMMENT '最后解析该视频的用户ID',
   `create_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`video_id`)

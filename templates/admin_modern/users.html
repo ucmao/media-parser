@@ -52,7 +52,7 @@
                     </td>
                     <td class="px-8 py-6">
                         <div class="flex items-center space-x-4">
-                            <img src="{{ user.avatar_url or '/static/default-avatar.png' }}" class="w-12 h-12 rounded-full border-2 border-slate-100 shadow-sm object-cover" onerror="this.src='https://ui-avatars.com/api/?name={{ user.nickname or 'User' }}&background=6366f1&color=fff'">
+                            <img src="{{ user.avatar_url or url_for('static', filename='images/default-avatar.png') }}" class="w-12 h-12 rounded-full border-2 border-slate-100 shadow-sm object-cover" onerror="this.src='{{ url_for('static', filename='images/default-avatar.png') }}'; this.onerror=null;">
                             <div>
                                 <div class="font-bold text-slate-800">{{ user.nickname or '微信用户' }}</div>
                                 <div class="text-xs text-slate-400 font-mono tracking-tighter">{{ user.open_id }}</div>

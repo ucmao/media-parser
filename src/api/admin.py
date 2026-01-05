@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, session, redirect, url_for, flash, jsonify
 import os
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from configs.general_constants import DATABASE_CONFIG
 from src.database.db_manager import DBManager
 from configs.logging_config import logger
@@ -80,14 +80,25 @@ def dashboard():
     cursor.execute("SELECT COUNT(*) as count FROM users")
     user_count = cursor.fetchone()['count']
     
-    # 最近 10 条视频
-    cursor.execute("SELECT * FROM parse_library ORDER BY create_at DESC LIMIT 10")
+    # 今日活跃 (DAU)
+    cursor.execute("SELECT COUNT(*) as count FROM users WHERE DATE(updated_at) = CURDATE()")
+    active_user_count = cursor.fetchone()['count']
+    
+    # 最近 10 条视频 (关联用户信息)
+    cursor.execute("""
+        SELECT pl.*, u.nickname as last_user_name 
+        FROM parse_library pl 
+        LEFT JOIN users u ON pl.last_user_id = u.user_id 
+        ORDER BY pl.create_at DESC 
+        LIMIT 10
+    """)
     recent_videos = cursor.fetchall()
     
     db.disconnect()
     return render_template('admin_modern/dashboard.html', 
                            video_count=video_count, 
                            user_count=user_count, 
+                           active_user_count=active_user_count,
                            recent_videos=recent_videos)
 
 @bp.route('/videos')
@@ -105,8 +116,13 @@ def videos():
     # 搜索
     search = request.args.get('search', '')
     platform = request.args.get('platform', '')
+    visibility = request.args.get('visibility', '')
+    start_date = request.args.get('start_date', '')
+    end_date = request.args.get('end_date', '')
+    min_score = request.args.get('min_score', '')
+    max_score = request.args.get('max_score', '')
     
-    query = "SELECT * FROM parse_library WHERE 1=1"
+    query = "SELECT pl.*, u.nickname as last_user_name FROM parse_library pl LEFT JOIN users u ON pl.last_user_id = u.user_id WHERE 1=1"
     params = []
     
     if search:
@@ -115,6 +131,21 @@ def videos():
     if platform:
         query += " AND platform = %s"
         params.append(platform)
+    if visibility != '':
+        query += " AND is_visible = %s"
+        params.append(visibility)
+    if start_date:
+        query += " AND DATE(create_at) >= %s"
+        params.append(start_date)
+    if end_date:
+        query += " AND DATE(create_at) <= %s"
+        params.append(end_date)
+    if min_score:
+        query += " AND score >= %s"
+        params.append(min_score)
+    if max_score:
+        query += " AND score <= %s"
+        params.append(max_score)
         
     # 获取总数用于分页
     cursor.execute(f"SELECT COUNT(*) as count FROM ({query}) as t", params)
@@ -141,6 +172,11 @@ def videos():
                            limit=limit,
                            search=search,
                            platform=platform,
+                           visibility=visibility,
+                           start_date=start_date,
+                           end_date=end_date,
+                           min_score=min_score,
+                           max_score=max_score,
                            sort_by=sort_by,
                            order=order)
 
@@ -280,6 +316,95 @@ def clear_user_records():
         db.conn.commit()
         return jsonify({'success': True})
     except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        db.disconnect()
+
+@bp.route('/analysis')
+@login_required
+def analysis():
+    return render_template('admin_modern/analysis.html')
+
+@bp.route('/api/analysis_data')
+@login_required
+def analysis_data():
+    db = get_db()
+    cursor = db.conn.cursor(dictionary=True)
+    try:
+        # 1. 最近 14 天活跃解析趋势 (基于 parse_library.create_at)
+        cursor.execute("""
+            SELECT DATE_FORMAT(create_at, '%m-%d') as date, COUNT(*) as count 
+            FROM parse_library 
+            WHERE create_at >= DATE_SUB(CURDATE(), INTERVAL 14 DAY)
+            GROUP BY DATE(create_at)
+            ORDER BY DATE(create_at) ASC
+        """)
+        parse_trend = cursor.fetchall()
+
+        # 2. 最近 14 天新用户增长趋势
+        cursor.execute("""
+            SELECT DATE_FORMAT(created_at, '%m-%d') as date, COUNT(*) as count 
+            FROM users 
+            WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 14 DAY)
+            GROUP BY DATE(created_at)
+            ORDER BY DATE(created_at) ASC
+        """)
+        user_trend = cursor.fetchall()
+
+        # 3. 平台分布 (饼图)
+        cursor.execute("""
+            SELECT platform, COUNT(*) as count 
+            FROM parse_library 
+            GROUP BY platform
+        """)
+        platform_dist = cursor.fetchall()
+
+        # 4. 用户地域分布 (Top 10 省份)
+        cursor.execute("""
+            SELECT province, COUNT(*) as count 
+            FROM users 
+            WHERE province IS NOT NULL AND province != ''
+            GROUP BY province
+            ORDER BY count DESC
+            LIMIT 10
+        """)
+        province_dist = cursor.fetchall()
+
+        # 5. 总计数据
+        cursor.execute("SELECT COUNT(*) as total FROM parse_library")
+        total_parses = cursor.fetchone()['total']
+        
+        cursor.execute("SELECT COUNT(*) as total FROM users")
+        total_users = cursor.fetchone()['total']
+
+        # 今日解析
+        cursor.execute("SELECT COUNT(*) as total FROM parse_library WHERE DATE(create_at) = CURDATE()")
+        today_parses = cursor.fetchone()['total']
+
+        # 今日新用户
+        cursor.execute("SELECT COUNT(*) as total FROM users WHERE DATE(created_at) = CURDATE()")
+        today_new_users = cursor.fetchone()['total']
+        
+        # 今日活跃用户 (DAU)
+        cursor.execute("SELECT COUNT(*) as total FROM users WHERE DATE(updated_at) = CURDATE()")
+        today_active_users = cursor.fetchone()['total']
+
+        return jsonify({
+            'success': True,
+            'parse_trend': parse_trend,
+            'user_trend': user_trend,
+            'platform_dist': platform_dist,
+            'province_dist': province_dist,
+            'stats': {
+                'total_parses': total_parses,
+                'total_users': total_users,
+                'today_parses': today_parses,
+                'today_new_users': today_new_users,
+                'today_active_users': today_active_users
+            }
+        })
+    except Exception as e:
+        logger.error(f"Analysis data error: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
     finally:
         db.disconnect()

@@ -59,6 +59,7 @@ class DataStorageManager:
         try:
             if data_dict.get('video_url'):
                 self.update_dict.update(data_dict)
+                self.update_dict['last_user_id'] = user_id
                 manager.update_table_parse_library(**self.update_dict)
                 manager.add_video(user_id, video_id)
         finally:
@@ -69,6 +70,7 @@ class DataStorageManager:
         try:
             if data_dict.get('video_url'):
                 self.update_dict.update(data_dict)
+                self.update_dict['last_user_id'] = user_id
                 manager.upsert_table_parse_library(**self.update_dict)
                 manager.add_video(user_id, video_id)
         finally:

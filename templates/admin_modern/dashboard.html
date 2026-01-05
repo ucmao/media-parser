@@ -10,33 +10,35 @@
 
 <!-- Stats Grid -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-    <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex items-center space-x-6">
-        <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-2xl">
+    <a href="{{ url_for('admin_modern.videos') }}" class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex items-center space-x-6 hover:shadow-md hover:border-indigo-100 transition-all group">
+        <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-2xl group-hover:bg-indigo-600 group-hover:text-white transition-colors">
             <i class="fas fa-video"></i>
         </div>
         <div>
             <div class="text-slate-400 text-sm font-semibold uppercase tracking-wider">总视频量</div>
             <div class="text-4xl font-extrabold text-slate-800">{{ video_count }}</div>
         </div>
-    </div>
+    </a>
     
-    <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex items-center space-x-6">
-        <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl">
+    <a href="{{ url_for('admin_modern.users') }}" class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex items-center space-x-6 hover:shadow-md hover:border-emerald-100 transition-all group">
+        <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl group-hover:bg-emerald-600 group-hover:text-white transition-colors">
             <i class="fas fa-user-check"></i>
         </div>
         <div>
             <div class="text-slate-400 text-sm font-semibold uppercase tracking-wider">注册用户</div>
             <div class="text-4xl font-extrabold text-slate-800">{{ user_count }}</div>
         </div>
-    </div>
+    </a>
 
-    <div class="bg-indigo-600 p-8 rounded-3xl shadow-xl flex items-center justify-between text-white overflow-hidden relative">
-        <div class="relative z-10">
-            <div class="text-indigo-100 text-sm font-semibold uppercase tracking-wider">系统运行正常</div>
-            <div class="text-xl font-bold mt-1">版本 v2.0.0 (LTS)</div>
+    <a href="{{ url_for('admin_modern.analysis') }}" class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex items-center space-x-6 hover:shadow-md hover:border-amber-100 transition-all group">
+        <div class="w-16 h-16 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-2xl group-hover:bg-amber-600 group-hover:text-white transition-colors">
+            <i class="fas fa-bolt"></i>
         </div>
-        <i class="fas fa-rocket text-7xl text-indigo-500/30 absolute -right-4 -bottom-4 transform rotate-12"></i>
-    </div>
+        <div>
+            <div class="text-slate-400 text-sm font-semibold uppercase tracking-wider">今日活跃 (DAU)</div>
+            <div class="text-4xl font-extrabold text-slate-800">{{ active_user_count }}</div>
+        </div>
+    </a>
 </div>
 
 <!-- Recent Records -->
@@ -52,6 +54,7 @@
                     <th class="px-8 py-4">平台</th>
                     <th class="px-8 py-4">封面</th>
                     <th class="px-8 py-4">标题</th>
+                    <th class="px-8 py-4">解析用户</th>
                     <th class="px-8 py-4">积分</th>
                     <th class="px-8 py-4">创建时间</th>
                 </tr>
@@ -70,16 +73,25 @@
                         {% endif %}
                     </td>
                     <td class="px-8 py-5">
-                        <div class="max-w-md truncate font-medium text-slate-700">{{ video.title or '无标题' }}</div>
+                        <div class="max-w-lg truncate font-medium text-slate-700">{{ video.title or '无标题' }}</div>
                     </td>
-                    <td class="px-8 py-5 font-bold text-indigo-600">{{ video.score }}</td>
+                    <td class="px-8 py-5">
+                        {% if video.last_user_name %}
+                        <a href="{{ url_for('admin_modern.users', search=video.last_user_name) }}" class="text-indigo-600 hover:text-indigo-800 font-bold hover:underline transition-all">
+                            {{ video.last_user_name }}
+                        </a>
+                        {% else %}
+                        <span class="text-slate-300">系统/匿名</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-8 py-5 font-bold text-indigo-600">+{{ video.score }}</td>
                     <td class="px-8 py-5 text-sm text-slate-400 font-medium">
                         {{ video.create_at.strftime('%m-%d %H:%M') if video.create_at else '-' }}
                     </td>
                 </tr>
                 {% endfor %}
                 {% if not recent_videos %}
-                <tr><td colspan="5" class="px-8 py-20 text-center text-slate-400 font-medium">暂无数据</td></tr>
+                <tr><td colspan="6" class="px-8 py-20 text-center text-slate-400 font-medium">暂无数据</td></tr>
                 {% endif %}
             </tbody>
         </table>

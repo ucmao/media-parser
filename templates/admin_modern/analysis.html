@@ -1,0 +1,282 @@
+{% extends "admin_modern/base.html" %}
+
+{% block title %}数据统计分析 - Ucmao Admin{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-black text-slate-800 tracking-tight">数据统计分析</h1>
+    <p class="text-slate-500 mt-2 font-medium">全方位洞察系统运行状态与用户行为趋势</p>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex items-center space-x-4">
+        <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-2xl shadow-inner">
+            <i class="fas fa-users"></i>
+        </div>
+        <div>
+            <div class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">总用户数</div>
+            <div class="text-2xl font-black text-slate-800" id="stat-total-users">-</div>
+            <div class="text-[10px] text-emerald-500 font-bold mt-1">今日新增: +<span id="stat-today-users">-</span></div>
+        </div>
+    </div>
+    
+    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex items-center space-x-4">
+        <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl shadow-inner">
+            <i class="fas fa-bolt"></i>
+        </div>
+        <div>
+            <div class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">今日活跃 (DAU)</div>
+            <div class="text-2xl font-black text-slate-800" id="stat-active-users">-</div>
+            <div class="text-[10px] text-slate-400 font-medium mt-1">基于用户最后交互时间</div>
+        </div>
+    </div>
+
+    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex items-center space-x-4">
+        <div class="w-14 h-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-2xl shadow-inner">
+            <i class="fas fa-file-video"></i>
+        </div>
+        <div>
+            <div class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">总解析量</div>
+            <div class="text-2xl font-black text-slate-800" id="stat-total-parses">-</div>
+            <div class="text-[10px] text-emerald-500 font-bold mt-1">今日解析: +<span id="stat-today-parses">-</span></div>
+        </div>
+    </div>
+
+    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex items-center space-x-4">
+        <div class="w-14 h-14 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center text-2xl shadow-inner">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <div>
+            <div class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">解析转化率</div>
+            <div class="text-2xl font-black text-slate-800" id="stat-conversion">-</div>
+            <div class="text-[10px] text-slate-400 font-medium mt-1">平均每人解析次数</div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Trend Chart -->
+<div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 mb-8">
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h3 class="text-xl font-black text-slate-800">业务增长趋势</h3>
+            <p class="text-slate-400 text-sm font-medium">最近 14 天的解析量与新用户增长对比</p>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div class="flex items-center text-xs font-bold text-slate-500">
+                <span class="w-3 h-3 bg-indigo-500 rounded-full mr-2"></span> 解析量
+            </div>
+            <div class="flex items-center text-xs font-bold text-slate-500">
+                <span class="w-3 h-3 bg-emerald-500 rounded-full mr-2"></span> 新用户
+            </div>
+        </div>
+    </div>
+    <div id="trend-chart" class="h-80 w-full"></div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+    <!-- Platform Distribution -->
+    <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
+        <h3 class="text-xl font-black text-slate-800 mb-6">平台使用分布</h3>
+        <div id="platform-chart" class="h-80 w-full"></div>
+    </div>
+
+    <!-- Geographic Distribution -->
+    <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
+        <h3 class="text-xl font-black text-slate-800 mb-6">用户地区活跃排行 (Top 10)</h3>
+        <div id="geo-chart" class="h-80 w-full"></div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchAnalysisData();
+    });
+
+    function fetchAnalysisData() {
+        fetch('/admin/api/analysis_data')
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    updateStats(data.stats);
+                    renderTrendChart(data.parse_trend, data.user_trend);
+                    renderPlatformChart(data.platform_dist);
+                    renderGeoChart(data.province_dist);
+                } else {
+                    showToast('获取数据失败: ' + data.message, 'error');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast('系统错误，请重试', 'error');
+            });
+    }
+
+    function updateStats(stats) {
+        document.getElementById('stat-total-users').textContent = stats.total_users;
+        document.getElementById('stat-today-users').textContent = stats.today_new_users;
+        document.getElementById('stat-active-users').textContent = stats.today_active_users;
+        document.getElementById('stat-total-parses').textContent = stats.total_parses;
+        document.getElementById('stat-today-parses').textContent = stats.today_parses;
+        
+        const conversion = stats.total_users > 0 ? (stats.total_parses / stats.total_users).toFixed(1) : '0';
+        document.getElementById('stat-conversion').textContent = conversion + 'x';
+    }
+
+    function renderTrendChart(parseTrend, userTrend) {
+        const dates = [...new Set([...parseTrend.map(i => i.date), ...userTrend.map(i => i.date)])].sort();
+        
+        const parseData = dates.map(d => {
+            const found = parseTrend.find(i => i.date === d);
+            return found ? found.count : 0;
+        });
+
+        const userData = dates.map(d => {
+            const found = userTrend.find(i => i.date === d);
+            return found ? found.count : 0;
+        });
+
+        const options = {
+            series: [
+                { name: '解析量', data: parseData },
+                { name: '新用户', data: userData }
+            ],
+            chart: {
+                height: 350,
+                type: 'area',
+                toolbar: { show: false },
+                fontFamily: 'Inter, sans-serif'
+            },
+            colors: ['#6366f1', '#10b981'],
+            dataLabels: { enabled: false },
+            stroke: { curve: 'smooth', width: 3 },
+            fill: {
+                type: 'gradient',
+                gradient: {
+                    shadeIntensity: 1,
+                    opacityFrom: 0.45,
+                    opacityTo: 0.05,
+                    stops: [20, 100]
+                }
+            },
+            xaxis: {
+                categories: dates,
+                axisBorder: { show: false },
+                axisTicks: { show: false },
+                labels: { style: { colors: '#94a3b8', fontWeight: 600 } }
+            },
+            yaxis: {
+                labels: { style: { colors: '#94a3b8', fontWeight: 600 } }
+            },
+            grid: {
+                borderColor: '#f1f5f9',
+                strokeDashArray: 4
+            },
+            legend: { show: false },
+            tooltip: {
+                theme: 'light',
+                x: { show: true },
+                y: { 
+                    formatter: function(val, { seriesIndex }) {
+                        return val + (seriesIndex === 0 ? ' 次' : ' 人');
+                    }
+                }
+            }
+        };
+
+        new ApexCharts(document.querySelector("#trend-chart"), options).render();
+    }
+
+    function renderPlatformChart(dist) {
+        const options = {
+            series: dist.map(i => i.count),
+            labels: dist.map(i => i.platform || '未知'),
+            chart: {
+                type: 'donut',
+                height: 350,
+                fontFamily: 'Inter, sans-serif'
+            },
+            colors: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'],
+            stroke: { width: 0 },
+            plotOptions: {
+                pie: {
+                    donut: {
+                        size: '75%',
+                        labels: {
+                            show: true,
+                            total: {
+                                show: true,
+                                label: '总解析量',
+                                color: '#94a3b8',
+                                fontWeight: 600,
+                                formatter: w => w.globals.seriesTotals.reduce((a, b) => a + b, 0) + ' 次'
+                            }
+                        }
+                    }
+                }
+            },
+            dataLabels: { enabled: false },
+            legend: {
+                position: 'bottom',
+                fontFamily: 'Inter',
+                fontWeight: 600,
+                labels: { colors: '#64748b' }
+            }
+        };
+
+        new ApexCharts(document.querySelector("#platform-chart"), options).render();
+    }
+
+    function renderGeoChart(dist) {
+        const options = {
+            series: [{
+                name: '活跃用户',
+                data: dist.map(i => i.count)
+            }],
+            chart: {
+                type: 'bar',
+                height: 350,
+                toolbar: { show: false },
+                fontFamily: 'Inter, sans-serif'
+            },
+            colors: ['#6366f1'],
+            plotOptions: {
+                bar: {
+                    borderRadius: 10,
+                    horizontal: true,
+                    barHeight: '60%',
+                    distributed: false,
+                }
+            },
+            dataLabels: {
+                enabled: true,
+                style: { fontWeight: 'bold' }
+            },
+            xaxis: {
+                categories: dist.map(i => i.province),
+                axisBorder: { show: false },
+                axisTicks: { show: false },
+                labels: { style: { colors: '#94a3b8', fontWeight: 600 } }
+            },
+            yaxis: {
+                labels: { style: { colors: '#94a3b8', fontWeight: 600 } }
+            },
+            grid: {
+                borderColor: '#f1f5f9',
+                strokeDashArray: 4,
+                xaxis: { lines: { show: true } },
+                yaxis: { lines: { show: false } }
+            },
+            tooltip: {
+                theme: 'light',
+                y: { formatter: val => val + ' 人' }
+            }
+        };
+
+        new ApexCharts(document.querySelector("#geo-chart"), options).render();
+    }
+</script>
+{% endblock %}
+
