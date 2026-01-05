@@ -36,9 +36,9 @@
                     </td>
                     <td class="px-8 py-6 text-center">
                         <div class="{{ 'cursor-pointer hover:bg-indigo-50' if session.get('admin_role') == 'admin' else '' }} py-2 rounded-xl transition-all group/edit" {% if session.get('admin_role') == 'admin' %}onclick="showScoreEditModal('{{ score.config_key }}', '{{ score.config_value }}', this)"{% endif %}>
-                            <span class="score-value text-2xl font-black text-slate-800">{{ score.config_value }}</span>
+                            <span class="score-value text-lg font-bold text-slate-800">+{{ score.config_value }}</span>
                             {% if session.get('admin_role') == 'admin' %}
-                            <i class="fas fa-pen ml-2 text-slate-300 opacity-0 group-hover/edit:opacity-100 transition-opacity text-sm"></i>
+                            <i class="fas fa-pen ml-2 text-slate-300 opacity-0 group-hover/edit:opacity-100 transition-opacity text-xs"></i>
                             {% endif %}
                         </div>
                     </td>

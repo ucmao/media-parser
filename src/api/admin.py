@@ -96,7 +96,7 @@ def videos():
     page = request.args.get('page', 1, type=int)
     sort_by = request.args.get('sort_by', 'create_at')
     order = request.args.get('order', 'desc')
-    limit = 50
+    limit = 20
     offset = (page - 1) * limit
     
     db = get_db()
@@ -151,7 +151,7 @@ def users():
     search = request.args.get('search', '')
     sort_by = request.args.get('sort_by', 'created_at')
     order = request.args.get('order', 'desc')
-    limit = 50
+    limit = 20
     offset = (page - 1) * limit
     
     db = get_db()
@@ -287,17 +287,17 @@ def clear_user_records():
 @bp.route('/scores')
 @login_required
 def scores():
-    sort_by = request.args.get('sort_by', 'config_key')
-    order = request.args.get('order', 'asc')
+    sort_by = request.args.get('sort_by', 'config_value')
+    order = request.args.get('order', 'desc')
     
     db = get_db()
     cursor = db.conn.cursor(dictionary=True)
     
     allowed_sort_fields = ['config_key', 'config_value', 'is_enabled']
     if sort_by not in allowed_sort_fields:
-        sort_by = 'config_key'
+        sort_by = 'config_value'
     if order.lower() not in ['asc', 'desc']:
-        order = 'asc'
+        order = 'desc'
         
     cursor.execute(f"SELECT * FROM score_config ORDER BY {sort_by} {order}")
     score_list = cursor.fetchall()

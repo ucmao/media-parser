@@ -49,7 +49,7 @@
     </div>
     
     <div class="flex flex-wrap gap-2 flex-1">
-        <!-- 复制操作 -->
+        <!-- 复制操作 (所有账号可用) -->
         <button onclick="bulkCopy('title')" class="px-4 py-2.5 bg-slate-50 text-slate-600 rounded-xl text-sm font-bold hover:bg-indigo-50 hover:text-indigo-600 transition-all flex items-center">
             <i class="fas fa-copy mr-2 opacity-50"></i>复制标题
         </button>
@@ -65,17 +65,17 @@
 
         <div class="w-px h-8 bg-slate-100 mx-2 self-center"></div>
 
-        <!-- 状态/数据修改 -->
-        <button onclick="bulkEditScore()" class="px-4 py-2.5 bg-amber-50 text-amber-600 rounded-xl text-sm font-bold hover:bg-amber-100 transition-all flex items-center">
+        <!-- 状态/数据修改 (限制权限) -->
+        <button onclick="bulkEditScore()" class="px-4 py-2.5 bg-amber-50 text-amber-600 rounded-xl text-sm font-bold hover:bg-amber-100 transition-all flex items-center {{ 'opacity-50' if session.get('admin_role') != 'admin' }}">
             <i class="fas fa-plus-minus mr-2"></i>加减积分
         </button>
-        <button onclick="bulkVisibility(true)" class="px-4 py-2.5 bg-emerald-50 text-emerald-600 rounded-xl text-sm font-bold hover:bg-emerald-100 transition-all flex items-center">
+        <button onclick="bulkVisibility(true)" class="px-4 py-2.5 bg-emerald-50 text-emerald-600 rounded-xl text-sm font-bold hover:bg-emerald-100 transition-all flex items-center {{ 'opacity-50' if session.get('admin_role') != 'admin' }}">
             <i class="fas fa-eye mr-2"></i>设为可见
         </button>
-        <button onclick="bulkVisibility(false)" class="px-4 py-2.5 bg-slate-100 text-slate-500 rounded-xl text-sm font-bold hover:bg-slate-200 transition-all flex items-center">
+        <button onclick="bulkVisibility(false)" class="px-4 py-2.5 bg-slate-100 text-slate-500 rounded-xl text-sm font-bold hover:bg-slate-200 transition-all flex items-center {{ 'opacity-50' if session.get('admin_role') != 'admin' }}">
             <i class="fas fa-eye-slash mr-2"></i>设为隐藏
         </button>
-        <button onclick="bulkDelete()" class="px-4 py-2.5 bg-rose-50 text-rose-600 rounded-xl text-sm font-bold hover:bg-rose-100 transition-all flex items-center">
+        <button onclick="bulkDelete()" class="px-4 py-2.5 bg-rose-50 text-rose-600 rounded-xl text-sm font-bold hover:bg-rose-100 transition-all flex items-center {{ 'opacity-50' if session.get('admin_role') != 'admin' }}">
             <i class="fas fa-trash-alt mr-2"></i>批量删除
         </button>
     </div>
@@ -92,9 +92,7 @@
             <thead class="bg-slate-50/50 text-slate-500 text-xs font-bold uppercase tracking-widest">
                 <tr>
                     <th class="px-6 py-4 w-10">
-                        {% if session.get('admin_role') == 'admin' %}
                         <input type="checkbox" id="select-all" class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" onclick="toggleAll(this)">
-                        {% endif %}
                     </th>
                     <th class="px-6 py-4">封面</th>
                     <th class="px-6 py-4">视频信息 (点击标题编辑)</th>
@@ -115,9 +113,7 @@
                 {% for video in videos %}
                 <tr class="hover:bg-slate-50/50 transition-colors group">
                     <td class="px-6 py-6">
-                        {% if session.get('admin_role') == 'admin' %}
                         <input type="checkbox" class="video-checkbox w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" value="{{ video.video_id }}" onclick="updateSelection()">
-                        {% endif %}
                     </td>
                     <td class="px-6 py-6">
                         {% if video.cover_url %}
@@ -368,7 +364,10 @@
         });
     }
 
+    const userRole = "{{ session.get('admin_role', 'viewer') }}";
+
     function bulkVisibility(status) {
+        if (userRole !== 'admin') return showToast('权限不足：演示账号无法执行批量操作', 'error');
         const selected = selectAllMode ? [] : Array.from(document.querySelectorAll('.video-checkbox:checked')).map(cb => cb.value);
         if(!selectAllMode && !selected.length) return;
         
@@ -429,6 +428,7 @@
     }
 
     function bulkEditScore() {
+        if (userRole !== 'admin') return showToast('权限不足：演示账号无法执行批量操作', 'error');
         const selected = selectAllMode ? [] : Array.from(document.querySelectorAll('.video-checkbox:checked')).map(cb => cb.value);
         if(!selectAllMode && !selected.length) return;
 
@@ -471,6 +471,7 @@
     }
 
     function bulkDelete() {
+        if (userRole !== 'admin') return showToast('权限不足：演示账号无法执行批量操作', 'error');
         const selected = selectAllMode ? [] : Array.from(document.querySelectorAll('.video-checkbox:checked')).map(cb => cb.value);
         if(!selectAllMode && !selected.length) return;
 
