@@ -22,6 +22,15 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def admin_only(f):
+    from functools import wraps
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if session.get('admin_role') != 'admin':
+            return jsonify({'success': False, 'message': '权限不足：演示账号仅供查看，无法修改数据'}), 403
+        return f(*args, **kwargs)
+    return decorated_function
+
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
     if session.get('admin_logged_in'):
@@ -31,13 +40,21 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
         
-        # 从环境变量获取管理员配置，默认为 admin/admin123
+        # 账号配置
         admin_user = os.getenv('ADMIN_USER', 'admin')
         admin_pwd = os.getenv('ADMIN_PASSWORD', 'admin123')
+        demo_user = os.getenv('DEMO_USER', 'guest')
+        demo_pwd = os.getenv('DEMO_PASSWORD', 'guest123')
         
         if username == admin_user and password == admin_pwd:
             session['admin_logged_in'] = True
             session['admin_user'] = username
+            session['admin_role'] = 'admin'
+            return redirect(url_for('admin_modern.dashboard'))
+        elif username == demo_user and password == demo_pwd:
+            session['admin_logged_in'] = True
+            session['admin_user'] = username
+            session['admin_role'] = 'viewer'
             return redirect(url_for('admin_modern.dashboard'))
         else:
             flash('用户名或密码错误', 'error')
@@ -219,6 +236,7 @@ def get_user_records(open_id):
 
 @bp.route('/api/delete_user_record', methods=['POST'])
 @login_required
+@admin_only
 def delete_user_record():
     data = request.json
     open_id = data.get('open_id')
@@ -249,6 +267,7 @@ def delete_user_record():
 
 @bp.route('/api/clear_user_records', methods=['POST'])
 @login_required
+@admin_only
 def clear_user_records():
     open_id = request.json.get('open_id')
     if not open_id:
@@ -291,6 +310,7 @@ def scores():
 # 功能性接口
 @bp.route('/api/update_score', methods=['POST'])
 @login_required
+@admin_only
 def update_score():
     data = request.json
     key = data.get('key')
@@ -313,6 +333,7 @@ def update_score():
 
 @bp.route('/api/toggle_score_status', methods=['POST'])
 @login_required
+@admin_only
 def toggle_score_status():
     data = request.json
     key = data.get('key')
@@ -334,6 +355,7 @@ def toggle_score_status():
         db.disconnect()
 @bp.route('/api/update_video_title', methods=['POST'])
 @login_required
+@admin_only
 def update_video_title():
     data = request.json
     video_id = data.get('video_id')
@@ -356,6 +378,7 @@ def update_video_title():
 
 @bp.route('/api/update_video_score', methods=['POST'])
 @login_required
+@admin_only
 def update_video_score():
     data = request.json
     video_id = data.get('video_id')
@@ -378,6 +401,7 @@ def update_video_score():
 
 @bp.route('/api/toggle_visibility', methods=['POST'])
 @login_required
+@admin_only
 def toggle_visibility():
     data = request.json
     video_id = data.get('video_id')
@@ -400,6 +424,7 @@ def toggle_visibility():
 
 @bp.route('/api/bulk_visibility', methods=['POST'])
 @login_required
+@admin_only
 def bulk_visibility():
     data = request.json
     video_ids = data.get('video_ids', [])
@@ -444,6 +469,7 @@ def bulk_visibility():
 
 @bp.route('/api/bulk_update_score', methods=['POST'])
 @login_required
+@admin_only
 def bulk_update_score():
     data = request.json
     video_ids = data.get('video_ids', [])
@@ -479,6 +505,7 @@ def bulk_update_score():
 
 @bp.route('/api/bulk_delete', methods=['POST'])
 @login_required
+@admin_only
 def bulk_delete():
     data = request.json
     video_ids = data.get('video_ids', [])
@@ -513,6 +540,7 @@ def bulk_delete():
 
 @bp.route('/api/delete_video', methods=['POST'])
 @login_required
+@admin_only
 def delete_video():
     video_id = request.json.get('video_id')
     if not video_id:
@@ -532,6 +560,7 @@ def delete_video():
 
 @bp.route('/api/cleanup_empty', methods=['POST'])
 @login_required
+@admin_only
 def cleanup_empty():
     db = get_db()
     try:
@@ -547,6 +576,7 @@ def cleanup_empty():
 
 @bp.route('/api/cleanup_keywords', methods=['POST'])
 @login_required
+@admin_only
 def cleanup_keywords():
     data = request.json
     keywords = data.get('keywords', [])

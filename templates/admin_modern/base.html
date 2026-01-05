@@ -46,6 +46,7 @@
                     <span class="font-medium">积分配置</span>
                 </a>
                 <div class="mt-8 px-6 mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">系统维护</div>
+                {% if session.get('admin_role') == 'admin' %}
                 <button onclick="cleanupEmpty()" class="w-full flex items-center px-6 py-3 text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors">
                     <i class="fas fa-trash-alt w-5 mr-3"></i>
                     <span class="font-medium">清理空数据</span>
@@ -58,16 +59,21 @@
                     <i class="fas fa-eye-slash w-5 mr-3"></i>
                     <span class="font-medium text-xs">全站显隐控制</span>
                 </button>
+                {% else %}
+                <div class="px-6 py-3 text-slate-400 text-xs italic">演示账号限制使用维护工具</div>
+                {% endif %}
             </nav>
             <div class="p-4 border-t border-slate-100">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-3">
-                        <div class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-500">
+                        <div class="w-8 h-8 {{ 'bg-indigo-600 text-white' if session.get('admin_role') == 'admin' else 'bg-slate-100 text-slate-500' }} rounded-full flex items-center justify-center">
                             <i class="fas fa-user-shield"></i>
                         </div>
                         <div class="text-sm">
                             <div class="font-semibold text-slate-800">{{ session.get('admin_user', 'Admin') }}</div>
-                            <div class="text-slate-500 text-xs">管理员</div>
+                            <div class="text-slate-500 text-xs">
+                                {% if session.get('admin_role') == 'admin' %}系统管理员{% else %}演示观察员{% endif %}
+                            </div>
                         </div>
                     </div>
                     <a href="{{ url_for('admin_modern.logout') }}" class="text-slate-400 hover:text-red-500 p-2 transition-colors">

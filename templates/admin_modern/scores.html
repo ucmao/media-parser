@@ -35,14 +35,16 @@
                         <div class="text-slate-600 font-medium">{{ score.config_desc or '-' }}</div>
                     </td>
                     <td class="px-8 py-6 text-center">
-                        <div class="cursor-pointer hover:bg-indigo-50 py-2 rounded-xl transition-all group/edit" onclick="showScoreEditModal('{{ score.config_key }}', '{{ score.config_value }}', this)">
+                        <div class="{{ 'cursor-pointer hover:bg-indigo-50' if session.get('admin_role') == 'admin' else '' }} py-2 rounded-xl transition-all group/edit" {% if session.get('admin_role') == 'admin' %}onclick="showScoreEditModal('{{ score.config_key }}', '{{ score.config_value }}', this)"{% endif %}>
                             <span class="score-value text-2xl font-black text-slate-800">{{ score.config_value }}</span>
+                            {% if session.get('admin_role') == 'admin' %}
                             <i class="fas fa-pen ml-2 text-slate-300 opacity-0 group-hover/edit:opacity-100 transition-opacity text-sm"></i>
+                            {% endif %}
                         </div>
                     </td>
                     <td class="px-8 py-6 text-center">
-                        <button onclick="toggleScoreStatus('{{ score.config_key }}', {{ 1 if score.is_enabled else 0 }}, this)" 
-                            class="px-3 py-1 rounded-full text-xs font-bold transition-all {{ 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100' if score.is_enabled else 'bg-slate-100 text-slate-400 hover:bg-slate-200' }}">
+                        <button {% if session.get('admin_role') == 'admin' %}onclick="toggleScoreStatus('{{ score.config_key }}', {{ 1 if score.is_enabled else 0 }}, this)"{% else %}disabled{% endif %} 
+                            class="px-3 py-1 rounded-full text-xs font-bold transition-all {{ 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100' if score.is_enabled else 'bg-slate-100 text-slate-400' }} {{ 'cursor-not-allowed opacity-50' if session.get('admin_role') != 'admin' else '' }}">
                             {{ '启用' if score.is_enabled else '禁用' }}
                         </button>
                     </td>

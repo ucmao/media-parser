@@ -122,9 +122,11 @@
                 <p class="text-slate-400 text-sm mt-1" id="traj-user-id"></p>
             </div>
             <div class="flex items-center space-x-3">
+                {% if session.get('admin_role') == 'admin' %}
                 <button onclick="clearUserRecords()" class="px-4 py-2 bg-rose-50 text-rose-600 rounded-xl text-xs font-bold hover:bg-rose-100 transition-all">
                     清空轨迹
                 </button>
+                {% endif %}
                 <button onclick="closeTrajectory()" class="w-10 h-10 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center hover:bg-slate-100 transition-all">
                     <i class="fas fa-times"></i>
                 </button>
@@ -171,6 +173,8 @@
             });
     }
 
+    const userRole = "{{ session.get('admin_role', 'viewer') }}";
+
     function renderRecords(records) {
         const content = document.getElementById('traj-content');
         if(!records.length) {
@@ -201,9 +205,11 @@
                             <span class="flex items-center"><i class="far fa-calendar-alt mr-1"></i>入库: ${v.create_at}</span>
                         </div>
                     </div>
+                    ${userRole === 'admin' ? `
                     <button onclick="deleteSingleRecord('${v.video_id}')" class="p-2 text-slate-300 hover:text-rose-500 transition-colors opacity-0 group-hover/item:opacity-100" title="移除此条记录">
                         <i class="fas fa-trash-alt"></i>
                     </button>
+                    ` : ''}
                 </div>
             `;
         });

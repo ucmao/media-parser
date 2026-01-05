@@ -92,7 +92,9 @@
             <thead class="bg-slate-50/50 text-slate-500 text-xs font-bold uppercase tracking-widest">
                 <tr>
                     <th class="px-6 py-4 w-10">
+                        {% if session.get('admin_role') == 'admin' %}
                         <input type="checkbox" id="select-all" class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" onclick="toggleAll(this)">
+                        {% endif %}
                     </th>
                     <th class="px-6 py-4">封面</th>
                     <th class="px-6 py-4">视频信息 (点击标题编辑)</th>
@@ -113,7 +115,9 @@
                 {% for video in videos %}
                 <tr class="hover:bg-slate-50/50 transition-colors group">
                     <td class="px-6 py-6">
+                        {% if session.get('admin_role') == 'admin' %}
                         <input type="checkbox" class="video-checkbox w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" value="{{ video.video_id }}" onclick="updateSelection()">
+                        {% endif %}
                     </td>
                     <td class="px-6 py-6">
                         {% if video.cover_url %}
@@ -131,9 +135,11 @@
                     </td>
                     <td class="px-6 py-6">
                         <div class="max-w-md">
-                            <div class="font-bold text-slate-800 text-lg mb-1 cursor-text hover:text-indigo-600 transition-colors flex items-start group/title" onclick="showEditModal('title', '{{ video.video_id }}', '{{ video.title or '' }}', this)">
+                            <div class="font-bold text-slate-800 text-lg mb-1 {{ 'cursor-text hover:text-indigo-600' if session.get('admin_role') == 'admin' else '' }} transition-colors flex items-start group/title" {% if session.get('admin_role') == 'admin' %}onclick="showEditModal('title', '{{ video.video_id }}', '{{ video.title or '' }}', this)"{% endif %}>
                                 <span class="title-text line-clamp-3 leading-snug">{{ video.title or '未命名视频' }}</span>
+                                {% if session.get('admin_role') == 'admin' %}
                                 <i class="fas fa-edit ml-2 mt-1.5 text-slate-300 opacity-0 group-hover/title:opacity-100 transition-opacity text-xs flex-shrink-0"></i>
+                                {% endif %}
                             </div>
                             <div class="text-xs text-slate-400 font-mono tracking-tighter">{{ video.video_id }}</div>
                         </div>
@@ -142,17 +148,19 @@
                         <span class="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-xs font-extrabold">{{ video.platform }}</span>
                     </td>
                     <td class="px-6 py-6 text-center">
-                        <div class="cursor-pointer hover:bg-indigo-50 py-1 rounded-lg transition-colors group/score" onclick="showEditModal('score', '{{ video.video_id }}', '{{ video.score }}', this)">
+                        <div class="{{ 'cursor-pointer hover:bg-indigo-50' if session.get('admin_role') == 'admin' else '' }} py-1 rounded-lg transition-colors group/score" {% if session.get('admin_role') == 'admin' %}onclick="showEditModal('score', '{{ video.video_id }}', '{{ video.score }}', this)"{% endif %}>
                             <span class="score-value text-indigo-600 font-black text-xl">{{ video.score }}</span>
+                            {% if session.get('admin_role') == 'admin' %}
                             <i class="fas fa-edit ml-1 text-slate-300 opacity-0 group-hover/score:opacity-100 transition-opacity text-xs"></i>
+                            {% endif %}
                         </div>
                     </td>
                     <td class="px-6 py-6 text-sm text-slate-400 font-medium whitespace-nowrap">
                         {{ video.create_at.strftime('%Y-%m-%d %H:%M') if video.create_at else '-' }}
                     </td>
                     <td class="px-6 py-6 text-center">
-                        <button onclick="toggleVisibility('{{ video.video_id }}', {{ 1 if video.is_visible else 0 }}, this)" 
-                            class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none {{ 'bg-indigo-600' if video.is_visible else 'bg-slate-200' }}">
+                        <button {% if session.get('admin_role') == 'admin' %}onclick="toggleVisibility('{{ video.video_id }}', {{ 1 if video.is_visible else 0 }}, this)"{% else %}disabled{% endif %} 
+                            class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none {{ 'bg-indigo-600' if video.is_visible else 'bg-slate-200' }} {{ 'cursor-not-allowed opacity-50' if session.get('admin_role') != 'admin' else '' }}">
                             <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform {{ 'translate-x-6' if video.is_visible else 'translate-x-1' }}"></span>
                         </button>
                     </td>
@@ -161,9 +169,11 @@
                             <button onclick="playVideo('{{ video.video_url }}', '{{ video.title }}')" class="text-slate-400 hover:text-indigo-600" title="播放视频">
                                 <i class="fas fa-play-circle text-2xl"></i>
                             </button>
+                            {% if session.get('admin_role') == 'admin' %}
                             <button onclick="deleteVideo('{{ video.video_id }}')" class="text-slate-400 hover:text-red-600" title="删除记录">
                                 <i class="fas fa-trash-alt text-lg"></i>
                             </button>
+                            {% endif %}
                         </div>
                     </td>
                 </tr>
