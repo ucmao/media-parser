@@ -81,10 +81,10 @@
         <div id="platform-chart" class="h-80 w-full"></div>
     </div>
 
-    <!-- Geographic Distribution -->
+    <!-- User Contribution Ranking -->
     <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
-        <h3 class="text-xl font-black text-slate-800 mb-6">用户地区活跃排行 (Top 10)</h3>
-        <div id="geo-chart" class="h-80 w-full"></div>
+        <h3 class="text-xl font-black text-slate-800 mb-6">用户解析活跃榜 (Top 10)</h3>
+        <div id="top-users-chart" class="h-80 w-full"></div>
     </div>
 </div>
 
@@ -103,7 +103,7 @@
                     updateStats(data.stats);
                     renderTrendChart(data.parse_trend, data.user_trend);
                     renderPlatformChart(data.platform_dist);
-                    renderGeoChart(data.province_dist);
+                    renderTopUsersChart(data.top_users);
                 } else {
                     showToast('获取数据失败: ' + data.message, 'error');
                 }
@@ -229,11 +229,11 @@
         new ApexCharts(document.querySelector("#platform-chart"), options).render();
     }
 
-    function renderGeoChart(dist) {
+    function renderTopUsersChart(topUsers) {
         const options = {
             series: [{
-                name: '活跃用户',
-                data: dist.map(i => i.count)
+                name: '解析次数',
+                data: topUsers.map(i => i.count)
             }],
             chart: {
                 type: 'bar',
@@ -255,7 +255,7 @@
                 style: { fontWeight: 'bold' }
             },
             xaxis: {
-                categories: dist.map(i => i.province),
+                categories: topUsers.map(i => i.name || '微信用户'),
                 axisBorder: { show: false },
                 axisTicks: { show: false },
                 labels: { style: { colors: '#94a3b8', fontWeight: 600 } }
@@ -271,11 +271,11 @@
             },
             tooltip: {
                 theme: 'light',
-                y: { formatter: val => val + ' 人' }
+                y: { formatter: val => val + ' 次' }
             }
         };
 
-        new ApexCharts(document.querySelector("#geo-chart"), options).render();
+        new ApexCharts(document.querySelector("#top-users-chart"), options).render();
     }
 </script>
 {% endblock %}

@@ -359,16 +359,17 @@ def analysis_data():
         """)
         platform_dist = cursor.fetchall()
 
-        # 4. 用户地域分布 (Top 10 省份)
+        # 4. 用户解析贡献排行 (Top 10 Users)
         cursor.execute("""
-            SELECT province, COUNT(*) as count 
-            FROM users 
-            WHERE province IS NOT NULL AND province != ''
-            GROUP BY province
-            ORDER BY count DESC
+            SELECT u.nickname as name, COUNT(pl.video_id) as count 
+            FROM parse_library pl 
+            JOIN users u ON pl.last_user_id = u.user_id 
+            WHERE pl.last_user_id IS NOT NULL 
+            GROUP BY pl.last_user_id 
+            ORDER BY count DESC 
             LIMIT 10
         """)
-        province_dist = cursor.fetchall()
+        top_users = cursor.fetchall()
 
         # 5. 总计数据
         cursor.execute("SELECT COUNT(*) as total FROM parse_library")
@@ -394,7 +395,7 @@ def analysis_data():
             'parse_trend': parse_trend,
             'user_trend': user_trend,
             'platform_dist': platform_dist,
-            'province_dist': province_dist,
+            'top_users': top_users,
             'stats': {
                 'total_parses': total_parses,
                 'total_users': total_users,

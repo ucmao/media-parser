@@ -16,17 +16,27 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .animate-fade-in { animation: fadeIn 0.2s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        
+        /* Mobile Overlay */
+        #sidebar-overlay { display: none; }
+        @media (max-width: 1024px) {
+            #sidebar.open { transform: translateX(0); }
+            #sidebar.open + #sidebar-overlay { display: block; }
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900">
-    <div class="flex h-screen overflow-hidden">
+    <div class="flex h-screen overflow-hidden relative">
         <!-- Sidebar -->
-        <aside class="w-64 bg-white border-r border-slate-200 flex-shrink-0 flex flex-col">
-            <div class="p-6 border-b border-slate-100">
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 flex-shrink-0 flex flex-col transform -translate-x-full lg:translate-x-0 lg:static transition-transform duration-300 ease-in-out">
+            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
                 <div class="flex items-center space-x-3">
                     <img src="{{ url_for('static', filename='images/logo.png') }}" class="w-8 h-8 rounded-lg object-contain">
                     <span class="text-xl font-bold tracking-tight text-slate-800">Ucmao <span class="text-indigo-600">Admin</span></span>
                 </div>
+                <button onclick="toggleSidebar()" class="lg:hidden text-slate-400 hover:text-slate-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
             </div>
             <nav class="flex-1 py-4 overflow-y-auto">
                 <a href="{{ url_for('admin_modern.dashboard') }}" class="flex items-center px-6 py-3 text-slate-600 hover:bg-slate-50 hover:text-indigo-600 transition-colors {{ 'sidebar-item-active' if request.endpoint == 'admin_modern.dashboard' }}">
@@ -87,9 +97,23 @@
             </div>
         </aside>
 
+        <!-- Sidebar Overlay -->
+        <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 lg:hidden"></div>
+
         <!-- Main Content -->
-        <main class="flex-1 overflow-y-auto relative">
-            <div class="p-8">
+        <main class="flex-1 overflow-y-auto relative flex flex-col">
+            <!-- Mobile Header -->
+            <header class="lg:hidden bg-white border-b border-slate-100 px-6 py-4 flex items-center justify-between sticky top-0 z-30">
+                <div class="flex items-center space-x-3">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" class="w-8 h-8 rounded-lg object-contain">
+                    <span class="text-lg font-bold tracking-tight text-slate-800">Ucmao <span class="text-indigo-600">Admin</span></span>
+                </div>
+                <button onclick="toggleSidebar()" class="w-10 h-10 bg-slate-50 text-slate-600 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </header>
+
+            <div class="p-4 md:p-8">
                 {% block content %}{% endblock %}
             </div>
 
@@ -128,11 +152,11 @@
     </div>
 
     <!-- Toast Notifications -->
-    <div id="toast-container" class="fixed bottom-8 right-8 z-50 flex flex-col space-y-3"></div>
+    <div id="toast-container" class="fixed bottom-4 right-4 md:bottom-8 md:right-8 z-[300] flex flex-col space-y-3"></div>
 
     <!-- Global Video Player Modal -->
-    <div id="player-modal" class="hidden fixed inset-0 bg-slate-900/30 backdrop-blur-md z-[200] flex items-center justify-center p-4 md:p-12 animate-fade-in" onclick="closePlayer()">
-        <div class="bg-black rounded-[2.5rem] shadow-2xl w-full max-w-5xl aspect-video relative overflow-hidden border border-white/20 transform transition-all scale-100" onclick="event.stopPropagation()">
+    <div id="player-modal" class="hidden fixed inset-0 bg-slate-900/30 backdrop-blur-md z-[250] flex items-center justify-center p-2 md:p-12 animate-fade-in" onclick="closePlayer()">
+        <div class="bg-black rounded-3xl md:rounded-[2.5rem] shadow-2xl w-full max-w-5xl aspect-video relative overflow-hidden border border-white/20 transform transition-all scale-100" onclick="event.stopPropagation()">
             <!-- 播放器 -->
             <video id="video-player" controls class="w-full h-full object-contain" src="" playsinline></video>
             
@@ -307,6 +331,11 @@
                     showToast(data.message, 'error');
                 }
             });
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
         }
     </script>
 </body>
