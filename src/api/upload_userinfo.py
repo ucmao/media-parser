@@ -1,9 +1,42 @@
-from flask import Blueprint, request
+import os
+import uuid
+from flask import Blueprint, request, jsonify
 from configs.logging_config import logger
 from src.database.userinfo_query import UserInfoQuery
 from utils.common_utils import make_response, validate_request
+from configs.general_constants import SAVE_AVATAR_PATH, DOMAIN
 
 bp = Blueprint('upload_userinfo', __name__)
+
+
+@bp.route('/upload_avatar', methods=['POST'])
+def upload_avatar():
+    try:
+        if 'file' not in request.files:
+            return jsonify({'success': False, 'message': '没有文件'}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'success': False, 'message': '文件名为空'}), 400
+        
+        # 生成唯一文件名
+        ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else 'jpg'
+        filename = f"{uuid.uuid4().hex}.{ext}"
+        filepath = os.path.join(SAVE_AVATAR_PATH, filename)
+        
+        file.save(filepath)
+        
+        # 构建永久访问 URL
+        url = f"https://{DOMAIN}/static/avatars/{filename}"
+        
+        return jsonify({
+            'success': True,
+            'url': url
+        })
+        
+    except Exception as e:
+        logger.error(f"Upload avatar error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 
 @bp.route('/upload_userinfo', methods=['POST'])

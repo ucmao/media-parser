@@ -44,6 +44,7 @@ business_config = load_business_json(os.path.join(PROJECT_ROOT, "configs", "busi
 static_dir = os.path.join(PROJECT_ROOT, "static")
 SAVE_VIDEO_PATH = os.path.join(static_dir, "videos")
 SAVE_IMAGE_PATH = os.path.join(static_dir, "images")
+SAVE_AVATAR_PATH = os.path.join(static_dir, "avatars")
 
 # 业务常量
 DOMAIN_TO_NAME = business_config["DOMAIN_TO_NAME"]
@@ -55,7 +56,7 @@ USER_AGENT_M = business_config["USER_AGENT_M"]
 
 def check_essential_dirs():
     """检查并创建必要目录"""
-    for dir_path in [SAVE_VIDEO_PATH, SAVE_IMAGE_PATH]:
+    for dir_path in [SAVE_VIDEO_PATH, SAVE_IMAGE_PATH, SAVE_AVATAR_PATH]:
         if not os.path.exists(dir_path):
             os.makedirs(dir_path, exist_ok=True)
             print(f"已创建目录：{dir_path}")
