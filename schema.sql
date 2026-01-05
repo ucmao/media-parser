@@ -2,6 +2,7 @@
 -- 文件名: schema.sql
 -- 描述: 项目数据库初始化脚本，兼容 MySQL 5.7。
 --
+
 -- ----------------------------
 -- 全局设置：确保支持中文和Emoji (utf8mb4)
 -- ----------------------------
@@ -12,12 +13,12 @@ SET COLLATION_CONNECTION = utf8mb4_general_ci;
 -- ----------------------------
 -- 1. 数据库创建 (如果不存在)
 -- ----------------------------
-CREATE DATABASE IF NOT EXISTS `ucmao_parse`
+CREATE DATABASE IF NOT EXISTS `parse_ucmao`
     DEFAULT CHARACTER SET utf8mb4
     DEFAULT COLLATE utf8mb4_general_ci;
 
 -- 切换到目标数据库
-USE `ucmao_parse`;
+USE `parse_ucmao`;
 
 
 -- ----------------------------
@@ -31,6 +32,7 @@ CREATE TABLE IF NOT EXISTS `parse_library` (
   `cover_url` text COLLATE utf8mb4_general_ci COMMENT '视频封面URL',
   `video_url` text COLLATE utf8mb4_general_ci NOT NULL COMMENT '视频播放URL',
   `score` int(11) DEFAULT '0' COMMENT '视频评分',
+  `is_visible` tinyint(1) DEFAULT '1' COMMENT '是否显示给前端 (0:隐藏, 1:显示)',
   `create_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`video_id`)
@@ -59,3 +61,32 @@ CREATE TABLE IF NOT EXISTS `users` (
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `idx_open_id` (`open_id`) COMMENT 'open_id 唯一索引'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='用户表';
+
+
+-- ----------------------------
+-- 4. 表结构: `score_config` (积分配置表)
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS `score_config` (
+  `config_key` varchar(50) COLLATE utf8mb4_general_ci NOT NULL COMMENT '配置键名',
+  `config_value` int(11) NOT NULL DEFAULT '0' COMMENT '配置分值',
+  `config_desc` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '配置描述',
+  `is_enabled` tinyint(1) DEFAULT '1' COMMENT '是否启用 (0:禁用, 1:启用)',
+  PRIMARY KEY (`config_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='积分配置表';
+
+-- 初始积分数据
+INSERT IGNORE INTO `score_config` (`config_key`, `config_value`, `config_desc`) VALUES
+('parse', 10, '视频解析成功'),
+('shareFriend', 8, '分享给好友'),
+('shareTimeline', 12, '分享到朋友圈'),
+('videoDownload', 5, '视频下载'),
+('imageDownload', 3, '封面下载'),
+('copyAllInfo', 4, '复制全部信息'),
+('copyTitle', 1, '复制标题'),
+('copyCoverUrl', 2, '复制封面链接'),
+('copyVideoUrl', 3, '复制视频链接'),
+('batchCopyTitle', 1, '批量复制标题'),
+('batchCopyImageLink', 1, '批量复制封面链接'),
+('batchCopyVideoLink', 1, '批量复制视频链接'),
+('batchCopyAllInfo', 2, '批量复制全部信息'),
+('validPlay', 1, '有效播放');

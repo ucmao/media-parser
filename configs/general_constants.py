@@ -11,9 +11,6 @@ WECHAT_APP_ID = os.getenv("WECHAT_APP_ID")
 WECHAT_APP_SECRET = os.getenv("WECHAT_APP_SECRET")
 DOMAIN = os.getenv("DOMAIN")
 
-# 从环境变量读取审核模式设置
-AUDIT_MODE = os.getenv('AUDIT_MODE', 'false').lower() == 'true'
-
 # 数据库配置
 DATABASE_CONFIG = {
     "host": os.getenv("DB_HOST", "localhost"),

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    <title>{% block title %}Ucmao Admin{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .sidebar-item-active { background-color: rgba(99, 102, 241, 0.1); color: #6366f1; border-right: 4px solid #6366f1; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .animate-fade-in { animation: fadeIn 0.2s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white border-r border-slate-200 flex-shrink-0 flex flex-col">
+            <div class="p-6 border-b border-slate-100">
+                <div class="flex items-center space-x-3">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" class="w-8 h-8 rounded-lg object-contain">
+                    <span class="text-xl font-bold tracking-tight text-slate-800">Ucmao <span class="text-indigo-600">Admin</span></span>
+                </div>
+            </div>
+            <nav class="flex-1 py-4 overflow-y-auto">
+                <a href="{{ url_for('admin_modern.dashboard') }}" class="flex items-center px-6 py-3 text-slate-600 hover:bg-slate-50 hover:text-indigo-600 transition-colors {{ 'sidebar-item-active' if request.endpoint == 'admin_modern.dashboard' }}">
+                    <i class="fas fa-chart-line w-5 mr-3"></i>
+                    <span class="font-medium">仪表盘概览</span>
+                </a>
+                <a href="{{ url_for('admin_modern.videos') }}" class="flex items-center px-6 py-3 text-slate-600 hover:bg-slate-50 hover:text-indigo-600 transition-colors {{ 'sidebar-item-active' if request.endpoint == 'admin_modern.videos' }}">
+                    <i class="fas fa-video w-5 mr-3"></i>
+                    <span class="font-medium">视频库管理</span>
+                </a>
+                <a href="{{ url_for('admin_modern.users') }}" class="flex items-center px-6 py-3 text-slate-600 hover:bg-slate-50 hover:text-indigo-600 transition-colors {{ 'sidebar-item-active' if request.endpoint == 'admin_modern.users' }}">
+                    <i class="fas fa-users w-5 mr-3"></i>
+                    <span class="font-medium">用户列表</span>
+                </a>
+                <a href="{{ url_for('admin_modern.scores') }}" class="flex items-center px-6 py-3 text-slate-600 hover:bg-slate-50 hover:text-indigo-600 transition-colors {{ 'sidebar-item-active' if request.endpoint == 'admin_modern.scores' }}">
+                    <i class="fas fa-coins w-5 mr-3"></i>
+                    <span class="font-medium">积分配置</span>
+                </a>
+                <div class="mt-8 px-6 mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">系统维护</div>
+                <button onclick="cleanupEmpty()" class="w-full flex items-center px-6 py-3 text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors">
+                    <i class="fas fa-trash-alt w-5 mr-3"></i>
+                    <span class="font-medium">清理空数据</span>
+                </button>
+                <button onclick="showKeywordCleanup()" class="w-full flex items-center px-6 py-3 text-slate-600 hover:bg-orange-50 hover:text-orange-600 transition-colors">
+                    <i class="fas fa-filter w-5 mr-3"></i>
+                    <span class="font-medium">敏感词清理</span>
+                </button>
+                <button onclick="globalVisibilityModal()" class="w-full flex items-center px-6 py-3 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-all opacity-50 hover:opacity-100">
+                    <i class="fas fa-eye-slash w-5 mr-3"></i>
+                    <span class="font-medium text-xs">全站显隐控制</span>
+                </button>
+            </nav>
+            <div class="p-4 border-t border-slate-100">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-500">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                        <div class="text-sm">
+                            <div class="font-semibold text-slate-800">{{ session.get('admin_user', 'Admin') }}</div>
+                            <div class="text-slate-500 text-xs">管理员</div>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('admin_modern.logout') }}" class="text-slate-400 hover:text-red-500 p-2 transition-colors">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto relative">
+            <div class="p-8">
+                {% block content %}{% endblock %}
+            </div>
+
+            <!-- Global Keyword Cleanup Modal -->
+            <div id="keyword-modal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all">
+                    <div class="p-6">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4">敏感词一键清理</h3>
+                        <p class="text-slate-500 text-sm mb-4">请输入要清理的敏感词，多个词请用逗号隔开。操作将永久删除包含这些词的视频记录。</p>
+                        <textarea id="cleanup-keywords" class="w-full h-32 p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all font-medium" placeholder="例：维权, 欺诈, 违规"></textarea>
+                    </div>
+                    <div class="bg-slate-50 p-6 flex justify-end space-x-3">
+                        <button onclick="hideKeywordCleanup()" class="px-4 py-2 text-slate-600 font-medium hover:bg-slate-200 rounded-lg transition-colors">取消</button>
+                        <button onclick="executeKeywordCleanup()" class="px-6 py-2 bg-orange-600 text-white font-bold rounded-lg hover:bg-orange-700 transition-all">确认清理</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Global Confirm Modal -->
+            <div id="confirm-modal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+                <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all animate-fade-in">
+                    <div class="p-8 text-center">
+                        <div class="w-16 h-16 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <h3 id="confirm-modal-title" class="text-xl font-bold text-slate-800 mb-2">操作确认</h3>
+                        <p id="confirm-modal-message" class="text-slate-500 font-medium leading-relaxed px-4"></p>
+                    </div>
+                    <div class="bg-slate-50 p-6 flex justify-center space-x-3">
+                        <button onclick="hideConfirmModal()" class="px-6 py-3 text-slate-500 font-bold hover:bg-slate-200 rounded-xl transition-all">取消</button>
+                        <button id="confirm-modal-btn" class="px-8 py-3 bg-rose-600 text-white rounded-xl font-bold hover:bg-rose-700 transition-all shadow-lg shadow-rose-100">确认执行</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="fixed bottom-8 right-8 z-50 flex flex-col space-y-3"></div>
+
+    <!-- Global Video Player Modal -->
+    <div id="player-modal" class="hidden fixed inset-0 bg-slate-900/30 backdrop-blur-md z-[200] flex items-center justify-center p-4 md:p-12 animate-fade-in" onclick="closePlayer()">
+        <div class="bg-black rounded-[2.5rem] shadow-2xl w-full max-w-5xl aspect-video relative overflow-hidden border border-white/20 transform transition-all scale-100" onclick="event.stopPropagation()">
+            <!-- 播放器 -->
+            <video id="video-player" controls class="w-full h-full object-contain" src="" playsinline></video>
+            
+            <!-- 顶部控制条 -->
+            <div class="absolute top-0 left-0 right-0 p-6 bg-gradient-to-b from-black/60 to-transparent flex items-center justify-between">
+                <h3 id="player-title" class="text-white font-bold truncate pr-10">视频播放</h3>
+                <button onclick="closePlayer()" class="w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center transition-all group">
+                    <i class="fas fa-times group-hover:rotate-90 transition-transform"></i>
+                </button>
+            </div>
+
+            <!-- 加载中提示 -->
+            <div id="player-loader" class="absolute inset-0 flex flex-col items-center justify-center text-white space-y-4 pointer-events-none">
+                <div class="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
+                <p class="text-sm font-medium text-white/50">正在缓冲资源...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let confirmCallback = null;
+
+        function playVideo(url, title) {
+            if (!url) return showToast('该视频暂无播放链接', 'error');
+            
+            const modal = document.getElementById('player-modal');
+            const player = document.getElementById('video-player');
+            const titleEl = document.getElementById('player-title');
+            const loader = document.getElementById('player-loader');
+
+            titleEl.innerText = title || '视频播放';
+            loader.classList.remove('hidden');
+            
+            player.pause();
+            player.src = url;
+            player.load();
+
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+
+            player.oncanplay = () => {
+                loader.classList.add('hidden');
+                player.play().catch(e => console.log('Auto-play blocked'));
+            };
+
+            player.onerror = () => {
+                loader.classList.add('hidden');
+                showToast('视频加载失败，可能是原始链接已失效', 'error');
+            };
+        }
+
+        function closePlayer() {
+            const modal = document.getElementById('player-modal');
+            const player = document.getElementById('video-player');
+            player.oncanplay = null;
+            player.onerror = null;
+            player.pause();
+            player.src = '';
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        function globalVisibilityModal() {
+            const title = '全站可见性控制';
+            const msg = `
+                <div class="text-center">
+                    <p class="text-slate-500 text-sm leading-relaxed mb-6">此操作将影响数据库中<span class="text-rose-600 font-bold">所有视频记录</span>。选择“全站上线”将使全部视频在前端可见；选择“全站隐身”则全部隐藏。</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="executeGlobalVisibility(true)" class="px-4 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all text-sm">
+                            全站上线
+                        </button>
+                        <button onclick="executeGlobalVisibility(false)" class="px-4 py-3 bg-rose-600 text-white rounded-xl font-bold hover:bg-rose-700 transition-all text-sm">
+                            全站隐身
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            showConfirm('', null, title);
+            document.getElementById('confirm-modal-message').innerHTML = msg;
+            document.getElementById('confirm-modal-btn').classList.add('hidden');
+        }
+
+        function executeGlobalVisibility(status) {
+            fetch("{{ url_for('admin_modern.bulk_visibility') }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ video_ids: [], is_visible: status })
+            }).then(r => r.json()).then(data => {
+                if(data.success) {
+                    showToast(`全局更新成功: ${data.count} 条记录`);
+                    hideConfirmModal();
+                    setTimeout(() => location.reload(), 1000);
+                }
+            });
+        }
+
+        function showConfirm(message, callback, title = '操作确认') {
+            document.getElementById('confirm-modal-btn').classList.remove('hidden'); // 重置显示
+            document.getElementById('confirm-modal-message').innerHTML = message;
+            document.getElementById('confirm-modal-title').innerText = title;
+            document.getElementById('confirm-modal').classList.remove('hidden');
+            confirmCallback = callback;
+            
+            document.getElementById('confirm-modal-btn').onclick = () => {
+                if(confirmCallback) confirmCallback();
+                hideConfirmModal();
+            };
+        }
+
+        function hideConfirmModal() {
+            document.getElementById('confirm-modal').classList.add('hidden');
+            confirmCallback = null;
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-indigo-600' : 'bg-red-600';
+            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+            
+            toast.className = `${bgColor} text-white px-6 py-3 rounded-xl shadow-lg flex items-center space-x-3 transform transition-all translate-y-10 opacity-0`;
+            toast.innerHTML = `
+                <i class="fas ${icon}"></i>
+                <span class="font-medium">${message}</span>
+            `;
+            
+            document.getElementById('toast-container').appendChild(toast);
+            setTimeout(() => {
+                toast.classList.remove('translate-y-10', 'opacity-0');
+            }, 10);
+            
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+
+        function cleanupEmpty() {
+            showConfirm('确定要清理所有标题为空的视频记录吗？此操作不可撤销。', () => {
+                fetch("{{ url_for('admin_modern.cleanup_empty') }}", { method: 'POST' })
+                    .then(r => r.json())
+                    .then(data => {
+                        if(data.success) {
+                            showToast(`清理完成，共删除了 ${data.count} 条记录`);
+                            setTimeout(() => location.reload(), 1500);
+                        } else {
+                            showToast(data.message, 'error');
+                        }
+                    });
+            });
+        }
+
+        function showKeywordCleanup() { document.getElementById('keyword-modal').classList.remove('hidden'); }
+        function hideKeywordCleanup() { document.getElementById('keyword-modal').classList.add('hidden'); }
+
+        function executeKeywordCleanup() {
+            const keywords = document.getElementById('cleanup-keywords').value.replace('，', ',').split(',').map(s => s.trim()).filter(s => s);
+            if(keywords.length === 0) return showToast('请输入关键词', 'error');
+
+            fetch("{{ url_for('admin_modern.cleanup_keywords') }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ keywords })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if(data.success) {
+                    showToast(`清理成功，共删除了 ${data.count} 条相关记录`);
+                    hideKeywordCleanup();
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast(data.message, 'error');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

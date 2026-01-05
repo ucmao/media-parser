@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Parser - 高效短视频解析工具</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+        }
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 overflow-x-hidden">
+    <!-- Navbar -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" class="w-10 h-10 rounded-xl shadow-sm">
+                <span class="text-xl font-bold tracking-tight text-slate-800">Ucmao <span class="text-indigo-600">Parse</span></span>
+            </div>
+            <a href="{{ url_for('admin_modern.login') }}" class="px-6 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-all flex items-center space-x-2">
+                <i class="fas fa-lock text-sm"></i>
+                <span>管理后台</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="pt-32 pb-20 px-6 relative overflow-hidden">
+        <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+            <div class="relative z-10">
+                <span class="px-4 py-1.5 bg-indigo-50 text-indigo-600 rounded-full text-sm font-bold tracking-wide uppercase mb-6 inline-block">v2.0 现已发布</span>
+                <h1 class="text-5xl lg:text-7xl font-extrabold text-slate-900 leading-[1.1] mb-8">
+                    高效解析，<br>
+                    <span class="text-indigo-600">赋能短视频创作。</span>
+                </h1>
+                <p class="text-xl text-slate-500 mb-10 leading-relaxed max-w-xl">
+                    Media Parser是一款专为创作者打造的自动化视频解析工具。一键提取多平台无水印高清视频素材，让创作更简单，让灵感随手可得。
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button onclick="scrollToQr()" class="px-10 py-4 bg-indigo-600 text-white rounded-2xl font-bold text-lg hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200 flex items-center justify-center space-x-3">
+                        <i class="fas fa-mobile-alt"></i>
+                        <span>立即扫码体验</span>
+                    </button>
+                    <a href="https://github.com/ucmao" target="_blank" class="px-10 py-4 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold text-lg hover:bg-slate-50 transition-all flex items-center justify-center space-x-3">
+                        <i class="fab fa-github"></i>
+                        <span>查看源码</span>
+                    </a>
+                </div>
+            </div>
+            <div class="relative lg:ml-auto">
+                <div class="w-[320px] h-[580px] bg-slate-900 rounded-[3rem] p-4 shadow-2xl relative z-20 animate-float border-[8px] border-slate-800">
+                    <div class="bg-white w-full h-full rounded-[2rem] overflow-hidden flex flex-col items-center justify-center p-8 text-center">
+                        <img src="{{ url_for('static', filename='images/logo.png') }}" class="w-20 h-20 mb-6 rounded-2xl">
+                        <h3 class="text-2xl font-black text-slate-800 mb-2">小程序正式版</h3>
+                        <p class="text-slate-400 text-sm mb-8">扫描下方二维码<br>开启高清解析之旅</p>
+                        <div class="bg-slate-50 p-4 rounded-3xl border border-slate-100 mb-6">
+                            <img src="{{ url_for('static', filename='images/qr_code.jpg') }}" class="w-40 h-40">
+                        </div>
+                        <div class="flex items-center space-x-2 text-indigo-600 font-bold animate-pulse">
+                            <i class="fas fa-arrow-down"></i>
+                            <span>长按或扫码进入</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Background Decoration -->
+                <div class="absolute -top-20 -right-20 w-[400px] h-[400px] bg-indigo-400/20 rounded-full blur-[100px] -z-10"></div>
+                <div class="absolute -bottom-20 -left-20 w-[300px] h-[300px] bg-purple-400/20 rounded-full blur-[80px] -z-10"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-20 bg-white border-y border-slate-100 px-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-black text-slate-800 mb-4">为什么选择Media Parser？</h2>
+                <p class="text-slate-400 max-w-2xl mx-auto">我们不仅仅是一个解析工具，更是您创作路上的得力助手。</p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="p-8 bg-slate-50 rounded-3xl border border-slate-100 hover:border-indigo-200 transition-all group">
+                    <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-indigo-600 text-2xl mb-6 shadow-sm group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-3">极速解析</h3>
+                    <p class="text-slate-500 leading-relaxed">基于高性能异步抓取技术，秒级获取视频真实地址，告别漫长等待。</p>
+                </div>
+                <div class="p-8 bg-slate-50 rounded-3xl border border-slate-100 hover:border-indigo-200 transition-all group">
+                    <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-indigo-600 text-2xl mb-6 shadow-sm group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-3">多平台支持</h3>
+                    <p class="text-slate-500 leading-relaxed">全面兼容抖音、快手、小红书、B站等主流短视频平台，覆盖全网素材。</p>
+                </div>
+                <div class="p-8 bg-slate-50 rounded-3xl border border-slate-100 hover:border-indigo-200 transition-all group">
+                    <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-indigo-600 text-2xl mb-6 shadow-sm group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-3">安全稳定</h3>
+                    <p class="text-slate-500 leading-relaxed">采用微信小程序官方登录，无需注册，数据加密传输，保护您的隐私。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- QR Section -->
+    <section id="qr-section" class="py-32 px-6">
+        <div class="max-w-4xl mx-auto gradient-bg rounded-[3rem] p-12 lg:p-20 text-center text-white relative overflow-hidden shadow-2xl shadow-indigo-300">
+            <div class="relative z-10">
+                <h2 class="text-4xl lg:text-5xl font-black mb-6">准备好开始了么？</h2>
+                <p class="text-indigo-100 text-xl mb-12 max-w-2xl mx-auto opacity-90">拿起手机，打开微信扫一扫。只需几秒钟，您就可以开始使用最流畅的解析服务。</p>
+                <div class="inline-block bg-white p-6 rounded-[2.5rem] shadow-2xl mb-8 transform hover:scale-105 transition-transform">
+                    <img src="{{ url_for('static', filename='images/qr_code.jpg') }}" class="w-56 h-56">
+                </div>
+                <div class="text-indigo-200 font-medium">Media Parser解析 · 赋能每一位创作者</div>
+            </div>
+            <!-- Circles -->
+            <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+            <div class="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full -ml-32 -mb-32 blur-3xl"></div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 border-t border-slate-100 px-6 bg-white">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex items-center space-x-3 opacity-60">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" class="w-6 h-6 rounded-md grayscale">
+                <span class="text-slate-800 font-bold">Ucmao Parse</span>
+            </div>
+            <div class="text-slate-400 text-sm font-medium">
+                © 2026 Media Parser. All rights reserved. 专为创作者而生。
+            </div>
+            <div class="flex space-x-6">
+                <a href="#" class="text-slate-400 hover:text-indigo-600 transition-colors"><i class="fab fa-weixin text-xl"></i></a>
+                <a href="https://github.com/ucmao" target="_blank" class="text-slate-400 hover:text-indigo-600 transition-colors"><i class="fab fa-github text-xl"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function scrollToQr() {
+            document.getElementById('qr-section').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
+

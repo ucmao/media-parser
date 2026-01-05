@@ -7,11 +7,12 @@ from configs.logging_config import logger
 
 
 class DBManager:
-    def __init__(self, host: str, user: str, password: str, database: str):
+    def __init__(self, host: str, user: str, password: str, database: str, port: int = 3306):
         self.host = host
         self.user = user
         self.password = password
         self.database = database
+        self.port = port
         self.conn: Optional[MySQLConnection] = None
 
     def connect(self):
@@ -19,7 +20,8 @@ class DBManager:
             host=self.host,
             user=self.user,
             password=self.password,
-            database=self.database
+            database=self.database,
+            port=self.port
         )
 
     def disconnect(self):

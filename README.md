@@ -1,6 +1,5 @@
 <div align="center">
-
-<img src="logo.png" width="120" height="auto" alt="Media Parser Logo">
+<img src="static/images/logo.png" width="120" height="auto" alt="Media Parser Logo">
 
 # 🚀 Media Parser 后端(parse-ucmao-backend)
 
@@ -28,13 +27,15 @@ Media Parser是一款专为短视频创作者打造的**自动化解析工具**�
 
 ## 📱 立即体验
 
-为了方便您快速了解系统功能，我们提供了微信小程序演示版与配套的前端项目：
+为了方便快速了解系统功能，我们提供了全套解决方案：
 
-* **🧩 小程序端（正式版）**：请扫描下方太阳码进行体验
-* **🎨 前端源码**: [https://github.com/ucmao/parse-ucmao-mp](https://github.com/ucmao/parse-ucmao-mp)
+* **🌐 项目门户**: [https://parse.ucmao.cn/](https://parse.ucmao.cn/) (扫码引导页)
+* **⚙️ 管理后台**: [https://parse.ucmao.cn/admin](https://parse.ucmao.cn/admin) (默认: `admin` / `admin123`)
+* **🧩 小程序端**: 扫描下方太阳码进行体验
+* **🎨 前端源码**: [parse-ucmao-mp](https://github.com/ucmao/parse-ucmao-mp)
 
 <p align="center">
-<img src="qr_code.jpg" width="200" alt="Media Parser太阳码">
+<img src="static/images/qr_code.jpg" width="180" alt="Media Parser太阳码">
 </p>
 
 > **协作提示**：本仓库提供核心解析逻辑与 RESTful API。如需构建完整应用，请配合上述前端仓库使用。
@@ -100,9 +101,8 @@ pip install -r requirements.txt
 在项目根目录下创建 `.env` 文件（参考 `.env.example`）：
 
 ```ini
-# 核心域名与审核开关
+# 核心域名
 DOMAIN = your_domain_here
-AUDIT_MODE = false
 
 # 微信小程序登录配置
 WECHAT_APP_ID = your_wechat_app_id_here
@@ -114,6 +114,10 @@ DB_PORT = 3306
 DB_NAME = parse_ucmao
 DB_USER = root
 DB_PASSWORD = your_password_here
+
+# 管理后台配置 (可选)
+ADMIN_USER = admin
+ADMIN_PASSWORD = admin123
 
 ```
 

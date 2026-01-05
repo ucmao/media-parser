@@ -2,26 +2,32 @@ from flask import Blueprint, request
 from configs.logging_config import logger
 from utils.common_utils import make_response, validate_request
 from src.database.data_storage_manager import DataStorageManager
+from configs.general_constants import DATABASE_CONFIG
+import mysql.connector
+
 bp = Blueprint('upload_score', __name__)
 
-
-action_score_map = {
-    "parse": 10,
-    "shareFriend": 8,
-    "shareTimeline": 12,
-    "videoDownload": 5,
-    "imageDownload": 3,
-    "copyAllInfo": 4,
-    "copyTitle": 1,
-    "copyCoverUrl": 2,
-    "copyVideoUrl": 3,
-    "batchCopyTitle": 1,
-    "batchCopyImageLink": 1,
-    "batchCopyVideoLink": 1,
-    "batchCopyAllInfo": 2,
-    "validPlay": 1
-}
-
+def get_score_configs():
+    """从数据库实时读取积分配置，仅返回已启用的"""
+    try:
+        conn = mysql.connector.connect(**DATABASE_CONFIG)
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT config_key, config_value, is_enabled FROM score_config")
+        rows = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        # 仅包含已启用的配置 (is_enabled = 1)
+        return {row['config_key']: row['config_value'] for row in rows if row.get('is_enabled', 1) == 1}
+    except Exception as e:
+        logger.error(f"Failed to fetch score configs: {e}")
+        # 降级处理：如果数据库查询失败，返回原始默认值
+        return {
+            "parse": 10, "shareFriend": 8, "shareTimeline": 12,
+            "videoDownload": 5, "imageDownload": 3, "copyAllInfo": 4,
+            "copyTitle": 1, "copyCoverUrl": 2, "copyVideoUrl": 3,
+            "batchCopyTitle": 1, "batchCopyImageLink": 1, "batchCopyVideoLink": 1,
+            "batchCopyAllInfo": 2, "validPlay": 1
+        }
 
 @bp.route('/upload_score', methods=['POST'])
 def upload_record():
@@ -35,6 +41,9 @@ def upload_record():
         validation_result = validate_request(video_ids, action_type)
         if validation_result:
             return validation_result
+
+        # 实时获取配置的分值
+        action_score_map = get_score_configs()
 
         # 统一视频ID为列表格式（兼容单个/多个视频）
         video_ids = video_ids if isinstance(video_ids, list) else [video_ids]
@@ -56,7 +65,7 @@ def upload_record():
         # 计算总增加的积分
         total_added = sum(result['added_score'] for result in batch_result if result['success'])
         
-        logger.info(f'[{wx_open_id}] 本次为{len(video_ids)}个视频{"各加" if len(video_ids) > 1 else "加"}{total_added // len(video_ids)}分，共+{total_added}分（{action_type}操作完成）')
+        logger.info(f'[{wx_open_id}] 本次为{len(video_ids)}个视频{"各加" if len(video_ids) > 1 else "加"}{total_added // len(video_ids) if video_ids else 0}分，共+{total_added}分（{action_type}操作完成）')
         return make_response(
             200, 
             '积分更新成功', 

@@ -83,6 +83,7 @@ class RecordsQuery:
             parse_library pl
         WHERE 
             pl.video_id IN ({', '.join(['%s'] * len(filtered_videos))})
+            AND pl.is_visible = 1
         """
         params = list(filtered_videos.keys())
 

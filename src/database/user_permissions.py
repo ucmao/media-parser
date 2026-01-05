@@ -152,7 +152,7 @@ if __name__ == "__main__":
     'host': 'localhost',  # 数据库主机地址
     'user': 'root',  # 数据库用户名
     'password': 'yuandian123',  # 数据库密码
-    'database': 'ucmao_parse'  # 数据库名称
+    'database': 'parse_ucmao'  # 数据库名称
     }
     query_and_set_permissions()
 

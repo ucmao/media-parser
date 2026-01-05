@@ -1,5 +1,5 @@
 import mysql.connector
-from configs.general_constants import DATABASE_CONFIG, PLATFORM_MAP, AUDIT_MODE
+from configs.general_constants import DATABASE_CONFIG, PLATFORM_MAP
 from configs.logging_config import logger
 
 
@@ -39,7 +39,7 @@ class RankingQuery:
             query = f"""
             SELECT video_id, platform, title, video_url, cover_url, score
             FROM parse_library
-            WHERE {date_filter} AND title LIKE %s
+            WHERE {date_filter} AND title LIKE %s AND is_visible = 1
             ORDER BY score DESC
             LIMIT {limit}
             """
@@ -48,7 +48,7 @@ class RankingQuery:
             query = f"""
             SELECT video_id, platform, title, video_url, cover_url, score
             FROM parse_library
-            WHERE {date_filter}
+            WHERE {date_filter} AND is_visible = 1
             ORDER BY score DESC
             LIMIT {limit}
             """
@@ -72,8 +72,6 @@ class RankingQuery:
         return videos_info
 
     def get_recent_ranking(self, keywords='', limit=100):
-        # 审核专用，当AUDIT_MODE打开时候，禁止返回ranking页面的视频列表。
-        if AUDIT_MODE: limit = 0
         return {
             'search': keywords,
             # 'today': self.get_recent_query_ranking('TODAY', keywords, limit),

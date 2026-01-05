@@ -1,0 +1,154 @@
+{% extends "admin_modern/base.html" %}
+
+{% block title %}积分配置 - Ucmao Admin{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">积分配置</h1>
+    <p class="text-slate-500 mt-1">动态调整各项操作的积分分值与启用状态，前端实时生效。</p>
+</div>
+
+<div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left">
+            <thead class="bg-slate-50/50 text-slate-500 text-xs font-bold uppercase tracking-widest">
+                <tr>
+                    <th class="px-8 py-4 cursor-pointer hover:text-indigo-600 transition-colors" onclick="sortBy('config_key')">
+                        操作类型 {% if sort_by == 'config_key' %}<i class="fas fa-sort-{{ 'down' if order == 'desc' else 'up' }}"></i>{% endif %}
+                    </th>
+                    <th class="px-8 py-4">描述</th>
+                    <th class="px-8 py-4 text-center w-40 cursor-pointer hover:text-indigo-600 transition-colors" onclick="sortBy('config_value')">
+                        积分分值 {% if sort_by == 'config_value' %}<i class="fas fa-sort-{{ 'down' if order == 'desc' else 'up' }}"></i>{% endif %}
+                    </th>
+                    <th class="px-8 py-4 text-center cursor-pointer hover:text-indigo-600 transition-colors" onclick="sortBy('is_enabled')">
+                        状态 {% if sort_by == 'is_enabled' %}<i class="fas fa-sort-{{ 'down' if order == 'desc' else 'up' }}"></i>{% endif %}
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+                {% for score in scores %}
+                <tr class="hover:bg-slate-50/50 transition-colors group">
+                    <td class="px-8 py-6">
+                        <div class="font-mono text-indigo-600 font-bold bg-indigo-50 px-3 py-1 rounded-lg inline-block">{{ score.config_key }}</div>
+                    </td>
+                    <td class="px-8 py-6">
+                        <div class="text-slate-600 font-medium">{{ score.config_desc or '-' }}</div>
+                    </td>
+                    <td class="px-8 py-6 text-center">
+                        <div class="cursor-pointer hover:bg-indigo-50 py-2 rounded-xl transition-all group/edit" onclick="showScoreEditModal('{{ score.config_key }}', '{{ score.config_value }}', this)">
+                            <span class="score-value text-2xl font-black text-slate-800">{{ score.config_value }}</span>
+                            <i class="fas fa-pen ml-2 text-slate-300 opacity-0 group-hover/edit:opacity-100 transition-opacity text-sm"></i>
+                        </div>
+                    </td>
+                    <td class="px-8 py-6 text-center">
+                        <button onclick="toggleScoreStatus('{{ score.config_key }}', {{ 1 if score.is_enabled else 0 }}, this)" 
+                            class="px-3 py-1 rounded-full text-xs font-bold transition-all {{ 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100' if score.is_enabled else 'bg-slate-100 text-slate-400 hover:bg-slate-200' }}">
+                            {{ '启用' if score.is_enabled else '禁用' }}
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="score-edit-modal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all">
+        <div class="p-8">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-slate-800">修改积分分值</h3>
+                <button onclick="hideScoreEditModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label id="score-edit-label" class="block text-sm font-bold text-slate-500 mb-2 ml-1">积分数值</label>
+                    <input type="number" id="score-edit-input" class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all font-medium text-slate-700">
+                </div>
+            </div>
+        </div>
+        <div class="bg-slate-50 p-6 flex justify-end space-x-3">
+            <button onclick="hideScoreEditModal()" class="px-6 py-3 text-slate-500 font-bold hover:bg-slate-200 rounded-xl transition-all">取消</button>
+            <button id="score-edit-confirm" class="px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">确认修改</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentScoreEdit = null;
+
+    function showScoreEditModal(key, value, element) {
+        currentScoreEdit = { key, element };
+        const modal = document.getElementById('score-edit-modal');
+        const input = document.getElementById('score-edit-input');
+        const label = document.getElementById('score-edit-label');
+        
+        label.innerText = `正在修改 "${key}" 的积分`;
+        input.value = value;
+        modal.classList.remove('hidden');
+        input.focus();
+
+        document.getElementById('score-edit-confirm').onclick = () => {
+            const newVal = parseInt(input.value);
+            if (isNaN(newVal)) return showToast('请输入有效的数字', 'error');
+
+            fetch("{{ url_for('admin_modern.update_score') }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: key, value: newVal })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if(data.success) {
+                    currentScoreEdit.element.querySelector('.score-value').innerText = newVal;
+                    showToast('积分配置已更新');
+                    hideScoreEditModal();
+                } else {
+                    showToast(data.message, 'error');
+                }
+            });
+        };
+    }
+
+    function hideScoreEditModal() {
+        document.getElementById('score-edit-modal').classList.add('hidden');
+        currentScoreEdit = null;
+    }
+
+    function sortBy(field) {
+        const url = new URL(window.location.href);
+        const currentSort = url.searchParams.get('sort_by');
+        const currentOrder = url.searchParams.get('order');
+        url.searchParams.set('sort_by', field);
+        url.searchParams.set('order', (currentSort === field && currentOrder === 'desc') ? 'asc' : 'desc');
+        window.location.href = url.toString();
+    }
+
+    function toggleScoreStatus(key, currentStatus, btn) {
+        const newStatus = currentStatus === 1 ? 0 : 1;
+        fetch("{{ url_for('admin_modern.toggle_score_status') }}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key: key, is_enabled: newStatus })
+        }).then(r => r.json()).then(data => {
+            if(data.success) {
+                // 更新按钮样式和文字
+                if (newStatus === 1) {
+                    btn.className = 'px-3 py-1 rounded-full text-xs font-bold transition-all bg-emerald-50 text-emerald-600 hover:bg-emerald-100';
+                    btn.innerText = '启用';
+                } else {
+                    btn.className = 'px-3 py-1 rounded-full text-xs font-bold transition-all bg-slate-100 text-slate-400 hover:bg-slate-200';
+                    btn.innerText = '禁用';
+                }
+                btn.setAttribute('onclick', `toggleScoreStatus('${key}', ${newStatus}, this)`);
+                showToast(newStatus ? '配置已启用' : '配置已禁用');
+            } else {
+                showToast(data.message, 'error');
+            }
+        });
+    }
+</script>
+{% endblock %}

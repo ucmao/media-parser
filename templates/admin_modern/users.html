@@ -1,0 +1,262 @@
+{% extends "admin_modern/base.html" %}
+
+{% block title %}用户管理 - Ucmao Admin{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">用户管理</h1>
+    <p class="text-slate-500 mt-1">查看并管理系统内所有注册的小程序用户及解析历史。</p>
+</div>
+
+<!-- Filters -->
+<div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-8">
+    <form method="GET" class="flex flex-wrap gap-4">
+        <div class="flex-1 min-w-[300px] relative">
+            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input type="text" name="search" value="{{ search }}" 
+                class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all font-medium"
+                placeholder="搜索昵称、OpenID 或地区...">
+        </div>
+        <button type="submit" class="px-8 py-3 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">搜索用户</button>
+        {% if search %}
+        <a href="{{ url_for('admin_modern.users') }}" class="px-6 py-3 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all flex items-center">重置</a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left">
+            <thead class="bg-slate-50/50 text-slate-500 text-xs font-bold uppercase tracking-widest">
+                <tr>
+                    <th class="px-8 py-4 w-20 cursor-pointer hover:text-indigo-600 transition-colors" onclick="sortBy('user_id')">
+                        ID {% if sort_by == 'user_id' %}<i class="fas fa-sort-{{ 'down' if order == 'desc' else 'up' }}"></i>{% endif %}
+                    </th>
+                    <th class="px-8 py-4">用户信息</th>
+                    <th class="px-8 py-4">地区</th>
+                    <th class="px-8 py-4 text-center">状态</th>
+                    <th class="px-8 py-4 cursor-pointer hover:text-indigo-600 transition-colors" onclick="sortBy('created_at')">
+                        注册时间 {% if sort_by == 'created_at' %}<i class="fas fa-sort-{{ 'down' if order == 'desc' else 'up' }}"></i>{% endif %}
+                    </th>
+                    <th class="px-8 py-4 cursor-pointer hover:text-indigo-600 transition-colors" onclick="sortBy('updated_at')">
+                        最后活跃 {% if sort_by == 'updated_at' %}<i class="fas fa-sort-{{ 'down' if order == 'desc' else 'up' }}"></i>{% endif %}
+                    </th>
+                    <th class="px-8 py-4 text-center">操作</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+                {% for user in users %}
+                <tr class="hover:bg-slate-50/50 transition-colors group">
+                    <td class="px-8 py-6">
+                        <span class="font-mono text-slate-400 font-bold">#{{ user.user_id }}</span>
+                    </td>
+                    <td class="px-8 py-6">
+                        <div class="flex items-center space-x-4">
+                            <img src="{{ user.avatar_url or '/static/default-avatar.png' }}" class="w-12 h-12 rounded-full border-2 border-slate-100 shadow-sm object-cover" onerror="this.src='https://ui-avatars.com/api/?name={{ user.nickname or 'User' }}&background=6366f1&color=fff'">
+                            <div>
+                                <div class="font-bold text-slate-800">{{ user.nickname or '微信用户' }}</div>
+                                <div class="text-xs text-slate-400 font-mono tracking-tighter">{{ user.open_id }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-8 py-6">
+                        <div class="text-sm font-medium text-slate-600">
+                            {{ user.country or '' }} {{ user.province or '' }} {{ user.city or '' }}
+                            {% if not user.country and not user.city %}
+                            <span class="text-slate-300">未知</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="px-8 py-6 text-center">
+                        {% if user.status == 'active' %}
+                        <span class="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-xs font-bold">正常</span>
+                        {% elif user.status == 'banned' %}
+                        <span class="px-3 py-1 bg-red-50 text-red-600 rounded-full text-xs font-bold">封禁</span>
+                        {% else %}
+                        <span class="px-3 py-1 bg-slate-100 text-slate-400 rounded-full text-xs font-bold">禁用</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-8 py-6 text-sm text-slate-400 font-medium whitespace-nowrap">
+                        {{ user.created_at.strftime('%Y-%m-%d %H:%M') if user.created_at else '-' }}
+                    </td>
+                    <td class="px-8 py-6 text-sm text-indigo-400 font-bold whitespace-nowrap">
+                        {{ user.updated_at.strftime('%Y-%m-%d %H:%M') if user.updated_at else '-' }}
+                    </td>
+                    <td class="px-8 py-6 text-center">
+                        <button onclick="viewTrajectory('{{ user.open_id }}', '{{ user.nickname or '微信用户' }}')" class="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-bold hover:bg-indigo-100 transition-all flex items-center justify-center mx-auto">
+                            <i class="fas fa-shoe-prints mr-2"></i>查看轨迹
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if not users %}
+                <tr><td colspan="5" class="px-8 py-32 text-center text-slate-400 font-medium">暂无注册用户</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if total > limit %}
+    <div class="px-8 py-6 border-t border-slate-100 flex items-center justify-between bg-slate-50/30">
+        <div class="text-sm text-slate-500 font-medium">共 {{ total }} 位用户</div>
+        <div class="flex space-x-2">
+            {% if page > 1 %}
+            <a href="{{ url_for('admin_modern.users', page=page-1, search=search, sort_by=sort_by, order=order) }}" class="px-4 py-2 bg-white border border-slate-200 rounded-xl font-bold hover:bg-indigo-50 transition-all">上一页</a>
+            {% endif %}
+            {% if total > page * limit %}
+            <a href="{{ url_for('admin_modern.users', page=page+1, search=search, sort_by=sort_by, order=order) }}" class="px-4 py-2 bg-white border border-slate-200 rounded-xl font-bold hover:bg-indigo-50 transition-all">下一页</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Trajectory Modal -->
+<div id="trajectory-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[150] flex items-center justify-end animate-fade-in" onclick="closeTrajectory()">
+    <div class="bg-white h-full w-full max-w-2xl shadow-2xl flex flex-col transform transition-transform" onclick="event.stopPropagation()">
+        <!-- Header -->
+        <div class="p-8 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-10">
+            <div>
+                <h3 class="text-2xl font-black text-slate-800 tracking-tight" id="traj-user-name">用户解析轨迹</h3>
+                <p class="text-slate-400 text-sm mt-1" id="traj-user-id"></p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button onclick="clearUserRecords()" class="px-4 py-2 bg-rose-50 text-rose-600 rounded-xl text-xs font-bold hover:bg-rose-100 transition-all">
+                    清空轨迹
+                </button>
+                <button onclick="closeTrajectory()" class="w-10 h-10 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center hover:bg-slate-100 transition-all">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="flex-1 overflow-y-auto p-8" id="traj-content">
+            <!-- Records will be injected here -->
+            <div class="flex flex-col items-center justify-center h-64 text-slate-300">
+                <i class="fas fa-spinner fa-spin text-3xl mb-4"></i>
+                <p>正在加载轨迹数据...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentOpenId = null;
+
+    function viewTrajectory(openId, nickname) {
+        currentOpenId = openId;
+        document.getElementById('traj-user-name').innerText = nickname + ' 的解析轨迹';
+        document.getElementById('traj-user-id').innerText = 'OpenID: ' + openId;
+        const modal = document.getElementById('trajectory-modal');
+        const content = document.getElementById('traj-content');
+        
+        modal.classList.remove('hidden');
+        content.innerHTML = `
+            <div class="flex flex-col items-center justify-center h-64 text-slate-300">
+                <i class="fas fa-circle-notch fa-spin text-3xl mb-4 text-indigo-500"></i>
+                <p class="font-medium">正在检索解析记录...</p>
+            </div>
+        `;
+
+        fetch(`/admin/api/user_records/${openId}`)
+            .then(r => r.json())
+            .then(data => {
+                if(data.success) {
+                    renderRecords(data.records);
+                } else {
+                    showToast(data.message, 'error');
+                }
+            });
+    }
+
+    function renderRecords(records) {
+        const content = document.getElementById('traj-content');
+        if(!records.length) {
+            content.innerHTML = `
+                <div class="flex flex-col items-center justify-center h-64 text-slate-300">
+                    <i class="fas fa-ghost text-5xl mb-4 opacity-20"></i>
+                    <p class="font-medium">该用户暂无解析轨迹</p>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '<div class="space-y-6">';
+        records.forEach(v => {
+            html += `
+                <div class="bg-slate-50 p-5 rounded-3xl border border-slate-100 flex items-start space-x-4 group/item hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300">
+                    <div class="relative w-20 h-20 flex-shrink-0 rounded-2xl overflow-hidden shadow-sm cursor-pointer group/thumb" onclick="playVideo('${v.video_url}', '${v.title}')">
+                        <img src="${v.cover_url || '/static/images/default-cover.png'}" class="w-full h-full object-cover transition-transform group-hover/thumb:scale-110" onerror="this.src='/static/images/default-cover.png'">
+                        <div class="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity">
+                            <i class="fas fa-play text-white text-sm"></i>
+                        </div>
+                        <div class="absolute top-1 left-1 px-1.5 py-0.5 bg-black/50 text-white text-[8px] font-black rounded-md backdrop-blur-sm uppercase">${v.platform}</div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h4 class="font-bold text-slate-800 leading-tight line-clamp-2 mb-2 text-sm cursor-pointer hover:text-indigo-600 transition-colors" onclick="playVideo('${v.video_url}', '${v.title}')">${v.title || '无标题资源'}</h4>
+                        <div class="flex items-center text-[10px] text-slate-400 space-x-3">
+                            <span class="flex items-center"><i class="far fa-clock mr-1"></i>解析: ${v.parse_time}</span>
+                            <span class="flex items-center"><i class="far fa-calendar-alt mr-1"></i>入库: ${v.create_at}</span>
+                        </div>
+                    </div>
+                    <button onclick="deleteSingleRecord('${v.video_id}')" class="p-2 text-slate-300 hover:text-rose-500 transition-colors opacity-0 group-hover/item:opacity-100" title="移除此条记录">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            `;
+        });
+        html += '</div>';
+        content.innerHTML = html;
+    }
+
+    function deleteSingleRecord(videoId) {
+        showConfirm('确定要为该用户移除这条解析记录吗？此操作将同步影响用户在小程序端的历史列表。', () => {
+            fetch('/admin/api/delete_user_record', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ open_id: currentOpenId, video_id: videoId })
+            }).then(r => r.json()).then(data => {
+                if(data.success) {
+                    showToast('记录已移除');
+                    viewTrajectory(currentOpenId, ''); // 刷新列表
+                }
+            });
+        });
+    }
+
+    function clearUserRecords() {
+        showConfirm('【高危操作】确定要清空该用户所有的解析轨迹吗？此操作不可撤销。', () => {
+            fetch('/admin/api/clear_user_records', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ open_id: currentOpenId })
+            }).then(r => r.json()).then(data => {
+                if(data.success) {
+                    showToast('轨迹已清空');
+                    viewTrajectory(currentOpenId, '');
+                }
+            });
+        }, '清空轨迹确认');
+    }
+
+    function closeTrajectory() {
+        document.getElementById('trajectory-modal').classList.add('hidden');
+        currentOpenId = null;
+    }
+
+    function sortBy(field) {
+        const url = new URL(window.location.href);
+        const currentSort = url.searchParams.get('sort_by');
+        const currentOrder = url.searchParams.get('order');
+        
+        url.searchParams.set('sort_by', field);
+        url.searchParams.set('order', (currentSort === field && currentOrder === 'desc') ? 'asc' : 'desc');
+        // 关键修复：切换排序时必须回到第 1 页
+        url.searchParams.set('page', '1');
+        
+        window.location.href = url.toString();
+    }
+</script>
+{% endblock %}

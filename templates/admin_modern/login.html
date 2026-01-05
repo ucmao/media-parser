@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - Ucmao Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-indigo-600 h-screen flex items-center justify-center p-6">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-8 transform transition-all hover:scale-[1.01]">
+        <div class="text-center mb-6">
+            <div class="w-14 h-14 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-3 text-xl font-bold">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+            </div>
+            <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">欢迎回来</h1>
+            <p class="text-slate-400 mt-1 font-medium text-sm">Media Parser后台管理中心</p>
+        </div>
+
+        {% with messages = get_flashed_messages(category_filter=["error"]) %}
+          {% if messages %}
+            {% for message in messages %}
+            <div class="bg-red-50 text-red-600 p-3 rounded-xl mb-4 flex items-center space-x-3 text-xs font-semibold">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+                <span>{{ message }}</span>
+            </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('admin_modern.login') }}" method="POST" class="space-y-4">
+            <div>
+                <label class="block text-slate-700 text-xs font-bold mb-1.5 ml-1">用户名</label>
+                <input type="text" name="username" required 
+                    class="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all font-medium text-slate-700 text-sm placeholder-slate-300"
+                    placeholder="请输入管理员账号">
+            </div>
+            <div>
+                <label class="block text-slate-700 text-xs font-bold mb-1.5 ml-1">密码</label>
+                <input type="password" name="password" required 
+                    class="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all font-medium text-slate-700 text-sm placeholder-slate-300"
+                    placeholder="请输入密码">
+            </div>
+            
+            <div class="flex items-center justify-between ml-1">
+                <label class="flex items-center">
+                    <input type="checkbox" class="w-3.5 h-3.5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                    <span class="ml-2 text-xs text-slate-500 font-medium">记住我</span>
+                </label>
+                <a href="#" class="text-xs font-bold text-indigo-600 hover:text-indigo-700">忘记密码？</a>
+            </div>
+
+            <button type="submit" 
+                class="w-full py-3.5 bg-indigo-600 text-white rounded-xl font-bold text-base shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-xl active:scale-[0.98] transition-all">
+                立即登录
+            </button>
+        </form>
+        
+        <div class="mt-6 text-center">
+            <a href="{{ url_for('index') }}" class="text-xs font-bold text-slate-400 hover:text-indigo-600 transition-colors flex items-center justify-center space-x-2">
+                <i class="fas fa-arrow-left"></i>
+                <span>返回前台展示页</span>
+            </a>
+        </div>
+        
+        <div class="mt-8 text-center text-slate-400 text-[10px] uppercase tracking-widest">
+            &copy; 2026 Ucmao Studio
+        </div>
+    </div>
+</body>
+</html>
+
