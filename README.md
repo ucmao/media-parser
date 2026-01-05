@@ -30,9 +30,9 @@ Media Parser是一款专为短视频创作者打造的**自动化解析工具**�
 为了方便快速了解系统功能，我们提供了全套解决方案：
 
 * **🌐 项目门户**: [https://parse.ucmao.cn/](https://parse.ucmao.cn/) (扫码引导页)
-* **⚙️ 管理后台**: [https://parse.ucmao.cn/admin](https://parse.ucmao.cn/admin) (默认: `admin` / `admin123`)
+* **⚙️ 管理后台**: [https://parse.ucmao.cn/admin/](https://parse.ucmao.cn/admin/) (默认: `admin` / `admin123`)
 * **🧩 小程序端**: 扫描下方太阳码进行体验
-* **🎨 前端源码**: [parse-ucmao-mp](https://github.com/ucmao/parse-ucmao-mp)
+* **🎨 前端源码**: [https://github.com/ucmao/parse-ucmao-mp](https://github.com/ucmao/parse-ucmao-mp)
 
 <p align="center">
 <img src="static/images/qr_code.jpg" width="180" alt="Media Parser太阳码">
