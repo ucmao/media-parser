@@ -117,9 +117,10 @@ DB_NAME = parse_ucmao
 DB_USER = root
 DB_PASSWORD = your_password_here
 
-# 管理后台配置 (可选)
+# 后台管理员账号 (可选)
 ADMIN_USER = admin
 ADMIN_PASSWORD = admin123
+# 后台游客账号 (可选)
 DEMO_USER = guest
 DEMO_PASSWORD = guest123
 
