@@ -11,7 +11,7 @@
 <a href="#-立即体验">在线体验</a> •
 <a href="#-核心解析逻辑">解析逻辑</a> •
 <a href="#-快速开始">部署指南</a> •
-<a href="[https://github.com/ucmao/parse-ucmao-backend/issues](https://github.com/ucmao/parse-ucmao-backend/issues)">提交Bug</a>
+<a href="#-联系作者">联系作者</a>
 </p>
 
 Media Parser是一款专为短视频创作者打造的**自动化解析工具**。
