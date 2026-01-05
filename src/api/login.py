@@ -50,7 +50,9 @@ def login():
             if not user:
                 # 如果是新用户，则生成随机信息并创建
                 new_nickname = generate_random_nickname()
-                default_avatar = f"https://{DOMAIN}/static/images/default-avatar.png"
+                # 处理 DOMAIN 可能自带协议的情况
+                base_domain = DOMAIN.replace('https://', '').replace('http://', '')
+                default_avatar = f"https://{base_domain}/static/images/default-avatar.png"
                 
                 cursor.execute(
                     "INSERT INTO users (open_id, nickname, avatar_url) VALUES (%s, %s, %s)", 

@@ -27,7 +27,9 @@ def upload_avatar():
         file.save(filepath)
         
         # 构建永久访问 URL
-        url = f"https://{DOMAIN}/static/avatars/{filename}"
+        # 处理 DOMAIN 可能自带协议的情况
+        base_domain = DOMAIN.replace('https://', '').replace('http://', '')
+        url = f"https://{base_domain}/static/avatars/{filename}"
         
         return jsonify({
             'success': True,
