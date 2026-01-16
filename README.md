@@ -5,7 +5,7 @@
 
 **基于 Python 的高性能多平台视频解析与自动化管理系统**
 
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Python Version](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/) [![MySQL](https://img.shields.io/badge/database-MySQL-orange.svg)](https://www.mysql.com/) [![Support](https://img.shields.io/badge/support-8+%20Platforms-brightgreen.svg)](#💾-支持的平台矩阵)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Python Version](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/) [![MySQL](https://img.shields.io/badge/database-MySQL-orange.svg)](https://www.mysql.com/) [![Support](https://img.shields.io/badge/support-8+%20Platforms-brightgreen.svg)](#💾-支持的平台矩阵)
 
 <p align="center">
 <a href="#-立即体验">在线体验</a> •
@@ -78,7 +78,7 @@ Media Parser是一款专为短视频创作者打造的**自动化解析工具**�
 
 ### 0. 环境要求
 
-* **Python**: 3.7 及以上版本
+* **Python**: 3.8 及以上版本
 * **MySQL**: 5.7 或 8.0+
 
 ### 1. 获取源码
