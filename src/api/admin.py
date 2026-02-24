@@ -801,6 +801,17 @@ def storage():
 @login_required
 def storage_list():
     """列出 static/videos 下的视频文件及其在库状态"""
+    # 简单分页参数
+    page = request.args.get('page', 1, type=int)
+    limit = request.args.get('limit', 50, type=int)
+    sort_by = request.args.get('sort_by', 'video_id')
+    order = request.args.get('order', 'asc').lower()
+    if page < 1:
+        page = 1
+    if limit <= 0:
+        limit = 50
+    if limit > 200:
+        limit = 200
     files = []
     if os.path.isdir(SAVE_VIDEO_PATH):
         for name in os.listdir(SAVE_VIDEO_PATH):
@@ -835,6 +846,16 @@ def storage_list():
                 in_db_map[row['video_id']] = row
             cursor.close()
 
+        # 排序后再分页，避免前端一次性加载所有数据
+        allowed_sort_fields = ['video_id', 'size']
+        if sort_by not in allowed_sort_fields:
+            sort_by = 'video_id'
+        reverse = order == 'desc'
+        if sort_by == 'size':
+            files.sort(key=lambda f: f['size_bytes'], reverse=reverse)
+        else:
+            files.sort(key=lambda f: f['video_id'], reverse=reverse)
+
         total_size = sum(f['size_bytes'] for f in files)
         in_db_count = 0
         for f in files:
@@ -845,15 +866,30 @@ def storage_list():
                 in_db_count += 1
             f['title'] = meta['title'] if meta else None
 
-        orphan_count = len(files) - in_db_count
+        total_files = len(files)
+        orphan_count = total_files - in_db_count
         stats = {
-            'total_files': len(files),
+            'total_files': total_files,
             'total_size_bytes': total_size,
             'in_db_count': in_db_count,
             'orphan_count': orphan_count,
         }
 
-        return jsonify({'success': True, 'files': files, 'stats': stats})
+        # 分页切片
+        start = (page - 1) * limit
+        end = start + limit
+        paged_files = files[start:end]
+        total_pages = (total_files + limit - 1) // limit if total_files else 1
+
+        return jsonify({
+            'success': True,
+            'files': paged_files,
+            'stats': stats,
+            'page': page,
+            'limit': limit,
+            'total_files': total_files,
+            'total_pages': total_pages,
+        })
     except Exception as e:
         logger.error(f"Storage list error: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500

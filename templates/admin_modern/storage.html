@@ -57,8 +57,11 @@
                     </th>
                     <th class="px-4 py-3">Video ID</th>
                     <th class="px-4 py-3">文件名</th>
-                    <th class="px-4 py-3 text-right">大小</th>
-                    <th class="px-4 py-3">在库状态</th>
+                    <th class="px-4 py-3 text-right cursor-pointer select-none" onclick="toggleStorageSizeSort()">
+                        大小
+                        <span id="storage-size-sort-icon" class="inline-block ml-1 text-[10px] text-slate-400 align-middle">-</span>
+                    </th>
+                    <th class="px-4 py-3 w-32 text-center whitespace-nowrap">在库状态</th>
                     <th class="px-4 py-3">标题 (如有)</th>
                 </tr>
             </thead>
@@ -69,10 +72,17 @@
             </tbody>
         </table>
     </div>
+    <div id="storage-pagination"></div>
 </div>
 
 <script>
     let storageData = [];
+    let storagePage = 1;
+    let storageLimit = 50;
+    let storageTotalPages = 1;
+    let storageTotalFiles = 0;
+    let storageSortBy = 'video_id';
+    let storageOrder = 'asc';
 
     function formatBytes(bytes) {
         if (!bytes || bytes <= 0) return '0 B';
@@ -103,7 +113,7 @@
                     <td class="px-4 py-3 font-mono text-xs text-slate-600">${file.video_id}</td>
                     <td class="px-4 py-3 text-sm text-slate-700">${file.filename}</td>
                     <td class="px-4 py-3 text-right text-sm font-medium text-slate-600">${formatBytes(file.size_bytes)}</td>
-                    <td class="px-4 py-3">${statusBadge}</td>
+                    <td class="px-4 py-3 text-center">${statusBadge}</td>
                     <td class="px-4 py-3 text-sm">${titleText}</td>
                 </tr>
             `;
@@ -120,7 +130,12 @@
     function reloadStorage() {
         const tbody = document.getElementById('storage-body');
         tbody.innerHTML = '<tr><td colspan="6" class="px-8 py-16 text-center text-slate-400 text-sm">正在加载数据...</td></tr>';
-        fetch("{{ url_for('admin_modern.storage_list') }}")
+        const url = new URL("{{ url_for('admin_modern.storage_list') }}", window.location.origin);
+        url.searchParams.set('page', storagePage);
+        url.searchParams.set('limit', storageLimit);
+        url.searchParams.set('sort_by', storageSortBy);
+        url.searchParams.set('order', storageOrder);
+        fetch(url.toString())
             .then(r => r.json())
             .then(data => {
                 if (!data.success) {
@@ -128,8 +143,16 @@
                     return;
                 }
                 storageData = data.files || [];
+                storagePage = data.page || 1;
+                storageLimit = data.limit || storageLimit;
+                storageTotalFiles = data.total_files || storageData.length || 0;
+                storageTotalPages = data.total_pages || 1;
+                const selectAll = document.getElementById('select-all-storage');
+                if (selectAll) selectAll.checked = false;
                 updateStats(data.stats || { total_files: 0, total_size_bytes: 0, in_db_count: 0, orphan_count: 0 });
                 renderStorageTable();
+                renderStoragePagination();
+                updateStorageSortIndicator();
             })
             .catch(() => {
                 showToast('加载失败，请稍后重试', 'error');
@@ -145,6 +168,96 @@
         document.querySelectorAll('.storage-checkbox').forEach(el => {
             el.checked = checked;
         });
+    }
+
+    function goToStoragePage(page) {
+        if (!storageTotalPages) return;
+        if (page < 1) page = 1;
+        if (page > storageTotalPages) page = storageTotalPages;
+        if (page === storagePage) return;
+        storagePage = page;
+        reloadStorage();
+    }
+
+    function toggleStorageSizeSort() {
+        if (storageSortBy === 'size') {
+            storageOrder = storageOrder === 'asc' ? 'desc' : 'asc';
+        } else {
+            storageSortBy = 'size';
+            storageOrder = 'desc';
+        }
+        storagePage = 1;
+        reloadStorage();
+        updateStorageSortIndicator();
+    }
+
+    function updateStorageSortIndicator() {
+        const icon = document.getElementById('storage-size-sort-icon');
+        if (!icon) return;
+        if (storageSortBy !== 'size') {
+            icon.textContent = '-';
+            icon.classList.remove('text-indigo-500');
+            icon.classList.add('text-slate-400');
+            return;
+        }
+        icon.textContent = storageOrder === 'asc' ? '↑' : '↓';
+        icon.classList.remove('text-slate-400');
+        icon.classList.add('text-indigo-500');
+    }
+
+    function renderStoragePagination() {
+        const container = document.getElementById('storage-pagination');
+        if (!container) return;
+
+        if (!storageTotalFiles) {
+            container.innerHTML = '';
+            return;
+        }
+
+        const canPrev = storagePage > 1;
+        const canNext = storagePage < storageTotalPages;
+
+        container.innerHTML = `
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between px-4 py-3 border-t border-slate-100 bg-slate-50/60 text-xs text-slate-500">
+                <div class="mb-2 md:mb-0">
+                    <span class="font-medium text-slate-700">共 ${storageTotalFiles} 个文件</span>
+                    <span class="mx-2 text-slate-300">·</span>
+                    <span>第 ${storagePage} / ${storageTotalPages} 页</span>
+                    <span class="mx-2 text-slate-300">·</span>
+                    <span>每页 ${storageLimit} 条</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button
+                        class="px-3 py-1.5 rounded-xl border text-xs font-medium flex items-center gap-1
+                               ${canPrev ? 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100' : 'bg-slate-100 text-slate-300 border-slate-100 cursor-not-allowed'}"
+                        ${canPrev ? 'onclick="goToStoragePage(1)"' : 'disabled'}
+                    >
+                        首页
+                    </button>
+                    <button
+                        class="px-3 py-1.5 rounded-xl border text-xs font-medium flex items-center gap-1
+                               ${canPrev ? 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100' : 'bg-slate-100 text-slate-300 border-slate-100 cursor-not-allowed'}"
+                        ${canPrev ? 'onclick="goToStoragePage(storagePage - 1)"' : 'disabled'}
+                    >
+                        上一页
+                    </button>
+                    <button
+                        class="px-3 py-1.5 rounded-xl border text-xs font-medium flex items-center gap-1
+                               ${canNext ? 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100' : 'bg-slate-100 text-slate-300 border-slate-100 cursor-not-allowed'}"
+                        ${canNext ? 'onclick="goToStoragePage(storagePage + 1)"' : 'disabled'}
+                    >
+                        下一页
+                    </button>
+                    <button
+                        class="px-3 py-1.5 rounded-xl border text-xs font-medium flex items-center gap-1
+                               ${canNext ? 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100' : 'bg-slate-100 text-slate-300 border-slate-100 cursor-not-allowed'}"
+                        ${canNext ? 'onclick="goToStoragePage(storageTotalPages)"' : 'disabled'}
+                    >
+                        末页
+                    </button>
+                </div>
+            </div>
+        `;
     }
 
     function deleteSelected(deleteDb) {
@@ -208,7 +321,9 @@
         });
     }
 
-    document.addEventListener('DOMContentLoaded', reloadStorage);
+    document.addEventListener('DOMContentLoaded', () => {
+        reloadStorage();
+    });
 </script>
 {% endblock %}
 
