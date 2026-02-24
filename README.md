@@ -117,6 +117,10 @@ DB_NAME = parse_ucmao
 DB_USER = root
 DB_PASSWORD = your_password_here
 
+# 服务端下载缓存配置（可选）
+# 仅缓存不超过该大小的小文件，单位：MB，默认 15
+MAX_CACHE_SIZE_MB = 15
+
 # 后台管理员账号 (可选)
 ADMIN_USER = admin
 ADMIN_PASSWORD = admin123

@@ -4,13 +4,14 @@ from flask import Blueprint, request
 from configs.logging_config import logger
 from utils.common_utils import make_response, validate_request
 from utils.web_fetcher import UrlParser
-from configs.general_constants import MINI_PROGRAM_LEGAL_DOMAIN, SAVE_VIDEO_PATH, DOMAIN
+from configs.general_constants import (
+    MINI_PROGRAM_LEGAL_DOMAIN,
+    SAVE_VIDEO_PATH,
+    DOMAIN,
+    MAX_CACHE_SIZE_BYTES,
+)
 
 bp = Blueprint('download', __name__)
-
-# 仅缓存小文件：默认 20MB，可通过环境变量 MAX_CACHE_SIZE_MB 调整
-MAX_CACHE_SIZE_MB = int(os.getenv('MAX_CACHE_SIZE_MB', '20'))
-MAX_CACHE_SIZE_BYTES = MAX_CACHE_SIZE_MB * 1024 * 1024
 
 
 def _server_cache_download(request_video_url: str, request_video_id: str, wx_open_id: str):

@@ -46,6 +46,11 @@ SAVE_VIDEO_PATH = os.path.join(static_dir, "videos")
 SAVE_IMAGE_PATH = os.path.join(static_dir, "images")
 SAVE_AVATAR_PATH = os.path.join(static_dir, "avatars")
 
+# 缓存/下载相关配置
+# 仅缓存小文件：默认 15MB，可通过环境变量 MAX_CACHE_SIZE_MB 调整
+MAX_CACHE_SIZE_MB = int(os.getenv("MAX_CACHE_SIZE_MB", "15"))
+MAX_CACHE_SIZE_BYTES = MAX_CACHE_SIZE_MB * 1024 * 1024
+
 # 业务常量
 DOMAIN_TO_NAME = business_config["DOMAIN_TO_NAME"]
 PLATFORM_MAP = business_config["PLATFORM_MAP"]
