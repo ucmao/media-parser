@@ -61,6 +61,10 @@
                 </a>
                 <div class="mt-8 px-6 mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">系统维护</div>
                 {% if session.get('admin_role') == 'admin' %}
+                <a href="{{ url_for('admin_modern.storage') }}" class="flex items-center px-6 py-3 text-slate-600 hover:bg-slate-50 hover:text-indigo-600 transition-colors {{ 'sidebar-item-active' if request.endpoint == 'admin_modern.storage' }}">
+                    <i class="fas fa-hdd w-5 mr-3"></i>
+                    <span class="font-medium">视频文件管理</span>
+                </a>
                 <button onclick="cleanupEmpty()" class="w-full flex items-center px-6 py-3 text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors">
                     <i class="fas fa-trash-alt w-5 mr-3"></i>
                     <span class="font-medium">清理空数据</span>

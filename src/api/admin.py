@@ -2,16 +2,35 @@ from flask import Blueprint, render_template, request, session, redirect, url_fo
 import os
 import json
 from datetime import datetime, timedelta
-from configs.general_constants import DATABASE_CONFIG
+from configs.general_constants import DATABASE_CONFIG, SAVE_VIDEO_PATH
 from src.database.db_manager import DBManager
 from configs.logging_config import logger
 
 bp = Blueprint('admin_modern', __name__, url_prefix='/admin')
 
+
 def get_db():
     db = DBManager(**DATABASE_CONFIG)
     db.connect()
     return db
+
+
+def delete_video_files(video_ids):
+    """Delete corresponding .mp4 files from static/videos for given video_ids."""
+    if not video_ids:
+        return 0
+    deleted_count = 0
+    for vid in video_ids:
+        filename = f"{vid}.mp4"
+        path = os.path.join(SAVE_VIDEO_PATH, filename)
+        if os.path.isfile(path):
+            try:
+                os.remove(path)
+                deleted_count += 1
+            except OSError as e:
+                logger.warning(f"Failed to delete video file {path}: {e}")
+    return deleted_count
+
 
 def login_required(f):
     from functools import wraps
@@ -639,22 +658,32 @@ def bulk_delete():
     db = get_db()
     try:
         cursor = db.conn.cursor()
+        # 如果前端传入了明确的 video_ids，优先按 ID 删除
         if video_ids:
+            # 先删除本地文件
+            delete_video_files(video_ids)
             format_strings = ','.join(['%s'] * len(video_ids))
             cursor.execute(f"DELETE FROM parse_library WHERE video_id IN ({format_strings})", tuple(video_ids))
         else:
+            # 否则按当前筛选条件查出 video_id，再删除文件和记录
             search = data.get('search', '')
             platform = data.get('platform', '')
-            query = "DELETE FROM parse_library WHERE 1=1"
+            select_query = "SELECT video_id FROM parse_library WHERE 1=1"
             params = []
             if search:
-                query += " AND (title LIKE %s OR video_id LIKE %s)"
+                select_query += " AND (title LIKE %s OR video_id LIKE %s)"
                 params.extend([f"%{search}%", f"%{search}%"])
             if platform:
-                query += " AND platform = %s"
+                select_query += " AND platform = %s"
                 params.append(platform)
-            cursor.execute(query, params)
-            
+            cursor.execute(select_query, params)
+            rows = cursor.fetchall()
+            ids_to_delete = [row[0] for row in rows]
+            if ids_to_delete:
+                delete_video_files(ids_to_delete)
+                format_strings = ','.join(['%s'] * len(ids_to_delete))
+                delete_query = f"DELETE FROM parse_library WHERE video_id IN ({format_strings})"
+                cursor.execute(delete_query, tuple(ids_to_delete))
         count = cursor.rowcount
         db.conn.commit()
         return jsonify({'success': True, 'count': count})
@@ -676,6 +705,8 @@ def delete_video():
     try:
         cursor = db.conn.cursor()
         cursor.execute("DELETE FROM parse_library WHERE video_id = %s", (video_id,))
+        # 同步删除本地缓存文件
+        delete_video_files([video_id])
         db.conn.commit()
         return jsonify({'success': True})
     except Exception as e:
@@ -691,7 +722,14 @@ def cleanup_empty():
     db = get_db()
     try:
         cursor = db.conn.cursor()
-        cursor.execute("DELETE FROM parse_library WHERE title IS NULL OR title = ''")
+        # 先查出需要清理的 video_id，用于删除本地文件
+        cursor.execute("SELECT video_id FROM parse_library WHERE title IS NULL OR title = ''")
+        rows = cursor.fetchall()
+        video_ids = [row[0] for row in rows]
+        if video_ids:
+            delete_video_files(video_ids)
+            format_strings = ','.join(['%s'] * len(video_ids))
+            cursor.execute(f"DELETE FROM parse_library WHERE video_id IN ({format_strings})", tuple(video_ids))
         count = cursor.rowcount
         db.conn.commit()
         return jsonify({'success': True, 'count': count})
@@ -723,7 +761,8 @@ def cleanup_keywords():
         if not video_ids:
             return jsonify({'success': True, 'count': 0})
         
-        # 删除视频
+        # 删除本地缓存文件 + 视频记录
+        delete_video_files(video_ids)
         format_strings = ','.join(['%s'] * len(video_ids))
         cursor.execute(f"DELETE FROM parse_library WHERE video_id IN ({format_strings})", tuple(video_ids))
         count = cursor.rowcount
@@ -746,6 +785,154 @@ def cleanup_keywords():
         return jsonify({'success': True, 'count': count})
     except Exception as e:
         logger.error(f"Cleanup keywords error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        db.disconnect()
+
+
+@bp.route('/storage')
+@login_required
+def storage():
+    """视频文件管理页面"""
+    return render_template('admin_modern/storage.html')
+
+
+@bp.route('/api/storage_list')
+@login_required
+def storage_list():
+    """列出 static/videos 下的视频文件及其在库状态"""
+    files = []
+    if os.path.isdir(SAVE_VIDEO_PATH):
+        for name in os.listdir(SAVE_VIDEO_PATH):
+            # 仅处理 .mp4 文件
+            if not name.lower().endswith('.mp4'):
+                continue
+            video_id = name[:-4]
+            path = os.path.join(SAVE_VIDEO_PATH, name)
+            try:
+                size_bytes = os.path.getsize(path)
+            except OSError:
+                size_bytes = 0
+            files.append({
+                'video_id': video_id,
+                'filename': name,
+                'size_bytes': size_bytes,
+            })
+
+    video_ids = [f['video_id'] for f in files]
+
+    db = get_db()
+    try:
+        in_db_map = {}
+        if video_ids:
+            cursor = db.conn.cursor(dictionary=True)
+            format_strings = ','.join(['%s'] * len(video_ids))
+            cursor.execute(
+                f"SELECT video_id, title FROM parse_library WHERE video_id IN ({format_strings})",
+                tuple(video_ids)
+            )
+            for row in cursor.fetchall():
+                in_db_map[row['video_id']] = row
+            cursor.close()
+
+        total_size = sum(f['size_bytes'] for f in files)
+        in_db_count = 0
+        for f in files:
+            vid = f['video_id']
+            meta = in_db_map.get(vid)
+            f['in_db'] = bool(meta)
+            if meta:
+                in_db_count += 1
+            f['title'] = meta['title'] if meta else None
+
+        orphan_count = len(files) - in_db_count
+        stats = {
+            'total_files': len(files),
+            'total_size_bytes': total_size,
+            'in_db_count': in_db_count,
+            'orphan_count': orphan_count,
+        }
+
+        return jsonify({'success': True, 'files': files, 'stats': stats})
+    except Exception as e:
+        logger.error(f"Storage list error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        db.disconnect()
+
+
+@bp.route('/api/delete_storage', methods=['POST'])
+@login_required
+@admin_only
+def delete_storage():
+    """删除选中的视频文件，可选同时删除数据库记录"""
+    data = request.json or {}
+    video_ids = data.get('video_ids', [])
+    delete_db = bool(data.get('delete_db', False))
+
+    if not video_ids:
+        return jsonify({'success': False, 'message': 'Missing video_ids'}), 400
+
+    # 先删除本地文件
+    deleted_files = delete_video_files(video_ids)
+
+    deleted_db = 0
+    if delete_db:
+        db = get_db()
+        try:
+            cursor = db.conn.cursor()
+            format_strings = ','.join(['%s'] * len(video_ids))
+            cursor.execute(
+                f"DELETE FROM parse_library WHERE video_id IN ({format_strings})",
+                tuple(video_ids)
+            )
+            deleted_db = cursor.rowcount
+            db.conn.commit()
+        except Exception as e:
+            logger.error(f"Delete storage DB error: {e}")
+            return jsonify({'success': False, 'message': str(e)}), 500
+        finally:
+            db.disconnect()
+
+    return jsonify({
+        'success': True,
+        'deleted_files': deleted_files,
+        'deleted_db': deleted_db,
+    })
+
+
+@bp.route('/api/cleanup_orphans', methods=['POST'])
+@login_required
+@admin_only
+def cleanup_orphans():
+    """删除 static/videos 中所有没有对应数据库记录的孤儿文件"""
+    files = []
+    if os.path.isdir(SAVE_VIDEO_PATH):
+        for name in os.listdir(SAVE_VIDEO_PATH):
+            if not name.lower().endswith('.mp4'):
+                continue
+            video_id = name[:-4]
+            files.append(video_id)
+
+    if not files:
+        return jsonify({'success': True, 'deleted_files': 0})
+
+    db = get_db()
+    try:
+        cursor = db.conn.cursor()
+        format_strings = ','.join(['%s'] * len(files))
+        cursor.execute(
+            f"SELECT video_id FROM parse_library WHERE video_id IN ({format_strings})",
+            tuple(files)
+        )
+        rows = cursor.fetchall()
+        in_db_ids = {row[0] for row in rows}
+
+        orphan_ids = [vid for vid in files if vid not in in_db_ids]
+        deleted_files = delete_video_files(orphan_ids)
+        return jsonify({'success': True, 'deleted_files': deleted_files})
+    except Exception as e:
+        logger.error(f"Cleanup orphans error: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
     finally:
         db.disconnect()
