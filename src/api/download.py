@@ -59,7 +59,12 @@ def download():
 
         # 判断视频链接的域名是否为小程序的合法域名
         if domain in MINI_PROGRAM_LEGAL_DOMAIN:
-            # 合法域名：先尝试通过 HEAD 获取 Content-Length，按大小决定是否缓存
+            # 合法域名：前端能直连，直接返回源 URL
+            logger.debug(f'{wx_open_id} 合法域名，直接返回视频链接, domain={domain}')
+            return make_response(200, '成功', {'download_url': request_video_url}, None, True), 200
+        else:
+            # 非合法域名：前端不能直连，必须走服务端缓存，需要判断大小
+            logger.debug(f'{wx_open_id} 非合法域名，走服务端缓存逻辑, domain={domain}')
             size = None
             try:
                 head_resp = requests.head(request_video_url, allow_redirects=True, timeout=5)
@@ -67,23 +72,18 @@ def download():
                 if cl and cl.isdigit():
                     size = int(cl)
             except Exception as e:
-                logger.warning(f'{wx_open_id} 获取 Content-Length 失败: {e}')
+                logger.warning(f'{wx_open_id} 非合法域名获取 Content-Length 失败: {e}')
 
-            # 如果能拿到大小且不超过阈值，则走服务端缓存；否则直接返回源 URL
             if size is not None and size <= MAX_CACHE_SIZE_BYTES:
                 logger.debug(
-                    f'{wx_open_id} 合法域名小文件走服务端缓存, size={size}B, threshold={MAX_CACHE_SIZE_BYTES}B'
+                    f'{wx_open_id} 非合法域名小文件走服务端缓存, size={size}B, threshold={MAX_CACHE_SIZE_BYTES}B'
                 )
                 return _server_cache_download(request_video_url, request_video_id, wx_open_id)
             else:
                 logger.debug(
-                    f'{wx_open_id} 合法域名大文件或未知大小，直接返回视频链接, size={size}, threshold={MAX_CACHE_SIZE_BYTES}B'
+                    f'{wx_open_id} 非合法域名大文件或未知大小，直接返回视频链接, size={size}, threshold={MAX_CACHE_SIZE_BYTES}B'
                 )
                 return make_response(200, '成功', {'download_url': request_video_url}, None, True), 200
-        else:
-            # 非合法域名：前端不能直连，必须走服务端缓存
-            logger.debug(f'{wx_open_id} 非合法域名，走服务端缓存逻辑, domain={domain}')
-            return _server_cache_download(request_video_url, request_video_id, wx_open_id)
 
     except Exception as e:
         logger.error(e)
