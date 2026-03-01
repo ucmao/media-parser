@@ -20,6 +20,8 @@ def ranking():
 
         sq = RankingQuery()
         ranking_dict = sq.get_recent_ranking(keywords=request_searchquery)
+        # 全站无可见内容时置为 True，前端用于展示「榜单维护中」而非「暂无数据」
+        ranking_dict['maintenance_mode'] = not sq.has_visible_videos()
         logger.debug(f'{wx_open_id} Ranking Success')
         return make_response(200, '成功', None, ranking_dict, True), 200
 

@@ -71,6 +71,15 @@ class RankingQuery:
 
         return videos_info
 
+    def has_visible_videos(self):
+        """全库是否存在任意一条 is_visible=1 的记录（用于区分全站隐身与搜索无结果）"""
+        try:
+            self.cursor.execute("SELECT 1 FROM parse_library WHERE is_visible = 1 LIMIT 1")
+            return self.cursor.fetchone() is not None
+        except Exception as e:
+            logger.error(f"has_visible_videos error: {e}")
+            return False
+
     def get_recent_ranking(self, keywords='', limit=100):
         return {
             'search': keywords,
