@@ -125,7 +125,7 @@ class UserInfoQuery:
             client_permissions = {key: client_permissions[key] for key in client_permissions if key in allowed_fields}
 
             if server_permissions == client_permissions:
-                return False, server_permissions
+                return True, server_permissions
 
             if server_permissions == {}:
                 updated_permissions = client_permissions

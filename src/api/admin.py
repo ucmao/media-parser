@@ -839,23 +839,14 @@ def storage_list():
             cursor = db.conn.cursor(dictionary=True)
             format_strings = ','.join(['%s'] * len(video_ids))
             cursor.execute(
-                f"SELECT video_id, title FROM parse_library WHERE video_id IN ({format_strings})",
+                f"SELECT video_id, title, score FROM parse_library WHERE video_id IN ({format_strings})",
                 tuple(video_ids)
             )
             for row in cursor.fetchall():
                 in_db_map[row['video_id']] = row
             cursor.close()
 
-        # 排序后再分页，避免前端一次性加载所有数据
-        allowed_sort_fields = ['video_id', 'size']
-        if sort_by not in allowed_sort_fields:
-            sort_by = 'video_id'
-        reverse = order == 'desc'
-        if sort_by == 'size':
-            files.sort(key=lambda f: f['size_bytes'], reverse=reverse)
-        else:
-            files.sort(key=lambda f: f['video_id'], reverse=reverse)
-
+        # 先填充库内信息（含积分），再排序
         total_size = sum(f['size_bytes'] for f in files)
         in_db_count = 0
         for f in files:
@@ -865,6 +856,26 @@ def storage_list():
             if meta:
                 in_db_count += 1
             f['title'] = meta['title'] if meta else None
+            f['score'] = meta['score'] if meta and meta.get('score') is not None else None
+
+        # 排序后再分页，避免前端一次性加载所有数据
+        allowed_sort_fields = ['video_id', 'size', 'score']
+        if sort_by not in allowed_sort_fields:
+            sort_by = 'video_id'
+        reverse = order == 'desc'
+        if sort_by == 'size':
+            files.sort(key=lambda f: f['size_bytes'], reverse=reverse)
+        elif sort_by == 'score':
+            # 无库记录的视为无积分，排序时排到最后；升序低→高，降序高→低
+            def score_key(f):
+                has = f.get('score') is not None
+                s = f.get('score') or 0
+                if order == 'desc':
+                    return (0 if has else 1, -s)
+                return (0 if has else 1, s)
+            files.sort(key=score_key)
+        else:
+            files.sort(key=lambda f: f['video_id'], reverse=reverse)
 
         total_files = len(files)
         orphan_count = total_files - in_db_count

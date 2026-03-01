@@ -61,13 +61,17 @@
                         大小
                         <span id="storage-size-sort-icon" class="inline-block ml-1 text-[10px] text-slate-400 align-middle">-</span>
                     </th>
+                    <th class="px-4 py-3 text-right cursor-pointer select-none" onclick="toggleStorageScoreSort()">
+                        积分
+                        <span id="storage-score-sort-icon" class="inline-block ml-1 text-[10px] text-slate-400 align-middle">-</span>
+                    </th>
                     <th class="px-4 py-3 w-32 text-center whitespace-nowrap">在库状态</th>
                     <th class="px-4 py-3">标题 (如有)</th>
                 </tr>
             </thead>
             <tbody id="storage-body" class="divide-y divide-slate-50">
                 <tr>
-                    <td colspan="6" class="px-8 py-16 text-center text-slate-400 text-sm">正在加载数据...</td>
+                    <td colspan="7" class="px-8 py-16 text-center text-slate-400 text-sm">正在加载数据...</td>
                 </tr>
             </tbody>
         </table>
@@ -96,7 +100,7 @@
     function renderStorageTable() {
         const tbody = document.getElementById('storage-body');
         if (!storageData.length) {
-            tbody.innerHTML = '<tr><td colspan="6" class="px-8 py-16 text-center text-slate-400 text-sm">当前没有任何视频缓存文件。</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="px-8 py-16 text-center text-slate-400 text-sm">当前没有任何视频缓存文件。</td></tr>';
             return;
         }
 
@@ -105,6 +109,7 @@
                 ? '<span class="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-xs font-bold">有库记录</span>'
                 : '<span class="px-3 py-1 bg-rose-50 text-rose-600 rounded-full text-xs font-bold">孤儿文件</span>';
             const titleText = file.title ? file.title : '<span class="text-slate-300 text-xs">无</span>';
+            const scoreText = file.score !== undefined && file.score !== null ? String(file.score) : '<span class="text-slate-300 text-xs">-</span>';
             return `
                 <tr class="hover:bg-slate-50/50 transition-colors">
                     <td class="px-4 py-3">
@@ -113,6 +118,7 @@
                     <td class="px-4 py-3 font-mono text-xs text-slate-600">${file.video_id}</td>
                     <td class="px-4 py-3 text-sm text-slate-700">${file.filename}</td>
                     <td class="px-4 py-3 text-right text-sm font-medium text-slate-600">${formatBytes(file.size_bytes)}</td>
+                    <td class="px-4 py-3 text-right text-sm font-medium text-slate-600">${scoreText}</td>
                     <td class="px-4 py-3 text-center">${statusBadge}</td>
                     <td class="px-4 py-3 text-sm">${titleText}</td>
                 </tr>
@@ -129,7 +135,7 @@
 
     function reloadStorage() {
         const tbody = document.getElementById('storage-body');
-        tbody.innerHTML = '<tr><td colspan="6" class="px-8 py-16 text-center text-slate-400 text-sm">正在加载数据...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="px-8 py-16 text-center text-slate-400 text-sm">正在加载数据...</td></tr>';
         const url = new URL("{{ url_for('admin_modern.storage_list') }}", window.location.origin);
         url.searchParams.set('page', storagePage);
         url.searchParams.set('limit', storageLimit);
@@ -191,18 +197,43 @@
         updateStorageSortIndicator();
     }
 
-    function updateStorageSortIndicator() {
-        const icon = document.getElementById('storage-size-sort-icon');
-        if (!icon) return;
-        if (storageSortBy !== 'size') {
-            icon.textContent = '-';
-            icon.classList.remove('text-indigo-500');
-            icon.classList.add('text-slate-400');
-            return;
+    function toggleStorageScoreSort() {
+        if (storageSortBy === 'score') {
+            storageOrder = storageOrder === 'asc' ? 'desc' : 'asc';
+        } else {
+            storageSortBy = 'score';
+            storageOrder = 'desc';
         }
-        icon.textContent = storageOrder === 'asc' ? '↑' : '↓';
-        icon.classList.remove('text-slate-400');
-        icon.classList.add('text-indigo-500');
+        storagePage = 1;
+        reloadStorage();
+        updateStorageSortIndicator();
+    }
+
+    function updateStorageSortIndicator() {
+        const sizeIcon = document.getElementById('storage-size-sort-icon');
+        const scoreIcon = document.getElementById('storage-score-sort-icon');
+        if (sizeIcon) {
+            if (storageSortBy !== 'size') {
+                sizeIcon.textContent = '-';
+                sizeIcon.classList.remove('text-indigo-500');
+                sizeIcon.classList.add('text-slate-400');
+            } else {
+                sizeIcon.textContent = storageOrder === 'asc' ? '↑' : '↓';
+                sizeIcon.classList.remove('text-slate-400');
+                sizeIcon.classList.add('text-indigo-500');
+            }
+        }
+        if (scoreIcon) {
+            if (storageSortBy !== 'score') {
+                scoreIcon.textContent = '-';
+                scoreIcon.classList.remove('text-indigo-500');
+                scoreIcon.classList.add('text-slate-400');
+            } else {
+                scoreIcon.textContent = storageOrder === 'asc' ? '↑' : '↓';
+                scoreIcon.classList.remove('text-slate-400');
+                scoreIcon.classList.add('text-indigo-500');
+            }
+        }
     }
 
     function renderStoragePagination() {
