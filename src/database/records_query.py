@@ -117,24 +117,31 @@ class RecordsQuery:
 
         return videos_info
 
-    def get_recent_records(self, open_id='', keywords='', limit=100):
-        big = {
+    def get_recent_records(self, open_id='', period='all', keywords='', limit=100):
+        # 映射前端传来的 period 到 query_videos 的参数
+        PERIOD_MAPPING = {
+            'today': 'TODAY',
+            'yesterday': 'YESTERDAY',
+            '7days': 7,
+            '30days': 30,
+            '60days': 60,
+            '90days': 90,
+            '180days': 180,
+            '365days': 365,
+            'thisMonth': 'MONTH',
+            'lastMonth': 'LAST_MONTH',
+            'all': 'ALL'
+        }
+        
+        days_param = PERIOD_MAPPING.get(period, 'ALL')
+        records_list = self.query_videos(open_id, days_param, keywords, limit)
+        
+        return {
             'length': len(self._get_video_data(open_id)),
             'search': keywords,
-            'today': self.query_videos(open_id, 'TODAY', keywords, limit),
-            'yesterday': self.query_videos(open_id, 'YESTERDAY', keywords, limit),
-            '7days': self.query_videos(open_id, 7, keywords, limit),
-            '30days': self.query_videos(open_id, 30, keywords, limit),
-            '60days': self.query_videos(open_id, 60, keywords, limit),
-            '90days': self.query_videos(open_id, 90, keywords, limit),
-            '180days': self.query_videos(open_id, 180, keywords, limit),
-            '365days': self.query_videos(open_id, 365, keywords, limit),
-            'thisMonth': self.query_videos(open_id, 'MONTH', keywords, limit),
-            'lastMonth': self.query_videos(open_id, 'LAST_MONTH', keywords, limit),
-            'all': self.query_videos(open_id, 'ALL', keywords, limit)
+            'period': period,
+            'list': records_list
         }
-
-        return big
 
 
 # 示例用法

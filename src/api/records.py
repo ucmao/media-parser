@@ -11,6 +11,7 @@ def records():
     try:
         data = request.json
         request_searchquery = data.get('searchQuery')
+        request_period = data.get('period', 'all') # 默认获取全部
         wx_open_id = request.headers.get('WX-OPEN-ID', 'Guest')
 
         validation_result = validate_request()
@@ -19,8 +20,12 @@ def records():
             return validation_result
 
         rq = RecordsQuery()
-        records_dict = rq.get_recent_records(open_id=wx_open_id, keywords=request_searchquery)
-        logger.debug(f'{wx_open_id} Records Success')
+        try:
+            records_dict = rq.get_recent_records(open_id=wx_open_id, period=request_period, keywords=request_searchquery)
+        finally:
+            rq.close()
+            
+        logger.debug(f'{wx_open_id} Records Success (Period: {request_period})')
         return make_response(200, '成功', None, records_dict, True), 200
 
     except Exception as e:
