@@ -77,6 +77,10 @@
                     <i class="fas fa-eye-slash w-5 mr-3"></i>
                     <span class="font-medium text-xs">全站显隐控制</span>
                 </button>
+                <button onclick="showRankingSwitchModal()" class="w-full flex items-center px-6 py-3 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-all opacity-50 hover:opacity-100">
+                    <i class="fas fa-trophy w-5 mr-3"></i>
+                    <span class="font-medium text-xs">榜单总开关</span>
+                </button>
                 {% else %}
                 <div class="px-6 py-3 text-slate-400 text-xs italic">演示账号限制使用维护工具</div>
                 {% endif %}
@@ -228,7 +232,6 @@
             const msg = `
                 <div class="text-center">
                     <p class="text-slate-500 text-sm leading-relaxed mb-6">此操作将影响数据库中<span class="text-rose-600 font-bold">所有视频记录</span>。选择“全站上线”将使全部视频在前端可见；选择“全站隐身”则全部隐藏。</p>
-                    <p class="text-slate-400 text-xs leading-relaxed mb-4">一般是为了审查和更新小程序。</p>
                     <div class="grid grid-cols-2 gap-3">
                         <button onclick="executeGlobalVisibility(true)" class="px-4 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all text-sm">
                             全站上线
@@ -257,6 +260,45 @@
                     setTimeout(() => location.reload(), 1000);
                 }
             });
+        }
+
+        function showRankingSwitchModal() {
+            fetch("{{ url_for('admin_modern.ranking_switch') }}", { method: 'GET' })
+                .then(r => r.json())
+                .then(data => {
+                    const enabled = data.ranking_enabled === true;
+                    const title = '榜单总开关';
+                    const msg = `
+                        <div class="text-center">
+                            <p class="text-slate-500 text-sm leading-relaxed mb-4">关闭后小程序榜单页将显示「榜单维护中」。</p>
+                            <p class="text-slate-600 font-bold mb-6">当前状态：<span class="${enabled ? 'text-emerald-600' : 'text-slate-400'}">${enabled ? '已开启' : '已关闭'}</span></p>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button onclick="executeRankingSwitch(true)" class="px-4 py-3 rounded-xl font-bold text-sm transition-all ${enabled ? 'bg-slate-100 text-slate-400 cursor-default' : 'bg-emerald-600 text-white hover:bg-emerald-700'}">开启榜单</button>
+                                <button onclick="executeRankingSwitch(false)" class="px-4 py-3 rounded-xl font-bold text-sm transition-all ${!enabled ? 'bg-slate-100 text-slate-400 cursor-default' : 'bg-rose-600 text-white hover:bg-rose-700'}">关闭榜单</button>
+                            </div>
+                        </div>
+                    `;
+                    showConfirm('', null, title);
+                    document.getElementById('confirm-modal-message').innerHTML = msg;
+                    document.getElementById('confirm-modal-btn').classList.add('hidden');
+                })
+                .catch(() => showToast('获取状态失败', 'error'));
+        }
+
+        function executeRankingSwitch(enabled) {
+            fetch("{{ url_for('admin_modern.ranking_switch') }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ enabled: enabled })
+            }).then(r => r.json()).then(data => {
+                if (data.success) {
+                    showToast(enabled ? '榜单已开启' : '榜单已关闭');
+                    hideConfirmModal();
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    showToast(data.message || '操作失败', 'error');
+                }
+            }).catch(() => showToast('请求失败', 'error'));
         }
 
         function showConfirm(message, callback, title = '操作确认') {

@@ -39,30 +39,6 @@
             <div class="text-4xl font-extrabold text-slate-800">{{ active_user_count }}</div>
         </div>
     </a>
-
-    <!-- 榜单总开关：仅 admin 可操作 -->
-    <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex items-center justify-between">
-        <div class="flex items-center space-x-6">
-            <div class="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl {{ 'bg-emerald-50 text-emerald-600' if ranking_enabled else 'bg-slate-100 text-slate-400' }}">
-                <i class="fas fa-trophy"></i>
-            </div>
-            <div>
-                <div class="text-slate-400 text-sm font-semibold uppercase tracking-wider">榜单总开关</div>
-                <div class="text-xl font-extrabold {{ 'text-emerald-600' if ranking_enabled else 'text-slate-400' }}">
-                    {{ '已开启' if ranking_enabled else '已关闭' }}
-                </div>
-                <p class="text-slate-400 text-xs mt-1">关闭后小程序榜单页将显示「榜单维护中」</p>
-            </div>
-        </div>
-        {% if session.get('admin_role') == 'admin' %}
-        <button type="button" onclick="toggleRankingSwitch({{ 'true' if ranking_enabled else 'false' }})"
-                class="px-5 py-2.5 rounded-xl font-bold text-sm transition-all {{ 'bg-rose-100 text-rose-600 hover:bg-rose-200' if ranking_enabled else 'bg-emerald-100 text-emerald-600 hover:bg-emerald-200' }}">
-            {{ '关闭榜单' if ranking_enabled else '开启榜单' }}
-        </button>
-        {% else %}
-        <span class="text-slate-300 text-sm">仅管理员可操作</span>
-        {% endif %}
-    </div>
 </div>
 
 <!-- Recent Records -->
@@ -121,25 +97,5 @@
         </table>
     </div>
 </div>
-
-<script>
-function toggleRankingSwitch(currentEnabled) {
-    var newEnabled = !currentEnabled;
-    fetch("{{ url_for('admin_modern.ranking_switch') }}", {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ enabled: newEnabled })
-    }).then(function(r) { return r.json(); }).then(function(data) {
-        if (data.success) {
-            if (typeof showToast === 'function') showToast(newEnabled ? '榜单已开启' : '榜单已关闭');
-            setTimeout(function() { location.reload(); }, 800);
-        } else {
-            if (typeof showToast === 'function') showToast(data.message || '操作失败', 'error');
-        }
-    }).catch(function() {
-        if (typeof showToast === 'function') showToast('请求失败', 'error');
-    });
-}
-</script>
 {% endblock %}
 

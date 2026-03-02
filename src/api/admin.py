@@ -113,23 +113,12 @@ def dashboard():
     """)
     recent_videos = cursor.fetchall()
 
-    # 榜单总开关（app_config 表可能尚未创建则默认开启）
-    ranking_enabled = True
-    try:
-        cursor.execute("SELECT config_value FROM app_config WHERE config_key = 'ranking_enabled'")
-        row = cursor.fetchone()
-        if row:
-            ranking_enabled = (row['config_value'] == '1')
-    except Exception:
-        pass
-
     db.disconnect()
     return render_template('admin_modern/dashboard.html', 
                            video_count=video_count, 
                            user_count=user_count, 
                            active_user_count=active_user_count,
-                           recent_videos=recent_videos,
-                           ranking_enabled=ranking_enabled)
+                           recent_videos=recent_videos)
 
 @bp.route('/videos')
 @login_required
