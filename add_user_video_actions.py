@@ -1,8 +1,8 @@
-# scripts/add_user_video_actions.py
+# add_user_video_actions.py
 """
 为已有数据库添加 user_video_actions 表（用户-视频-行为去重日志）。
 依赖项目里的 DATABASE_CONFIG，确保在 parse-ucmao-backend 根目录下运行：
-    python scripts/add_user_video_actions.py
+    python add_user_video_actions.py
 """
 
 import mysql.connector
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS `user_video_actions` (
   `action_type` varchar(50) COLLATE utf8mb4_general_ci NOT NULL COMMENT '行为类型，如 parse、shareFriend 等',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '行为发生时间',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uniq_user_video_action` (`user_id`, `video_id`, `action_type'),
+  UNIQUE KEY `uniq_user_video_action` (`user_id`, `video_id`, `action_type`),
   KEY `idx_video_action` (`video_id`, `action_type`)
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
