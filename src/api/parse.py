@@ -65,6 +65,13 @@ def parse():
         updated_cover_url = UrlParser.convert_to_https(cover_url)
         data_dict = {'video_id': video_id, 'platform': platform, 'title': title,
                      'video_url': updated_video_url, 'cover_url': updated_cover_url}
+        
+        # 如果数据库已有记录，尝试获取其原始积分（heat）
+        if get_data and 'heat' in get_data:
+            data_dict['heat'] = get_data['heat']
+        else:
+            data_dict['heat'] = 0 # 新解析的视频初始热度为0
+            
         manager.upsert_parse_add_records(data_dict, user_id, video_id)
         logger.debug(f'{wx_open_id} {platform} Parse Success')
         return make_response(200, '成功', data_dict, None, True), 200

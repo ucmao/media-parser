@@ -44,13 +44,15 @@ class DataStorageManager:
     def get_db_data(self):
         manager = DataStorageManager._connect_db()
         try:
-            dl_dict = manager.get_details_by_video_id(self.video_id, ['video_id', 'platform', 'title', 'video_url', 'cover_url', 'is_visible'])
+            dl_dict = manager.get_details_by_video_id(self.video_id, ['video_id', 'platform', 'title', 'video_url', 'cover_url', 'is_visible', 'score'])
             if dl_dict:
                 # 如果视频被设置为隐藏，则返回 None，强制系统重新解析或提示
                 if dl_dict.get('is_visible') == 0:
                     return None
                 # 移除内部使用的字段再返回
                 dl_dict.pop('is_visible', None)
+                # 将 score 映射为 heat 方便前端识别
+                dl_dict['heat'] = dl_dict.pop('score', 0)
                 return dl_dict
             return None
         finally:

@@ -20,6 +20,9 @@ class RankingQuery:
             logger.debug("数据库连接已关闭")
 
     def get_recent_query_ranking(self, days, keywords='', limit=100):
+        # 衰减系数
+        DECAY_K = 0.01
+
         # 使用实际存在的 create_at 字段进行时间筛选
         if days == 'MONTH':
             date_filter = "DATE_FORMAT(create_at, '%Y-%m') = DATE_FORMAT(CURRENT_DATE, '%Y-%m')"
@@ -35,41 +38,40 @@ class RankingQuery:
             date_filter = f"create_at >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL {days} DAY)"
 
         # 预留部分“探索位”给最新内容做保底曝光
-        explore_count = min(5, limit)  # 每个榜单最多 5 条探索位
-        main_limit = max(limit - explore_count, 0)
+        explore_count = min(5, limit)
+        main_limit = limit
 
-        results = []
+        # 1. 主榜：直接在 SQL 中计算 effective_score
+        # 公式：score / (1 + 发布至今的小时数 * 0.01)
+        select_fields = f"""
+            video_id, platform, title, video_url, cover_url, score as raw_score,
+            FLOOR(score / (1 + TIMESTAMPDIFF(HOUR, create_at, NOW()) * {DECAY_K})) as effective_score,
+            TIMESTAMPDIFF(HOUR, create_at, NOW()) as hours_age
+        """
 
-        # 1. 主榜：在同一时间窗口内，对 score 做时间衰减排序
-        if main_limit > 0:
-            if keywords:
-                main_sql = f"""
-                SELECT video_id, platform, title, video_url, cover_url, score
-                FROM parse_library
-                WHERE {date_filter} AND title LIKE %s AND is_visible = 1
-                ORDER BY score / (1 + TIMESTAMPDIFF(DAY, updated_at, NOW()) * 0.5) DESC, score DESC
-                LIMIT {main_limit}
-                """
-                self.cursor.execute(main_sql, (f"%{keywords}%",))
-            else:
-                main_sql = f"""
-                SELECT video_id, platform, title, video_url, cover_url, score
-                FROM parse_library
-                WHERE {date_filter} AND is_visible = 1
-                ORDER BY score / (1 + TIMESTAMPDIFF(DAY, updated_at, NOW()) * 0.5) DESC, score DESC
-                LIMIT {main_limit}
-                """
-                self.cursor.execute(main_sql)
-
-            main_results = self.cursor.fetchall()
-            results.extend(main_results)
+        if keywords:
+            main_sql = f"""
+            SELECT {select_fields}
+            FROM parse_library
+            WHERE {date_filter} AND title LIKE %s AND is_visible = 1
+            ORDER BY effective_score DESC, create_at DESC
+            LIMIT {main_limit}
+            """
+            self.cursor.execute(main_sql, (f"%{keywords}%",))
         else:
-            main_results = []
+            main_sql = f"""
+            SELECT {select_fields}
+            FROM parse_library
+            WHERE {date_filter} AND is_visible = 1
+            ORDER BY effective_score DESC, create_at DESC
+            LIMIT {main_limit}
+            """
+            self.cursor.execute(main_sql)
 
-        # 2. 探索位：优先给“最新 create_at 的视频”保底曝光，排除已经在主榜中的视频
+        main_results = self.cursor.fetchall()
+
+        # 2. 探索位：同样计算 effective_score 以保持格式一致
         if explore_count > 0:
-            existing_ids = [row[0] for row in main_results]
-
             if keywords:
                 where_clause = f"WHERE {date_filter} AND title LIKE %s AND is_visible = 1"
                 params = [f"%{keywords}%"]
@@ -77,13 +79,8 @@ class RankingQuery:
                 where_clause = f"WHERE {date_filter} AND is_visible = 1"
                 params = []
 
-            if existing_ids:
-                placeholders = ','.join(['%s'] * len(existing_ids))
-                where_clause += f" AND video_id NOT IN ({placeholders})"
-                params.extend(existing_ids)
-
             explore_sql = f"""
-            SELECT video_id, platform, title, video_url, cover_url, score
+            SELECT {select_fields}
             FROM parse_library
             {where_clause}
             ORDER BY create_at DESC
@@ -95,25 +92,57 @@ class RankingQuery:
                 self.cursor.execute(explore_sql)
 
             explore_results = self.cursor.fetchall()
-            results.extend(explore_results)
+        else:
+            explore_results = []
 
-        # 3. 格式化结果
+        # 3. 混合结果：逻辑与之前一致
+        final_results_with_type = [] # 存储 (row, is_new)
+        seen_ids = set()
+
+        # 添加主榜前 3
+        for i in range(min(3, len(main_results))):
+            row = main_results[i]
+            if row[0] not in seen_ids:
+                final_results_with_type.append((row, False))
+                seen_ids.add(row[0])
+
+        # 添加探索位 (插队到 4-6 名)
+        for row in explore_results:
+            if len(final_results_with_type) >= 6:
+                break
+            if row[0] not in seen_ids:
+                # 如果这个素材非常新（例如 24 小时内），则标记为新
+                is_new_discovery = row[7] <= 24 
+                final_results_with_type.append((row, is_new_discovery))
+                seen_ids.add(row[0])
+
+        # 填充剩余的主榜内容
+        for row in main_results:
+            if len(final_results_with_type) >= limit:
+                break
+            if row[0] not in seen_ids:
+                final_results_with_type.append((row, False))
+                seen_ids.add(row[0])
+        
+        # 4. 格式化结果：将 effective_score 映射给 query_count 供前端显示
         videos_info = []
-        for row in results:
+        for row, is_new in final_results_with_type:
             videos_info.append({
                 'video_id': row[0],
                 'platform': PLATFORM_MAP.get(row[1], 'Unknown'),
                 'title': row[2],
                 'video_url': row[3],
                 'cover_url': row[4],
-                'query_count': row[5],  # 直接使用score作为热度值
+                'query_count': int(row[6]),  # 使用衰减后的 effective_score
+                'raw_score': row[5],         # 原始总分留底
+                'is_new': is_new,            # 是否是新内容（用于前端显示 NEW 标签）
                 'showItem': False
             })
 
         return videos_info
 
     def has_visible_videos(self):
-        """全库是否存在任意一条 is_visible=1 的记录（用于区分全站隐身与搜索无结果）"""
+        """全库是否存在任意一条 is_visible=1 的记录"""
         try:
             self.cursor.execute("SELECT 1 FROM parse_library WHERE is_visible = 1 LIMIT 1")
             return self.cursor.fetchone() is not None
@@ -124,15 +153,10 @@ class RankingQuery:
     def get_recent_ranking(self, keywords='', limit=100):
         return {
             'search': keywords,
-            # 'today': self.get_recent_query_ranking('TODAY', keywords, limit),
-            # 'yesterday': self.get_recent_query_ranking('YESTERDAY', keywords, limit),
             '7days': self.get_recent_query_ranking(7, keywords, limit),
             '30days': self.get_recent_query_ranking(30, keywords, limit),
-            # '60days': self.get_recent_query_ranking(60, keywords, limit),
             '90days': self.get_recent_query_ranking(90, keywords, limit),
             '180days': self.get_recent_query_ranking(180, keywords, limit),
             '365days': self.get_recent_query_ranking(365, keywords, limit),
-            # 'thisMonth': self.get_recent_query_ranking('MONTH', keywords, limit),
-            # 'lastMonth': self.get_recent_query_ranking('LAST_MONTH', keywords, limit),
             'all': self.get_recent_query_ranking('ALL', keywords, limit),
         }

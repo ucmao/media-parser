@@ -78,7 +78,8 @@ class RecordsQuery:
             pl.title, 
             pl.video_url, 
             pl.cover_url,
-            pl.platform
+            pl.platform,
+            pl.score
         FROM 
             parse_library pl
         WHERE 
@@ -108,6 +109,7 @@ class RecordsQuery:
                     'video_url': row[2],  # 提取 video_url
                     'cover_url': row[3],  # 提取 cover_url
                     'platform': PLATFORM_MAP.get(row[4], 'Unknown'),  # 提取 platform
+                    'heat': row[5],  # 提取原始 score
                     'showItem': False
                 })
             else:
