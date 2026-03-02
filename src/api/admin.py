@@ -112,13 +112,24 @@ def dashboard():
         LIMIT 10
     """)
     recent_videos = cursor.fetchall()
-    
+
+    # 榜单总开关（app_config 表可能尚未创建则默认开启）
+    ranking_enabled = True
+    try:
+        cursor.execute("SELECT config_value FROM app_config WHERE config_key = 'ranking_enabled'")
+        row = cursor.fetchone()
+        if row:
+            ranking_enabled = (row['config_value'] == '1')
+    except Exception:
+        pass
+
     db.disconnect()
     return render_template('admin_modern/dashboard.html', 
                            video_count=video_count, 
                            user_count=user_count, 
                            active_user_count=active_user_count,
-                           recent_videos=recent_videos)
+                           recent_videos=recent_videos,
+                           ranking_enabled=ranking_enabled)
 
 @bp.route('/videos')
 @login_required
@@ -611,6 +622,46 @@ def bulk_visibility():
         return jsonify({'success': False, 'message': str(e)}), 500
     finally:
         db.disconnect()
+
+
+@bp.route('/api/ranking_switch', methods=['GET', 'POST'])
+@login_required
+def ranking_switch():
+    """GET: 获取榜单总开关；POST: 设置榜单总开关（仅 admin）"""
+    if request.method == 'GET':
+        db = get_db()
+        try:
+            cursor = db.conn.cursor(dictionary=True)
+            cursor.execute("SELECT config_value FROM app_config WHERE config_key = 'ranking_enabled'")
+            row = cursor.fetchone()
+            enabled = (row and row.get('config_value') == '1')
+            return jsonify({'success': True, 'ranking_enabled': enabled})
+        except Exception as e:
+            logger.error(f"Get ranking switch error: {e}")
+            return jsonify({'success': True, 'ranking_enabled': True})  # 表不存在时默认开启
+        finally:
+            db.disconnect()
+
+    if session.get('admin_role') != 'admin':
+        return jsonify({'success': False, 'message': '权限不足'}), 403
+    data = request.json or {}
+    enabled = data.get('enabled', True)
+    db = get_db()
+    try:
+        cursor = db.conn.cursor()
+        cursor.execute(
+            "INSERT INTO app_config (config_key, config_value, config_desc) VALUES ('ranking_enabled', %s, '榜单总开关') "
+            "ON DUPLICATE KEY UPDATE config_value = %s",
+            ('1' if enabled else '0', '1' if enabled else '0')
+        )
+        db.conn.commit()
+        return jsonify({'success': True, 'ranking_enabled': bool(enabled)})
+    except Exception as e:
+        logger.error(f"Set ranking switch error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        db.disconnect()
+
 
 @bp.route('/api/bulk_update_score', methods=['POST'])
 @login_required
