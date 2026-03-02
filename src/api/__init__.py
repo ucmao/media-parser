@@ -1,10 +1,10 @@
-from .login import bp as login
-from .ranking import bp as ranking
-from .upload_userinfo import bp as upload_userinfo
-from .refresh_video import bp as refresh_video
-from .upload_record import bp as upload_record
-from .download import bp as download
-from .upload_score import bp as upload_score
-from .records import bp as records
-from .parse import bp as parse
-from .admin import bp as admin
+from . import login
+from . import ranking
+from . import upload_userinfo
+from . import refresh_video
+from . import upload_record
+from . import download
+from . import upload_score
+from . import records
+from . import parse
+from . import admin
