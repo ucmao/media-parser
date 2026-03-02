@@ -105,3 +105,18 @@ CREATE TABLE IF NOT EXISTS `app_config` (
 
 INSERT IGNORE INTO `app_config` (`config_key`, `config_value`, `config_desc`) VALUES
 ('ranking_enabled', '1', '榜单总开关：1=开启 0=关闭');
+
+
+-- ----------------------------
+-- 6. 表结构: `user_video_actions` (用户-视频-行为去重日志)
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS `user_video_actions` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `user_id` int(11) NOT NULL COMMENT '用户ID，对应 users.user_id',
+  `video_id` varchar(50) COLLATE utf8mb4_general_ci NOT NULL COMMENT '视频ID，对应 parse_library.video_id',
+  `action_type` varchar(50) COLLATE utf8mb4_general_ci NOT NULL COMMENT '行为类型，如 parse、shareFriend 等',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '行为发生时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_user_video_action` (`user_id`, `video_id`, `action_type`),
+  KEY `idx_video_action` (`video_id`, `action_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='用户-视频-行为去重日志表';
