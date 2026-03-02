@@ -7,10 +7,11 @@ from utils.common_utils import make_response, validate_request
 
 bp = Blueprint('ranking', __name__)
 
-# 榜单关闭时的空结构，与 get_recent_ranking 的 key 一致
+# 榜单关闭时的空结构
 _EMPTY_RANKING = {
     'search': '',
-    '7days': [], '30days': [], '90days': [], '180days': [], '365days': [], 'all': [],
+    'period': '7days',
+    'list': []
 }
 
 
@@ -34,6 +35,7 @@ def ranking():
     try:
         data = request.json
         request_searchquery = data.get('searchQuery')
+        request_period = data.get('period', '7days') # 默认 7 天
         wx_open_id = request.headers.get('WX-OPEN-ID', 'Guest')
 
         validation_result = validate_request()
@@ -43,13 +45,18 @@ def ranking():
         if not _is_ranking_enabled():
             ranking_dict = dict(_EMPTY_RANKING)
             ranking_dict['search'] = request_searchquery or ''
+            ranking_dict['period'] = request_period
             ranking_dict['maintenance_mode'] = True
             return make_response(200, '成功', None, ranking_dict, True), 200
 
         sq = RankingQuery()
-        ranking_dict = sq.get_recent_ranking(keywords=request_searchquery)
-        ranking_dict['maintenance_mode'] = not sq.has_visible_videos()
-        logger.debug(f'{wx_open_id} Ranking Success')
+        try:
+            ranking_dict = sq.get_recent_ranking(period=request_period, keywords=request_searchquery)
+            ranking_dict['maintenance_mode'] = not sq.has_visible_videos()
+        finally:
+            sq.close()
+            
+        logger.debug(f'{wx_open_id} Ranking Success (Period: {request_period})')
         return make_response(200, '成功', None, ranking_dict, True), 200
 
     except Exception as e:

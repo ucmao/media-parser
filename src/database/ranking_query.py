@@ -150,13 +150,24 @@ class RankingQuery:
             logger.error(f"has_visible_videos error: {e}")
             return False
 
-    def get_recent_ranking(self, keywords='', limit=100):
+    def get_recent_ranking(self, period='7days', keywords='', limit=100):
+        # 映射前端传来的 period 到 get_recent_query_ranking 的参数
+        PERIOD_MAPPING = {
+            '7days': 7,
+            '30days': 30,
+            '90days': 90,
+            '180days': 180,
+            '365days': 365,
+            'all': 'ALL',
+            'today': 'TODAY',
+            'yesterday': 'YESTERDAY'
+        }
+        
+        days_param = PERIOD_MAPPING.get(period, 7)
+        ranking_list = self.get_recent_query_ranking(days_param, keywords, limit)
+        
         return {
             'search': keywords,
-            '7days': self.get_recent_query_ranking(7, keywords, limit),
-            '30days': self.get_recent_query_ranking(30, keywords, limit),
-            '90days': self.get_recent_query_ranking(90, keywords, limit),
-            '180days': self.get_recent_query_ranking(180, keywords, limit),
-            '365days': self.get_recent_query_ranking(365, keywords, limit),
-            'all': self.get_recent_query_ranking('ALL', keywords, limit),
+            'period': period,
+            'list': ranking_list
         }
