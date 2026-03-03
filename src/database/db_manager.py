@@ -458,6 +458,13 @@ class DBManager:
             
             self.conn.commit()
             return result[0] if result else 0
+        except mysql.connector.Error as e:
+            self.conn.rollback()
+            if e.errno == 1054: # Column not found
+                logger.error("Column 'refresh_fail_count' is missing in 'parse_library' table. Please run the ALTER TABLE SQL.")
+            else:
+                logger.error(f"MySQL Error in increment_refresh_fail_count: {e}")
+            raise e
         except Exception as e:
             self.conn.rollback()
             logger.error(f"增加视频[{video_id}]失败次数失败：{str(e)}", exc_info=True)
@@ -478,6 +485,10 @@ class DBManager:
             cursor.execute(sql, (video_id,))
             self.conn.commit()
             return cursor.rowcount > 0
+        except mysql.connector.Error as e:
+            self.conn.rollback()
+            logger.error(f"MySQL Error in delete_video_by_id: {e}")
+            raise e
         except Exception as e:
             self.conn.rollback()
             logger.error(f"删除视频[{video_id}]失败：{str(e)}", exc_info=True)

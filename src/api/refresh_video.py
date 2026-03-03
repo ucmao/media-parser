@@ -32,39 +32,49 @@ def refresh_video():
 
         # 获取封面 视频 和标题
         title = cover_url = video_url = None
-        if platform == '小红书':
-            max_attempts = 5
-            attempts = 0
-            while attempts < max_attempts:
+        try:
+            if platform == '小红书':
+                max_attempts = 5
+                attempts = 0
+                while attempts < max_attempts:
+                    downloader = DownloaderFactory.create_downloader(platform, real_url)
+                    title = downloader.get_title_content()
+                    video_url = downloader.get_real_video_url()
+                    cover_url = downloader.get_cover_photo_url()
+                    if video_url:
+                        break
+                    attempts += 1
+                    logger.debug(f"Attempt {attempts} failed. Retrying...")
+                if not video_url:
+                    logger.error("Failed to retrieve video URL after 5 attempts.")
+            else:
                 downloader = DownloaderFactory.create_downloader(platform, real_url)
                 title = downloader.get_title_content()
                 video_url = downloader.get_real_video_url()
                 cover_url = downloader.get_cover_photo_url()
-                if video_url:
-                    break
-                attempts += 1
-                logger.debug(f"Attempt {attempts} failed. Retrying...")
-            if not video_url:
-                logger.error("Failed to retrieve video URL after 5 attempts.")
-        else:
-            downloader = DownloaderFactory.create_downloader(platform, real_url)
-            title = downloader.get_title_content()
-            video_url = downloader.get_real_video_url()
-            cover_url = downloader.get_cover_photo_url()
+        except Exception as downloader_error:
+            logger.error(f"Downloader Error: {downloader_error}")
+            video_url = None # 确保 video_url 为 None 以进入失败逻辑
 
         updated_video_url = UrlParser.convert_to_https(video_url)
         updated_cover_url = UrlParser.convert_to_https(cover_url)
 
         if updated_video_url:
             # 成功获取视频，重置失败次数
-            DataStorageManager.reset_refresh_fail_count(request_video_id)
+            try:
+                DataStorageManager.reset_refresh_fail_count(request_video_id)
+            except Exception as db_err:
+                logger.error(f"Database Reset Fail Error: {db_err}")
         else:
             # 获取失败，增加失败次数
-            fail_count = DataStorageManager.increment_refresh_fail_count(request_video_id)
-            logger.warning(f"Video {request_video_id} refresh failed, count: {fail_count}")
-            if fail_count >= 3:
-                DataStorageManager.delete_video(request_video_id)
-                logger.info(f"Video {request_video_id} deleted due to {fail_count} refresh failures")
+            try:
+                fail_count = DataStorageManager.increment_refresh_fail_count(request_video_id)
+                logger.warning(f"Video {request_video_id} refresh failed, count: {fail_count}")
+                if fail_count >= 3:
+                    DataStorageManager.delete_video(request_video_id)
+                    logger.info(f"Video {request_video_id} deleted due to {fail_count} refresh failures")
+            except Exception as db_err:
+                logger.error(f"Database Fail Count Error: {db_err}")
             
             return make_response(200, '视频获取中，请稍后再试', None, None, False), 200
 

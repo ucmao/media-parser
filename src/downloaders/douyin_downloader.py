@@ -51,28 +51,37 @@ class DouyinDownloader(BaseDownloader):
     def get_real_video_url(self):
         try:
             data_dict = self.data
+            if not data_dict:
+                return None
             play_addr_list = data_dict['aweme_detail']['video']['bit_rate'][0]['play_addr']['url_list']
             # play_addr_list[0]:主CDN节点; play_addr_list[1]:备用CDN节点; play_addr_list[2]:抖音官方的源站URL
             play_addr = play_addr_list[2]
             return play_addr
-        except (KeyError, json.JSONDecodeError) as e:
+        except (KeyError, json.JSONDecodeError, TypeError) as e:
             logger.warning(f"Failed to parse video URL: {e}")
+            return None
 
     def get_title_content(self):
         try:
             data_dict = self.data
+            if not data_dict:
+                return None
             title_content = data_dict['aweme_detail']['desc']
             return title_content
-        except (KeyError, json.JSONDecodeError) as e:
+        except (KeyError, json.JSONDecodeError, TypeError) as e:
             logger.warning(f"Failed to parse title content: {e}")
+            return None
 
     def get_cover_photo_url(self):
         try:
             data_dict = self.data
+            if not data_dict:
+                return None
             play_cover = data_dict['aweme_detail']['video']['cover_original_scale']['url_list'][0]
             return play_cover
-        except (KeyError, json.JSONDecodeError) as e:
+        except (KeyError, json.JSONDecodeError, TypeError) as e:
             logger.warning(f"Failed to parse cover URL: {e}")
+            return None
 
 
 if __name__ == '__main__':
