@@ -182,3 +182,27 @@ class DataStorageManager:
             return 0
         finally:
             self._disconnect_db(manager)
+
+    @staticmethod
+    def increment_refresh_fail_count(video_id: str) -> int:
+        manager = DataStorageManager._connect_db()
+        try:
+            return manager.increment_refresh_fail_count(video_id)
+        finally:
+            DataStorageManager._disconnect_db(manager)
+
+    @staticmethod
+    def delete_video(video_id: str) -> bool:
+        manager = DataStorageManager._connect_db()
+        try:
+            return manager.delete_video_by_id(video_id)
+        finally:
+            DataStorageManager._disconnect_db(manager)
+
+    @staticmethod
+    def reset_refresh_fail_count(video_id: str):
+        manager = DataStorageManager._connect_db()
+        try:
+            manager.reset_refresh_fail_count(video_id)
+        finally:
+            DataStorageManager._disconnect_db(manager)

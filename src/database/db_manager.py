@@ -438,6 +438,72 @@ class DBManager:
             cursor.close()
 
 
+    def increment_refresh_fail_count(self, video_id: str) -> int:
+        """
+        增加视频的重新获取失败次数，并返回当前失败次数。
+        """
+        if not self.conn:
+            raise Exception("Database not connected")
+
+        cursor = self.conn.cursor()
+        try:
+            # 更新失败次数
+            update_sql = "UPDATE parse_library SET refresh_fail_count = refresh_fail_count + 1 WHERE video_id = %s"
+            cursor.execute(update_sql, (video_id,))
+            
+            # 获取当前失败次数
+            select_sql = "SELECT refresh_fail_count FROM parse_library WHERE video_id = %s"
+            cursor.execute(select_sql, (video_id,))
+            result = cursor.fetchone()
+            
+            self.conn.commit()
+            return result[0] if result else 0
+        except Exception as e:
+            self.conn.rollback()
+            logger.error(f"增加视频[{video_id}]失败次数失败：{str(e)}", exc_info=True)
+            raise e
+        finally:
+            cursor.close()
+
+    def delete_video_by_id(self, video_id: str) -> bool:
+        """
+        按 video_id 删除视频。
+        """
+        if not self.conn:
+            raise Exception("Database not connected")
+
+        cursor = self.conn.cursor()
+        try:
+            sql = "DELETE FROM parse_library WHERE video_id = %s"
+            cursor.execute(sql, (video_id,))
+            self.conn.commit()
+            return cursor.rowcount > 0
+        except Exception as e:
+            self.conn.rollback()
+            logger.error(f"删除视频[{video_id}]失败：{str(e)}", exc_info=True)
+            raise e
+        finally:
+            cursor.close()
+
+    def reset_refresh_fail_count(self, video_id: str):
+        """
+        重置重新获取失败次数为 0。
+        """
+        if not self.conn:
+            raise Exception("Database not connected")
+
+        cursor = self.conn.cursor()
+        try:
+            sql = "UPDATE parse_library SET refresh_fail_count = 0 WHERE video_id = %s"
+            cursor.execute(sql, (video_id,))
+            self.conn.commit()
+        except Exception as e:
+            self.conn.rollback()
+            logger.error(f"重置视频[{video_id}]失败次数失败：{str(e)}", exc_info=True)
+            raise e
+        finally:
+            cursor.close()
+
 if __name__ == '__main__':
     # 示例调用
     db_manager = DBManager(host='your_host', user='your_user', password='your_password', database='your_database')

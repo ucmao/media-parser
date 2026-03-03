@@ -50,6 +50,8 @@ class WebFetcher:
 class UrlParser:
     @staticmethod
     def convert_to_https(url):
+        if not url:
+            return None
         if url.startswith('http://'):
             return 'https://' + url[7:]
         return url

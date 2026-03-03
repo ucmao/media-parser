@@ -55,6 +55,19 @@ def refresh_video():
         updated_video_url = UrlParser.convert_to_https(video_url)
         updated_cover_url = UrlParser.convert_to_https(cover_url)
 
+        if updated_video_url:
+            # 成功获取视频，重置失败次数
+            DataStorageManager.reset_refresh_fail_count(request_video_id)
+        else:
+            # 获取失败，增加失败次数
+            fail_count = DataStorageManager.increment_refresh_fail_count(request_video_id)
+            logger.warning(f"Video {request_video_id} refresh failed, count: {fail_count}")
+            if fail_count >= 3:
+                DataStorageManager.delete_video(request_video_id)
+                logger.info(f"Video {request_video_id} deleted due to {fail_count} refresh failures")
+            
+            return make_response(200, '视频获取中，请稍后再试', None, None, False), 200
+
         data_dict = {'video_id': request_video_id, 'platform': request_platform, 'title': title, 'video_url': updated_video_url,
                      'cover_url': updated_cover_url}
         trans_data_dict = {'video_id': request_video_id, 'platform': platform, 'title': title, 'video_url': updated_video_url,
