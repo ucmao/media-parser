@@ -45,10 +45,12 @@ class RankingQuery:
 
         # 1. 主榜：直接在 SQL 中计算 effective_score
         # 公式：100 + (score * 10 / (1 + 更新至今的小时数 * 0.05)) + (video_id 末尾 ASCII 码 % 10)
+        # 额外增加 create_age 用于判断“新”标签
         select_fields = f"""
             video_id, platform, title, video_url, cover_url, score as raw_score,
             FLOOR(100 + (score * 10 / (1 + TIMESTAMPDIFF(HOUR, updated_at, NOW()) * {DECAY_K}))) + (ASCII(RIGHT(video_id, 1)) % 10) as effective_score,
-            TIMESTAMPDIFF(HOUR, updated_at, NOW()) as hours_age
+            TIMESTAMPDIFF(HOUR, updated_at, NOW()) as hours_age,
+            TIMESTAMPDIFF(HOUR, create_at, NOW()) as create_age
         """
 
         if keywords:
@@ -85,7 +87,7 @@ class RankingQuery:
             SELECT {select_fields}
             FROM parse_library
             {where_clause}
-            ORDER BY updated_at DESC
+            ORDER BY create_at DESC
             LIMIT {explore_count}
             """
             if params:
@@ -105,7 +107,9 @@ class RankingQuery:
         for i in range(min(3, len(main_results))):
             row = main_results[i]
             if row[0] not in seen_ids:
-                final_results_with_type.append((row, False))
+                # 即使是主榜，如果满足创建时间在 24 小时内，也打上新标签
+                is_new_discovery = row[8] <= 24 
+                final_results_with_type.append((row, is_new_discovery))
                 seen_ids.add(row[0])
 
         # 添加探索位 (插队到 4-6 名)
@@ -113,8 +117,9 @@ class RankingQuery:
             if len(final_results_with_type) >= 6:
                 break
             if row[0] not in seen_ids:
-                # 如果这个素材非常新（例如 24 小时内），则标记为新
-                is_new_discovery = row[7] <= 24 
+                # 探索位插入的是按 create_at 倒序排列的最新的记录
+                # 满足创建时间在 24 小时内，标记为新
+                is_new_discovery = row[8] <= 24 
                 final_results_with_type.append((row, is_new_discovery))
                 seen_ids.add(row[0])
 
