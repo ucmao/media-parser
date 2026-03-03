@@ -13,6 +13,8 @@ def get_score_configs():
     try:
         conn = mysql.connector.connect(**DATABASE_CONFIG)
         cursor = conn.cursor(dictionary=True)
+        # 统一设置会话时区为北京时间
+        cursor.execute("SET time_zone = '+8:00'")
         cursor.execute("SELECT config_key, config_value, is_enabled FROM score_config")
         rows = cursor.fetchall()
         cursor.close()

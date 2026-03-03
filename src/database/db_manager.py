@@ -23,6 +23,10 @@ class DBManager:
             database=self.database,
             port=self.port
         )
+        # 统一设置会话时区为北京时间
+        cursor = self.conn.cursor()
+        cursor.execute("SET time_zone = '+8:00'")
+        cursor.close()
 
     def disconnect(self):
         if self.conn:

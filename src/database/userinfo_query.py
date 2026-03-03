@@ -8,6 +8,8 @@ class UserInfoQuery:
     def __init__(self):
         self.conn = mysql.connector.connect(**DATABASE_CONFIG)
         self.cursor = self.conn.cursor(dictionary=True)
+        # 统一设置会话时区为北京时间
+        self.cursor.execute("SET time_zone = '+8:00'")
 
     def close(self):
         self.cursor.close()

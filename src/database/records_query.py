@@ -9,6 +9,8 @@ class RecordsQuery:
     def __init__(self):
         self.conn = mysql.connector.connect(**DATABASE_CONFIG)
         self.cursor = self.conn.cursor()
+        # 统一设置会话时区为北京时间
+        self.cursor.execute("SET time_zone = '+8:00'")
 
     def close(self):
         self.conn.close()

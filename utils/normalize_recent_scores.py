@@ -44,42 +44,37 @@ def update_scores_in_last_24_hours(conn):
     """
     更新 parse_library 表中，创建时间在 '过去 24 小时内' 且 score > 100 的记录，
     将它们的 score 设为 50。
-
-    使用本地系统时间计算，并使用正确的字段名 create_at。
     """
     cursor = conn.cursor()
 
-    # **关键修改：使用 datetime.now() 获取系统本地时间 (Naive Datetime)**
-    now_local = datetime.now()
-    time_24_hours_ago = now_local - timedelta(hours=24)
+    # 统一设置会话时区为北京时间
+    cursor.execute("SET time_zone = '+8:00'")
 
-    # 转换为 MySQL 接受的格式字符串 (YYYY-MM-DD HH:MM:SS)
-    now_local_str = now_local.strftime('%Y-%m-%d %H:%M:%S')
-    time_24_hours_ago_str = time_24_hours_ago.strftime('%Y-%m-%d %H:%M:%S')
+    # 获取当前数据库时间用于日志
+    cursor.execute("SELECT NOW()")
+    db_now = cursor.fetchone()[0]
 
-    # **改进的日志输出，显示当前时间 (本地)**
-    print(f"⏰ 当前系统时间 (本地): {now_local_str}")
-    print(f"🕒 正在执行更新。查询起始时间点 (本地): {time_24_hours_ago_str}")
+    print(f"⏰ 当前数据库时间 (北京): {db_now}")
+    print(f"🕒 正在执行更新。目标范围: 过去 24 小时内创建 且 score > 100")
     print("----------------------------------------")
 
-    # **关键修正：将 created_at 修正为 create_at**
-    # updated_at 设为数据库服务器的当前时间 (NOW())
+    # 直接在 SQL 中使用 DATE_SUB(NOW(), INTERVAL 24 HOUR)
+    # 确保 create_at 比较是基于数据库当前时间的，避免 Python 与数据库时钟不一致
     query = """
         UPDATE parse_library
         SET score = 50, updated_at = NOW()
         WHERE score > 100
-        AND create_at >= %s 
+        AND create_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
     """
 
     try:
-        # 传入本地时间字符串进行查询
-        cursor.execute(query, (time_24_hours_ago_str,))
+        cursor.execute(query)
 
         affected_rows = cursor.rowcount
         conn.commit()  # 提交事务
 
         print(f"✅ 成功更新 {affected_rows} 条记录。")
-        print(f"条件: create_at >= {time_24_hours_ago_str} (过去 24 小时，基于本地时间) 且 score > 100。")
+        print(f"条件: create_at >= 24小时前 且 score > 100。")
 
     except mysql.connector.Error as e:
         # 捕获数据库错误，回滚并打印

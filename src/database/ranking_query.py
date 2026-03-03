@@ -8,6 +8,8 @@ class RankingQuery:
         try:
             self.conn = mysql.connector.connect(**DATABASE_CONFIG)
             self.cursor = self.conn.cursor()
+            # 统一设置会话时区为北京时间
+            self.cursor.execute("SET time_zone = '+8:00'")
             logger.debug("数据库连接成功")
         except Exception as e:
             logger.error(f"数据库连接失败: {str(e)}")
@@ -20,33 +22,33 @@ class RankingQuery:
             logger.debug("数据库连接已关闭")
 
     def get_recent_query_ranking(self, days, keywords='', limit=100):
-        # 衰减系数
-        DECAY_K = 0.01
+        # 衰减系数 (从 0.01 调大到 0.05，让没人互动的视频衰减更快)
+        DECAY_K = 0.05
 
-        # 使用实际存在的 create_at 字段进行时间筛选
+        # 使用 updated_at 字段进行时间筛选，反映最近的活跃度
         if days == 'MONTH':
-            date_filter = "DATE_FORMAT(create_at, '%Y-%m') = DATE_FORMAT(CURRENT_DATE, '%Y-%m')"
+            date_filter = "DATE_FORMAT(updated_at, '%Y-%m') = DATE_FORMAT(CURRENT_DATE, '%Y-%m')"
         elif days == 'LAST_MONTH':
-            date_filter = "DATE_FORMAT(create_at, '%Y-%m') = DATE_FORMAT(DATE_SUB(CURRENT_DATE, INTERVAL 1 MONTH), '%Y-%m')"
+            date_filter = "DATE_FORMAT(updated_at, '%Y-%m') = DATE_FORMAT(DATE_SUB(CURRENT_DATE, INTERVAL 1 MONTH), '%Y-%m')"
         elif days == 'ALL':
             date_filter = "1=1"  # 不筛选时间
         elif days == 'TODAY':
-            date_filter = "DATE(create_at) = CURRENT_DATE"
+            date_filter = "DATE(updated_at) = CURRENT_DATE"
         elif days == 'YESTERDAY':
-            date_filter = "DATE(create_at) = DATE_SUB(CURRENT_DATE, INTERVAL 1 DAY)"
+            date_filter = "DATE(updated_at) = DATE_SUB(CURRENT_DATE, INTERVAL 1 DAY)"
         else:
-            date_filter = f"create_at >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL {days} DAY)"
+            date_filter = f"updated_at >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL {days} DAY)"
 
         # 预留部分“探索位”给最新内容做保底曝光
         explore_count = min(5, limit)
         main_limit = limit
 
         # 1. 主榜：直接在 SQL 中计算 effective_score
-        # 公式：100 + (score * 10 / (1 + 发布至今的小时数 * 0.01)) + (video_id 末尾 ASCII 码 % 10)
+        # 公式：100 + (score * 10 / (1 + 更新至今的小时数 * 0.05)) + (video_id 末尾 ASCII 码 % 10)
         select_fields = f"""
             video_id, platform, title, video_url, cover_url, score as raw_score,
-            FLOOR(100 + (score * 10 / (1 + TIMESTAMPDIFF(HOUR, create_at, NOW()) * {DECAY_K}))) + (ASCII(RIGHT(video_id, 1)) % 10) as effective_score,
-            TIMESTAMPDIFF(HOUR, create_at, NOW()) as hours_age
+            FLOOR(100 + (score * 10 / (1 + TIMESTAMPDIFF(HOUR, updated_at, NOW()) * {DECAY_K}))) + (ASCII(RIGHT(video_id, 1)) % 10) as effective_score,
+            TIMESTAMPDIFF(HOUR, updated_at, NOW()) as hours_age
         """
 
         if keywords:
@@ -54,7 +56,7 @@ class RankingQuery:
             SELECT {select_fields}
             FROM parse_library
             WHERE {date_filter} AND title LIKE %s AND is_visible = 1
-            ORDER BY effective_score DESC, create_at DESC
+            ORDER BY effective_score DESC, updated_at DESC
             LIMIT {main_limit}
             """
             self.cursor.execute(main_sql, (f"%{keywords}%",))
@@ -63,7 +65,7 @@ class RankingQuery:
             SELECT {select_fields}
             FROM parse_library
             WHERE {date_filter} AND is_visible = 1
-            ORDER BY effective_score DESC, create_at DESC
+            ORDER BY effective_score DESC, updated_at DESC
             LIMIT {main_limit}
             """
             self.cursor.execute(main_sql)
@@ -83,7 +85,7 @@ class RankingQuery:
             SELECT {select_fields}
             FROM parse_library
             {where_clause}
-            ORDER BY create_at DESC
+            ORDER BY updated_at DESC
             LIMIT {explore_count}
             """
             if params:
