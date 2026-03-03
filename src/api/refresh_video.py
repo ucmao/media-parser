@@ -59,20 +59,32 @@ def refresh_video():
         updated_video_url = UrlParser.convert_to_https(video_url)
         updated_cover_url = UrlParser.convert_to_https(cover_url)
 
-        if updated_video_url:
-            # 成功获取视频，重置失败次数
+        # 获取现有视频 URL 以判断是否真正刷新了内容
+        old_video_url = None
+        try:
+            db_manager_instance = DataStorageManager(request_video_id)
+            existing_data = db_manager_instance.get_db_data()
+            if existing_data:
+                old_video_url = existing_data.get('video_url')
+        except Exception as e:
+            logger.error(f"Failed to get existing video data: {e}")
+
+        # 只有当获取到新 URL 且与旧 URL 不同时，才视为刷新成功
+        if updated_video_url and updated_video_url != old_video_url:
+            # 成功获取视频且是新链接，重置失败次数
             try:
                 DataStorageManager.reset_refresh_fail_count(request_video_id)
             except Exception as db_err:
                 logger.error(f"Database Reset Fail Error: {db_err}")
         else:
-            # 获取失败，增加失败次数
+            # 获取失败，或者获取到的 URL 和之前一样（说明没有刷新成功），增加失败次数
             try:
                 fail_count = DataStorageManager.increment_refresh_fail_count(request_video_id)
-                logger.warning(f"Video {request_video_id} refresh failed, count: {fail_count}")
+                logger.warning(f"Video {request_video_id} refresh failed (is_same: {updated_video_url == old_video_url}), count: {fail_count}")
                 if fail_count >= 3:
                     DataStorageManager.delete_video(request_video_id)
                     logger.info(f"Video {request_video_id} deleted due to {fail_count} refresh failures")
+                    return make_response(200, '视频已失效并移除', None, None, False), 200
             except Exception as db_err:
                 logger.error(f"Database Fail Count Error: {db_err}")
             
