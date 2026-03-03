@@ -22,10 +22,10 @@ class RankingQuery:
             logger.debug("数据库连接已关闭")
 
     def get_recent_query_ranking(self, days, keywords='', limit=100):
-        # 衰减系数 (从 0.01 调大到 0.05，让没人互动的视频衰减更快)
-        DECAY_K = 0.05
+        # 衰减系数 (调整为 0.02，平衡新鲜度与热度)
+        DECAY_K = 0.02
 
-        # 使用 updated_at 字段进行时间筛选，反映最近的活跃度
+        # 使用 updated_at 字段进行时间筛选，确保最近活跃的视频（包括被点击的老视频）能入围
         if days == 'MONTH':
             date_filter = "DATE_FORMAT(updated_at, '%Y-%m') = DATE_FORMAT(CURRENT_DATE, '%Y-%m')"
         elif days == 'LAST_MONTH':
@@ -44,11 +44,11 @@ class RankingQuery:
         main_limit = limit
 
         # 1. 主榜：直接在 SQL 中计算 effective_score
-        # 公式：100 + (score * 10 / (1 + 更新至今的小时数 * 0.05)) + (video_id 末尾 ASCII 码 % 10)
-        # 额外增加 create_age 用于判断“新”标签
+        # 核心修正：分母改回使用 create_at 计算衰减，避免点击导致的分数剧烈跳变
+        # 公式：100 + (score * 10 / (1 + 创建至今的小时数 * 0.02)) + (video_id 末尾 ASCII 码 % 10)
         select_fields = f"""
             video_id, platform, title, video_url, cover_url, score as raw_score,
-            FLOOR(100 + (score * 10 / (1 + TIMESTAMPDIFF(HOUR, updated_at, NOW()) * {DECAY_K}))) + (ASCII(RIGHT(video_id, 1)) % 10) as effective_score,
+            FLOOR(100 + (score * 10 / (1 + TIMESTAMPDIFF(HOUR, create_at, NOW()) * {DECAY_K}))) + (ASCII(RIGHT(video_id, 1)) % 10) as effective_score,
             TIMESTAMPDIFF(HOUR, updated_at, NOW()) as hours_age,
             TIMESTAMPDIFF(HOUR, create_at, NOW()) as create_age
         """
