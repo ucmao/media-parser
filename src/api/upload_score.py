@@ -61,13 +61,18 @@ def upload_record():
         # 绑定/获取用户ID
         user_id = DataStorageManager.get_or_create_user_id(wx_open_id)
 
-        # 通过 user_video_actions 表按用户+视频+行为去重：
-        # 仅对“首次行为”的视频累加积分，重复行为不再加分
-        unique_video_ids = DataStorageManager.filter_new_user_actions(
-            user_id=user_id,
-            video_ids=video_ids,
-            action_type=action_type
-        )
+        # 行为去重逻辑：
+        # 1. 对于 validPlay (有效播放)，不再限制用户，每次播放都计分
+        # 2. 对于其他行为（分享、下载等），按用户+视频+行为去重，仅首次计分
+        if action_type == 'validPlay':
+            unique_video_ids = video_ids
+            logger.debug(f'[{wx_open_id}] validPlay 行为不进行去重过滤')
+        else:
+            unique_video_ids = DataStorageManager.filter_new_user_actions(
+                user_id=user_id,
+                video_ids=video_ids,
+                action_type=action_type
+            )
 
         # 初始化数据管理器
         score_manager = DataStorageManager()

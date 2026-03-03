@@ -42,10 +42,10 @@ class RankingQuery:
         main_limit = limit
 
         # 1. 主榜：直接在 SQL 中计算 effective_score
-        # 公式：score / (1 + 发布至今的小时数 * 0.01)
+        # 公式：100 + (score * 10 / (1 + 发布至今的小时数 * 0.01)) + (video_id 末尾 ASCII 码 % 10)
         select_fields = f"""
             video_id, platform, title, video_url, cover_url, score as raw_score,
-            FLOOR(score / (1 + TIMESTAMPDIFF(HOUR, create_at, NOW()) * {DECAY_K})) as effective_score,
+            FLOOR(100 + (score * 10 / (1 + TIMESTAMPDIFF(HOUR, create_at, NOW()) * {DECAY_K}))) + (ASCII(RIGHT(video_id, 1)) % 10) as effective_score,
             TIMESTAMPDIFF(HOUR, create_at, NOW()) as hours_age
         """
 
