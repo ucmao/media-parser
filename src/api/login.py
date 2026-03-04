@@ -3,6 +3,7 @@ from flask import Blueprint, request, jsonify
 import requests
 from configs.logging_config import logger
 from configs.general_constants import WECHAT_APP_ID, WECHAT_APP_SECRET, DOMAIN
+from utils.common_utils import make_response
 
 bp = Blueprint('login', __name__)
 
@@ -74,3 +75,34 @@ def login():
     else:
         logger.error('Failed to connect to WeChat server')
         return jsonify({'error': 'Failed to connect to WeChat server'}), 500
+
+@bp.route('/get_userinfo', methods=['GET'])
+def get_userinfo():
+    """通过 openid 获取用户信息"""
+    from utils.common_utils import validate_request
+    validation_result = validate_request()
+    if validation_result:
+        return validation_result
+
+    openid = request.headers.get('WX-OPEN-ID')
+    if not openid:
+        return make_response(400, 'Missing openid in headers', None, None, False), 400
+    
+    from src.database.db_manager import DBManager
+    from configs.general_constants import DATABASE_CONFIG
+    
+    db = DBManager(**DATABASE_CONFIG)
+    db.connect()
+    cursor = db.conn.cursor(dictionary=True)
+    
+    cursor.execute("SELECT nickname, avatar_url FROM users WHERE open_id = %s", (openid,))
+    user = cursor.fetchone()
+    db.disconnect()
+    
+    if user:
+        return make_response(200, '成功', {
+            'nickname': user.get('nickname'),
+            'avatar_url': user.get('avatar_url')
+        }, None, True), 200
+    else:
+        return make_response(404, 'User not found', None, None, False), 404
