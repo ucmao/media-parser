@@ -2,10 +2,16 @@ from flask import jsonify, request
 from configs.logging_config import logger
 from utils.vigenere_cipher import VigenereCipher
 import time
-from PIL import Image, ImageOps
 import requests
 from io import BytesIO
 import os
+
+try:
+    from PIL import Image, ImageOps
+    HAS_PILLOW = True
+except ImportError:
+    HAS_PILLOW = False
+    logger.warning("Pillow not installed, share cover generation will be disabled.")
 
 
 def make_response(retcode, retdesc, data, ranking, succ):
@@ -23,6 +29,10 @@ def generate_share_cover_logic(video_id, remote_cover_url):
     """
     下载、裁剪并合成播放按钮封面
     """
+    if not HAS_PILLOW:
+        logger.warning("Pillow is not available. Returning original cover URL.")
+        return remote_cover_url
+
     # 1. 定义路径
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     shares_dir = os.path.join(base_dir, 'static', 'images', 'shares')
