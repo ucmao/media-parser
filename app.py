@@ -1,6 +1,6 @@
 from flask import Flask, session, render_template
 import os
-from src.api import login, ranking, upload_userinfo, refresh_video, upload_record, download, upload_score
+from src.api import login, ranking, upload_userinfo, refresh_video, upload_record, download, upload_score, share
 from src.api import records, parse, admin
 from configs.logging_config import logger
 
@@ -17,6 +17,7 @@ app.register_blueprint(upload_record.bp, url_prefix='/api')
 app.register_blueprint(upload_userinfo.bp, url_prefix='/api')
 app.register_blueprint(refresh_video.bp, url_prefix='/api')
 app.register_blueprint(download.bp, url_prefix='/api')
+app.register_blueprint(share.bp, url_prefix='/api')
 
 # 注册现代管理后台蓝图
 app.register_blueprint(admin.bp)
