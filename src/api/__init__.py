@@ -8,3 +8,4 @@ from . import upload_score
 from . import records
 from . import parse
 from . import admin
+from . import share
