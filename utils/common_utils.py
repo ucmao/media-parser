@@ -62,8 +62,8 @@ def generate_share_cover_logic(video_id, remote_cover_url):
         # 5. 合成播放按钮
         if os.path.exists(play_icon_path):
             icon = Image.open(play_icon_path).convert("RGBA")
-            # 缩放图标（封面宽度的 1/4）
-            icon_w = target_size[0] // 4
+            # 缩放图标（封面宽度的 1/5）
+            icon_w = target_size[0] // 5
             icon_h = int(icon.height * (icon_w / icon.width))
             icon = icon.resize((icon_w, icon_h), Image.LANCZOS)
 
