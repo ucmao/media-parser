@@ -16,8 +16,9 @@
 
 Media Parser是一款专为短视频创作者打造的**自动化解析工具**。
 
-
-
+<p align="center">
+  <img src="static/images/Interface.webp" width="600" alt="Media Parser 后端管理界面预览">
+</p>
 
 通过“智能识别 -> 绕过水印 -> 提取地址 -> 快捷下载”的闭环，助你高效获取无水印素材。
 
