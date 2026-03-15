@@ -1,11 +1,25 @@
+# ======= 环境配置开始：将项目根目录添加到系统路径，当前脚本可测试 =======
+
+from pathlib import Path
+import sys
+# 获取当前文件的绝对路径，并定位至向上推两级的项目根目录
+root_dir = str(Path(__file__).resolve().parents[2])
+# 如果根目录不在系统搜索路径中，则动态添加，以确保跨模块导入（Import）正常工作
+if root_dir not in sys.path:
+    sys.path.append(root_dir)
+
+# ========================= 环境配置结束 =========================
+
+
 import json
 import urllib3
 import warnings
 import copy
-import requests
 from utils.web_fetcher import UrlParser
 from utils.douyin_utils.bogus_sign_utils import CommonUtils
-from configs.logging_config import logger
+from configs.logging_config import get_logger
+
+logger = get_logger(__name__)
 from src.downloaders.base_downloader import BaseDownloader
 
 warnings.filterwarnings("ignore", category=urllib3.exceptions.InsecureRequestWarning)
@@ -33,27 +47,93 @@ class DouyinDownloader(BaseDownloader):
         self.aweme_id = UrlParser.get_video_id(self.real_url)
         self.data = self.fetch_html_data()
 
-    def fetch_html_data(self):
-        referer_url = f"https://www.douyin.com/video/{self.aweme_id}?previous_page=web_code_link"
-        play_url = f"https://www.douyin.com/aweme/v1/web/aweme/detail/?device_platform=webapp&aid=6383&channel=channel_pc_web&aweme_id={self.aweme_id}&update_version_code=170400&pc_client_type=1&version_code=190500&version_name=19.5.0&cookie_enabled=true&screen_width=1536&screen_height=864&browser_language=zh-CN&browser_platform=Win32&browser_name=Chrome&browser_version=127.0.0.0&browser_online=true&engine_name=Blink&engine_version=127.0.0.0&os_name=Windows&os_version=10&cpu_core_num=8&device_memory=8&platform=PC&downlink=1.25&effective_type=4g&round_trip_time=50&webid={self.webid}&msToken={self.ms_token}"
-        new_headers = copy.deepcopy(self.headers)
-        new_headers['Referer'] = referer_url
-        new_headers['Cookie'] = f"ttwid={self.ttwid}; UIFID_TEMP=973a3fd64dcc46a3490fd9b60d4a8e663b34df4ccc4bbcf97643172fb712d8b085a6744acabbffda742bf60a364e4bd6ba5522889cc6f6598b4ea0b83bec2c70bac5163dec36cdb8fb58ea1ae00a413d; s_v_web_id=verify_lzhq5z5k_lbhbXlzb_o9V2_4SQt_8VKz_WZhdN8ARwLk5; home_can_add_dy_2_desktop=%220%22; dy_swidth=1536; dy_sheight=864; stream_recommend_feed_params=%22%7B%5C%22cookie_enabled%5C%22%3Atrue%2C%5C%22screen_width%5C%22%3A1536%2C%5C%22screen_height%5C%22%3A864%2C%5C%22browser_online%5C%22%3Atrue%2C%5C%22cpu_core_num%5C%22%3A8%2C%5C%22device_memory%5C%22%3A8%2C%5C%22downlink%5C%22%3A10%2C%5C%22effective_type%5C%22%3A%5C%224g%5C%22%2C%5C%22round_trip_time%5C%22%3A50%7D%22; csrf_session_id=c25ac0fd3e72f260d4d666d4e5b59401; strategyABtestKey=%221722906710.493%22; passport_csrf_token=e8e0d86abdd80d40b0a35f4417140777; passport_csrf_token_default=e8e0d86abdd80d40b0a35f4417140777; bd_ticket_guard_client_web_domain=2; FORCE_LOGIN=%7B%22videoConsumedRemainSeconds%22%3A180%7D; fpk1=U2FsdGVkX1/MzFW4T42Rh27SkY1k9enxmP1563AOYXnpFPaQOzdqmDBHwkaQrfKGx2e0KwNeDci6fNn3aTjflw==; fpk2=362d7fe3d8b2581bffa359f0eeda7106; UIFID=973a3fd64dcc46a3490fd9b60d4a8e663b34df4ccc4bbcf97643172fb712d8b0001661437e34e9c40cd654256ca161ee16bfeed98d4c55748714f5d5e8b3961f299814cae48bfbbd1b49196b4ee347af48639652b3235c20ab5ceedde56f53b486cfba7e3400cb7f7d39bc7dbade81d368864fde51e4c52065bf7329ca6a7be919aa4b6add8afe59f8857a5fccb62199c9e66654824ef007ff13d9780400ad16; volume_info=%7B%22isUserMute%22%3Afalse%2C%22isMute%22%3Atrue%2C%22volume%22%3A0.5%7D; biz_trace_id=d2dfa5cf; bd_ticket_guard_client_data=eyJiZC10aWNrZXQtZ3VhcmQtdmVyc2lvbiI6MiwiYmQtdGlja2V0LWd1YXJkLWl0ZXJhdGlvbi12ZXJzaW9uIjoxLCJiZC10aWNrZXQtZ3VhcmQtcmVlLXB1YmxpYy1rZXkiOiJCR1ZlY2RTY2piNWVBcHc0aVNTaTFrTThYSXdDOHNaK0NoSk16WWpyc2ZyWEYvT3VmMTB3MGpZMWpLZXdQWTFLQ0xLeERzajE5V3Y4RXlKc1U2MzlKejQ9IiwiYmQtdGlja2V0LWd1YXJkLXdlYi12ZXJzaW9uIjoxfQ%3D%3D; download_guide=%221%2F20240806%2F0%22; IsDouyinActive=false; __ac_nonce=066b1804600a583d1df8e; __ac_signature=_02B4Z6wo00f01b-.zKAAAIDA3JBBKKMofAG.n8gAAAlf52; __ac_referer={referer_url}"
-        abogus = self.common_utils.get_abogus(play_url, self.common_utils.user_agent)
-        url = f"{play_url}&a_bogus={abogus}"
-        response = requests.get(url, headers=new_headers, verify=False, timeout=3)
-        if response.text:
-            return response.json()
-        else:
-            logger.warning(f"获取视频标题地址封面图失败")
+    _TTWID_CACHE = None
+
+    def _get_ttwid(self):
+        """
+        动态获取 ttwid，增加了类级别的缓存以减少重复请求
+        """
+        if DouyinDownloader._TTWID_CACHE:
+            return DouyinDownloader._TTWID_CACHE
+
+        try:
+            url = "https://ttwid.bytedance.com/ttwid/union/register/"
+            data = {
+                "region": "cn",
+                "aid": 6383,
+                "need_t": 1,
+                "service": "www.douyin.com",
+                "migrate_priority": 0,
+                "cb_url_protocol": "https",
+                "domain": ".douyin.com"
+            }
+            # 使用 instance session
+            resp = self.session.post(url, data=json.dumps(data), timeout=5)
+            ttwid = resp.cookies.get('ttwid')
+            if ttwid:
+                DouyinDownloader._TTWID_CACHE = ttwid
+            return ttwid
+        except Exception as e:
+            logger.warning(f"Failed to get dynamic ttwid: {e}")
             return None
+
+    def fetch_html_data(self):
+        # 尝试使用缓存的 ttwid，并在失败时重试一次（刷新 ttwid）
+        for attempt in range(2):
+            ttwid = self._get_ttwid()
+            if not ttwid:
+                ttwid = '1%7CvDWCB8tYdKPbdOlqwNTkDPhizBaV9i91KjYLKJbqurg%7C1723536402%7C314e63000decb79f46b8ff255560b29f4d8c57352dad465b41977db4830b4c7e'
+
+            referer_url = f"https://www.douyin.com/video/{self.aweme_id}?previous_page=web_code_link"
+            play_url = f"https://www.douyin.com/aweme/v1/web/aweme/detail/?device_platform=webapp&aid=6383&channel=channel_pc_web&aweme_id={self.aweme_id}&msToken={self.ms_token}"
+
+            new_headers = copy.deepcopy(self.headers)
+            new_headers['Referer'] = referer_url
+            new_headers['Cookie'] = f"ttwid={ttwid}"
+
+            abogus = self.common_utils.get_abogus(play_url, self.common_utils.user_agent)
+            url = f"{play_url}&a_bogus={abogus}"
+
+            try:
+                response = self.session.get(url, headers=new_headers, verify=False, timeout=5)
+                if response.status_code == 200 and response.text:
+                    data = response.json()
+                    # 如果返回结果中没有核心字段，说明 ttwid 可能在服务器端已失效，清空缓存重试
+                    if not data.get('aweme_detail') and attempt == 0:
+                        DouyinDownloader._TTWID_CACHE = None
+                        continue
+                    return data
+                else:
+                    if attempt == 0:
+                        DouyinDownloader._TTWID_CACHE = None
+                        continue
+                    logger.warning(f"获取抖音视频详情失败: Status={response.status_code}")
+                    return None
+            except Exception as e:
+                logger.error(f"请求抖音详情接口异常: {e}")
+                if attempt == 0:
+                    DouyinDownloader._TTWID_CACHE = None
+                    continue
+                return None
+        return None
 
     def get_real_video_url(self):
         try:
             data_dict = self.data
-            if not data_dict:
+            if not data_dict or not data_dict.get('aweme_detail'):
                 return None
-            play_addr_list = data_dict['aweme_detail']['video']['bit_rate'][0]['play_addr']['url_list']
+
+            detail = data_dict.get('aweme_detail', {}) or {}
+            video = detail.get('video', {}) or {}
+            bit_rate = video.get('bit_rate', []) or []
+
+            if not bit_rate:
+                return None
+
+            play_addr_list = bit_rate[0].get('play_addr', {}).get('url_list', []) or []
+            if len(play_addr_list) < 3:
+                return play_addr_list[0] if play_addr_list else None
+
             # play_addr_list[0]:主CDN节点; play_addr_list[1]:备用CDN节点; play_addr_list[2]:抖音官方的源站URL
             play_addr = play_addr_list[2]
             return play_addr
@@ -64,9 +144,9 @@ class DouyinDownloader(BaseDownloader):
     def get_title_content(self):
         try:
             data_dict = self.data
-            if not data_dict:
+            if not data_dict or not data_dict.get('aweme_detail'):
                 return None
-            title_content = data_dict['aweme_detail']['desc']
+            title_content = data_dict['aweme_detail'].get('desc', '')
             return title_content
         except (KeyError, json.JSONDecodeError, TypeError) as e:
             logger.warning(f"Failed to parse title content: {e}")
@@ -77,16 +157,123 @@ class DouyinDownloader(BaseDownloader):
             data_dict = self.data
             if not data_dict:
                 return None
-            play_cover = data_dict['aweme_detail']['video']['cover_original_scale']['url_list'][0]
+
+            # 使用 or {} 确保 detail 不是 None
+            detail = data_dict.get('aweme_detail') or {}
+
+            # 1. 尝试获取视频动态封面
+            video_cover = None
+            video_data = detail.get('video') or {}
+            if video_data and 'dynamic_cover' in video_data:
+                url_list = video_data['dynamic_cover'].get('url_list') or []
+                if url_list:
+                    video_cover = url_list[0]
+
+            # 2. 尝试获取图集封面 (如果视频封面不存在)
+            images_cover = None
+            images_list = detail.get('images') or []
+            if images_list and len(images_list) > 0:
+                first_img = images_list[0] or {}
+                url_list = first_img.get('url_list') or []
+                if url_list:
+                    images_cover = url_list[0]
+
+            # 3. 优先级逻辑：有视频封面优先用视频，否则用图集封面
+            play_cover = video_cover or images_cover
+
+            if not play_cover:
+                logger.info("No cover URL found in both video and images.")
+
             return play_cover
-        except (KeyError, json.JSONDecodeError, TypeError) as e:
+
+        except Exception as e:
             logger.warning(f"Failed to parse cover URL: {e}")
             return None
 
+    def get_audio_url(self):
+        try:
+            data_dict = self.data
+            if not data_dict or not data_dict.get('aweme_detail'):
+                return None
+            detail = data_dict.get('aweme_detail') or {}
+            music = detail.get('music') or {}
+            play_url = music.get('play_url') or {}
+            url_list = play_url.get('url_list') or []
+            if url_list:
+                return url_list[0]
+            return None
+        except (KeyError, json.JSONDecodeError, TypeError) as e:
+            logger.warning(f"Failed to parse background music: {e}")
+            return None
+
+    def get_author_info(self):
+        try:
+            data_dict = self.data
+            if not data_dict or not data_dict.get('aweme_detail'):
+                return None
+
+            author = (data_dict['aweme_detail'].get('author') or {})
+            if not author:
+                return None
+
+            # 1. 抖音号逻辑：优先取 unique_id (自定义号)，没有则取 short_id
+            # 2. 头像逻辑：安全取 url_list 的第一个元素
+            avatar_thumb = author.get('avatar_thumb') or {}
+            avatar_url_list = avatar_thumb.get('url_list') or [None]
+
+            return {
+                "nickname": author.get('nickname', ''),
+                "author_id": author.get('unique_id') or author.get('short_id', ''),
+                "avatar_url": avatar_url_list[0]
+            }
+        except Exception as e:
+            logger.warning(f"Failed to parse author info: {e}")
+            return None
+
+    def get_image_list(self):
+        """
+        针对 aweme_type 68 的图文笔记，提取所有高清图片链接
+        """
+        try:
+            data_dict = self.data
+            if not data_dict or 'aweme_detail' not in data_dict:
+                return []
+
+            # 1. 抖音图文笔记的图片存储在 images 字段中
+            images = data_dict['aweme_detail'].get('images') or []
+            if not images:
+                # 兜底：有些版本可能在 image_list 字段
+                images = data_dict['aweme_detail'].get('image_list') or []
+
+            image_urls = []
+            for img in images:
+                if not img:
+                    continue
+                # 优先提取无水印下载链接，如果没有则取普通高清链接
+                # download_url_list 通常比 url_list 更清晰且更适合转存
+                urls = img.get('download_url_list') or img.get('url_list')
+
+                if urls and isinstance(urls, list) and len(urls) > 0:
+                    image_urls.append(urls[0])
+
+            return image_urls
+
+        except Exception as e:
+            logger.warning(f"Failed to parse image list: {e}")
+            return []
+
 
 if __name__ == '__main__':
-    real_url = 'https://www.douyin.com/video/7396822576074460467'
+    # real_url = 'https://www.douyin.com/video/7396822576074460467'
+    real_url = 'https://www.douyin.com/note/7616399587141737704'
+
     dl = DouyinDownloader(real_url)
-    print(dl.get_title_content())
-    print(dl.get_cover_photo_url())
-    print(dl.get_real_video_url())
+
+    print("-" * 30)
+    print(f"作者信息：{dl.get_author_info()}")
+    print(f"标题内容：{dl.get_title_content()[:30]}...")  # 仅打印前30字
+    print(f"封面图片：{dl.get_cover_photo_url()}")
+    print(f"视频链接：{dl.get_real_video_url()}")
+    print(f"图片列表：{dl.get_image_list()}")
+    print(f"音频链接：{dl.get_audio_url()}")
+    print("-" * 30)

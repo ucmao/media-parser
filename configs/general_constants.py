@@ -6,23 +6,8 @@ from dotenv import load_dotenv
 load_dotenv()
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# 微信配置
-WECHAT_APP_ID = os.getenv("WECHAT_APP_ID")
-WECHAT_APP_SECRET = os.getenv("WECHAT_APP_SECRET")
+# 核心域名
 DOMAIN = os.getenv("DOMAIN")
-
-# 数据库配置
-DATABASE_CONFIG = {
-    "host": os.getenv("DB_HOST", "localhost"),
-    "port": int(os.getenv("DB_PORT", 3306)),
-    "user": os.getenv("DB_USER", "root"),
-    "password": os.getenv("DB_PASSWORD"),
-    "database": os.getenv("DB_NAME")
-}
-
-# 如果 host 是 localhost，移除 port 配置
-if DATABASE_CONFIG["host"] == "localhost":
-    DATABASE_CONFIG.pop("port", None)
 
 
 def load_business_json(json_path):
@@ -53,7 +38,6 @@ MAX_CACHE_SIZE_BYTES = MAX_CACHE_SIZE_MB * 1024 * 1024
 
 # 业务常量
 DOMAIN_TO_NAME = business_config["DOMAIN_TO_NAME"]
-PLATFORM_MAP = business_config["PLATFORM_MAP"]
 USER_AGENT_PC = business_config["USER_AGENT_PC"]
 USER_AGENT_M = business_config["USER_AGENT_M"]
 

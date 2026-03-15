@@ -20,6 +20,21 @@
             50% { transform: translateY(-20px); }
             100% { transform: translateY(0px); }
         }
+        /* Custom Scrollbar for Album */
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
     </style>
 </head>
 <body class="bg-slate-50 overflow-x-hidden">
@@ -30,10 +45,7 @@
                 <img src="{{ url_for('static', filename='images/logo.png') }}" class="w-10 h-10 rounded-xl shadow-sm">
                 <span class="text-xl font-bold tracking-tight text-slate-800">Ucmao <span class="text-indigo-600">Parse</span></span>
             </div>
-            <a href="{{ url_for('admin_modern.login') }}" class="px-6 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-all flex items-center space-x-2">
-                <i class="fas fa-lock text-sm"></i>
-                <span>管理后台</span>
-            </a>
+
         </div>
     </nav>
 
@@ -79,6 +91,98 @@
                 <div class="absolute -top-20 -right-20 w-[400px] h-[400px] bg-indigo-400/20 rounded-full blur-[100px] -z-10"></div>
                 <div class="absolute -bottom-20 -left-20 w-[300px] h-[300px] bg-purple-400/20 rounded-full blur-[80px] -z-10"></div>
             </div>
+        </div>
+    </section>
+
+    <!-- Online Parse Section -->
+    <section id="parse-section" class="py-20 px-6 relative overflow-hidden bg-white">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-black text-slate-800 mb-4">在线体验去水印</h2>
+                <p class="text-slate-500">支持抖音、快手、小红书、B站等主流平台视频或图文链接</p>
+            </div>
+            
+            <div class="bg-slate-50 rounded-3xl p-6 md:p-10 shadow-xl shadow-slate-200/50 border border-slate-100 relative z-10">
+                <div class="flex flex-col md:flex-row gap-4 mb-8">
+                    <input type="text" id="parseUrl" placeholder="请粘贴视频链接，例如：https://v.douyin.com/..." class="flex-1 px-6 py-4 rounded-2xl bg-white border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-slate-700 text-lg">
+                    <button id="parseBtn" onclick="handleParse()" class="px-10 py-4 bg-indigo-600 text-white rounded-2xl font-bold text-lg hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 flex items-center justify-center space-x-2 whitespace-nowrap">
+                        <i class="fas fa-magic"></i>
+                        <span>一键解析</span>
+                    </button>
+                </div>
+                
+                <!-- Loading State -->
+                <div id="loadingState" class="hidden flex-col items-center justify-center py-12 text-slate-400">
+                    <i class="fas fa-circle-notch fa-spin text-4xl text-indigo-500 mb-4"></i>
+                    <p>正在全力解析中，请稍候...</p>
+                </div>
+
+                <!-- Result State -->
+                <div id="resultState" class="hidden">
+                    <div class="bg-white rounded-2xl p-6 border border-slate-100 flex flex-col md:flex-row gap-8 shadow-sm">
+                        <div class="w-full md:w-1/3 shrink-0">
+                            <div id="coverBlock" class="relative rounded-xl overflow-hidden shadow-md aspect-[3/4] bg-slate-100 group">
+                                <img id="resultCover" src="" class="w-full h-full object-cover">
+                                <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <a id="resultVideoPlay" href="" target="_blank" class="w-14 h-14 bg-white/90 rounded-full flex items-center justify-center text-indigo-600 hover:scale-110 transition-transform shadow-lg">
+                                        <i class="fas fa-play text-xl ml-1"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <!-- Image Album Container (Left Side) -->
+                            <div id="resultAlbum" class="hidden relative rounded-xl overflow-hidden shadow-md aspect-[3/4] bg-slate-100 group">
+                                <div class="absolute top-3 right-3 bg-black/50 text-white text-xs px-2 py-1 rounded-lg backdrop-blur-sm z-10 flex items-center space-x-1 shadow-sm">
+                                    <i class="fas fa-images"></i> <span id="albumCount">0</span>
+                                </div>
+                                <div class="flex overflow-x-auto h-full w-full snap-x snap-mandatory scroll-smooth custom-scrollbar" id="albumGrid">
+                                    <!-- JS will inject images here. Each image will be full width and height of container -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex-1 flex flex-col">
+                            <div class="flex flex-wrap items-center gap-2 mb-4">
+                                <span id="resultPlatform" class="hidden px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-xs font-bold border border-indigo-100 shadow-sm"></span>
+                                <div class="inline-flex items-center space-x-1 bg-green-50 text-green-600 px-3 py-1 rounded-full text-xs font-bold border border-green-100 shadow-sm">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>解析成功</span>
+                                </div>
+                            </div>
+                            
+                            <div id="authorInfo" class="hidden items-center space-x-3 mb-4 bg-slate-50 w-max px-3 py-2 rounded-xl border border-slate-100">
+                                <img id="authorAvatar" src="" class="w-8 h-8 rounded-full shadow-sm object-cover border border-slate-200">
+                                <div class="flex flex-col">
+                                    <span id="authorName" class="text-sm font-bold text-slate-700"></span>
+                                    <span id="authorId" class="text-[10px] text-slate-400"></span>
+                                </div>
+                            </div>
+
+                            <h3 id="resultTitle" class="text-lg font-bold text-slate-800 mb-6 line-clamp-2 leading-relaxed"></h3>
+                            
+                            <div class="mt-auto grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <a id="resultVideoDl" href="" target="_blank" class="flex items-center justify-center space-x-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors shadow-sm">
+                                    <i class="fas fa-video"></i>
+                                    <span>查看无水印视频</span>
+                                </a>
+                                <a id="resultCoverDl" href="" target="_blank" class="flex items-center justify-center space-x-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-medium hover:bg-slate-50 transition-colors shadow-sm">
+                                    <i class="fas fa-image"></i>
+                                    <span>查看高清封面</span>
+                                </a>
+                            </div>
+
+
+                    </div>
+                </div>
+
+                <!-- Error State -->
+                <div id="errorState" class="hidden flex-col items-center justify-center py-10 bg-red-50 rounded-2xl border border-red-100 text-red-500">
+                    <i class="fas fa-exclamation-circle text-4xl mb-3"></i>
+                    <p id="errorMsg">解析失败，请检查链接是否正确或稍后重试</p>
+                </div>
+            </div>
+            
+            <!-- Background Decoration -->
+            <div class="absolute top-1/2 left-0 w-[500px] h-[500px] bg-indigo-400/10 rounded-full blur-[120px] -z-10 -translate-y-1/2 -translate-x-1/2"></div>
         </div>
     </section>
 
@@ -152,6 +256,133 @@
     <script>
         function scrollToQr() {
             document.getElementById('qr-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function handleParse() {
+            const urlInput = document.getElementById('parseUrl').value.trim();
+            const loadingState = document.getElementById('loadingState');
+            const resultState = document.getElementById('resultState');
+            const errorState = document.getElementById('errorState');
+            const parseBtn = document.getElementById('parseBtn');
+
+            if (!urlInput) {
+                alert('请输入视频链接！');
+                return;
+            }
+
+            // UI Reset
+            resultState.classList.add('hidden');
+            errorState.classList.add('hidden');
+            loadingState.classList.remove('hidden');
+            loadingState.classList.add('flex');
+            parseBtn.disabled = true;
+            parseBtn.classList.add('opacity-70');
+
+            try {
+                const response = await fetch('/api/parse', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ text: urlInput })
+                });
+
+                const res = await response.json();
+
+                loadingState.classList.add('hidden');
+                loadingState.classList.remove('flex');
+
+                if (response.ok && res.succ) {
+                    // Update UI with results
+                    const platformEl = document.getElementById('resultPlatform');
+                    if (res.data.platform) {
+                        platformEl.innerText = res.data.platform;
+                        platformEl.classList.remove('hidden');
+                        platformEl.classList.add('inline-flex');
+                    } else {
+                        platformEl.classList.add('hidden');
+                        platformEl.classList.remove('inline-flex');
+                    }
+
+                    const authorInfo = document.getElementById('authorInfo');
+                    if (res.data.author && res.data.author.nickname) {
+                        document.getElementById('authorName').innerText = res.data.author.nickname;
+                        const authorIdEl = document.getElementById('authorId');
+                        if (res.data.author.author_id) {
+                            authorIdEl.innerText = 'ID: ' + res.data.author.author_id;
+                            authorIdEl.classList.remove('hidden');
+                        } else {
+                            authorIdEl.classList.add('hidden');
+                        }
+                        
+                        document.getElementById('authorAvatar').src = res.data.author.avatar_url || "{{ url_for('static', filename='images/logo.png') }}";
+                        authorInfo.classList.remove('hidden');
+                        authorInfo.classList.add('flex');
+                    } else {
+                        authorInfo.classList.add('hidden');
+                        authorInfo.classList.remove('flex');
+                    }
+
+                    document.getElementById('resultCover').src = res.data.cover_url;
+                    document.getElementById('resultTitle').innerText = res.data.title || '无标题';
+                    
+                    const videoDlBtn = document.getElementById('resultVideoDl');
+                    const videoPlayBtn = document.getElementById('resultVideoPlay');
+                    if (res.data.video_url) {
+                        videoDlBtn.href = res.data.video_url;
+                        videoPlayBtn.href = res.data.video_url;
+                        videoPlayBtn.parentElement.classList.remove('hidden');
+                        videoDlBtn.style.display = 'flex';
+                    } else {
+                        // In case of image-only platforms like Xiaohongshu without video
+                        videoPlayBtn.parentElement.classList.add('hidden');
+                        videoDlBtn.style.display = 'none';
+                    }
+                    
+                    // Parse Album Images
+                    const albumContainer = document.getElementById('resultAlbum');
+                    const albumGrid = document.getElementById('albumGrid');
+                    const coverBlock = document.getElementById('coverBlock');
+                    
+                    albumGrid.innerHTML = '';
+                    if (res.data.image_list && res.data.image_list.length > 0) {
+                        document.getElementById('albumCount').innerText = res.data.image_list.length;
+                        res.data.image_list.forEach(imgUrl => {
+                            const imgEl = document.createElement('a');
+                            imgEl.href = imgUrl;
+                            imgEl.target = '_blank';
+                            imgEl.className = 'w-full h-full shrink-0 flex-none snap-center relative block';
+                            imgEl.innerHTML = `<img src="${imgUrl}" class="w-full h-full object-cover">
+                                               <div class="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center text-white backdrop-blur-sm"><i class="fas fa-expand text-4xl drop-shadow-md"></i></div>`;
+                            albumGrid.appendChild(imgEl);
+                        });
+                        coverBlock.classList.add('hidden');
+                        albumContainer.classList.remove('hidden');
+                        albumContainer.classList.add('flex');
+                    } else {
+                        coverBlock.classList.remove('hidden');
+                        albumContainer.classList.add('hidden');
+                        albumContainer.classList.remove('flex');
+                    }
+                    
+                    document.getElementById('resultCoverDl').href = res.data.cover_url;
+                    
+                    resultState.classList.remove('hidden');
+                } else {
+                    document.getElementById('errorMsg').innerText = res.retdesc || '解析失败，请检查链接是否正确或稍后重试';
+                    errorState.classList.remove('hidden');
+                    errorState.classList.add('flex');
+                }
+            } catch (err) {
+                loadingState.classList.add('hidden');
+                loadingState.classList.remove('flex');
+                document.getElementById('errorMsg').innerText = '网络错误，请稍后重试';
+                errorState.classList.remove('hidden');
+                errorState.classList.add('flex');
+            } finally {
+                parseBtn.disabled = false;
+                parseBtn.classList.remove('opacity-70');
+            }
         }
     </script>
 </body>

@@ -7,19 +7,10 @@
     "www.bilibili.com": "哔哩哔哩",
     "haokan.baidu.com": "好看视频",
     "haokan.hao123.com": "好看视频",
-    "isee.weishi.qq.com": "微视",
+    "weishi.qq.com": "微视",
+    "video.weishi.qq.com": "微视",
     "www.pearvideo.com": "梨视频",
     "h5.pipigx.com": "皮皮搞笑"
-  },
-  "PLATFORM_MAP": {
-    "小红书": "小红书",
-    "抖音": "抖音",
-    "快手": "快手",
-    "哔哩哔哩": "哔哩哔哩",
-    "好看视频": "好看视频",
-    "微视": "微视",
-    "梨视频": "梨视频",
-    "皮皮搞笑": "皮皮搞笑"
   },
   "USER_AGENT_PC": [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",

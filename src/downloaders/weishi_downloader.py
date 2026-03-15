@@ -48,10 +48,30 @@ class WeishiDownloader(BaseDownloader):
         except (KeyError, json.JSONDecodeError) as e:
             logger.warning(f"Failed to parse cover URL: {e}")
 
+    def get_author_info(self):
+        try:
+            data_dict = json.loads(self.data)
+            poster = data_dict['feedsList'][0].get('poster', {})
+
+            author_info = {
+                "nickname": poster.get('nick', '未知用户'),
+                "avatar_url": poster.get('avatar', '').replace("\u002F", "/"),
+                "author_id": poster.get('id', '')
+            }
+            return author_info
+        except (KeyError, json.JSONDecodeError, IndexError) as e:
+            logger.warning(f"Failed to parse author info: {e}")
+            return None
+
 
 if __name__ == '__main__':
-    real_url = 'https://isee.weishi.qq.com/ws/app-pages/share/index.html?wxplay=1&id=7QRTVTOFI1SyqHPE6&spid=6120560151859271791&qua=v1_iph_weishi_8.125.1_300_app_a&chid=100081014&pkg=3670&attach=cp_reserves3_1000370011'
+    real_url = 'https://video.weishi.qq.com/5D41bben'
+
     dl = WeishiDownloader(real_url)
-    print(dl.get_title_content())
-    print(dl.get_cover_photo_url())
-    print(dl.get_real_video_url())
+
+    print("-" * 30)
+    print(f"作者信息：{dl.get_author_info()}")
+    print(f"标题内容：{dl.get_title_content()[:30]}...")  # 仅打印前30字
+    print(f"封面图片：{dl.get_cover_photo_url()}")
+    print(f"视频链接：{dl.get_real_video_url()}")
+    print("-" * 30)

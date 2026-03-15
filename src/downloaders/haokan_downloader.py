@@ -4,7 +4,8 @@ import random
 from urllib.parse import unquote
 from src.downloaders.base_downloader import BaseDownloader
 from configs.general_constants import USER_AGENT_M
-from configs.logging_config import logger
+from configs.logging_config import get_logger
+logger = get_logger(__name__)
 
 
 class HaokanDownloader(BaseDownloader):
@@ -26,34 +27,60 @@ class HaokanDownloader(BaseDownloader):
     def get_real_video_url(self):
         try:
             data_dict = json.loads(self.data)
-            video_url = data_dict['curVideoMeta']['clarityUrl'][-1]['url']
-            play_addr = unquote(video_url)
-            video_addr = play_addr.replace("\/", "/")
-            return video_addr
-        except (KeyError, json.JSONDecodeError) as e:
-            logger.warning(f"Failed to parse video URL: {e}")
+            clarity_url = data_dict.get('curVideoMeta', {}).get('clarityUrl', [])
+            if clarity_url:
+                video_url = clarity_url[-1].get('url', '')
+                return unquote(video_url).replace("\/", "/")
+            return None
+        except (KeyError, json.JSONDecodeError, TypeError) as e:
+            logger.warning(f"Failed to parse Haokan video URL: {e}")
+            return None
 
     def get_title_content(self):
         try:
             data_dict = json.loads(self.data)
-            title_content = data_dict['curVideoMeta']['title']
-            return title_content
-        except (KeyError, json.JSONDecodeError) as e:
-            logger.warning(f"Failed to parse title content: {e}")
+            return data_dict.get('curVideoMeta', {}).get('title', '')
+        except (KeyError, json.JSONDecodeError, TypeError) as e:
+            logger.warning(f"Failed to parse Haokan title: {e}")
+            return ""
 
     def get_cover_photo_url(self):
         try:
             data_dict = json.loads(self.data)
-            cover_url = data_dict['curVideoMeta']['poster']
-            cover_url = cover_url.replace("\/", "/")
-            return cover_url
-        except (KeyError, json.JSONDecodeError) as e:
-            logger.warning(f"Failed to parse cover URL: {e}")
+            cover_url = data_dict.get('curVideoMeta', {}).get('poster', '')
+            return cover_url.replace("\/", "/") if cover_url else ""
+        except (KeyError, json.JSONDecodeError, TypeError) as e:
+            logger.warning(f"Failed to parse Haokan cover URL: {e}")
+            return ""
+
+    def get_author_info(self):
+        try:
+            data_dict = json.loads(self.data)
+            # 定位到作者信息节点
+            author_node = data_dict.get('curVideoMeta', {}).get('mth', {})
+
+            # 提取并格式化为统一的字典结构
+            author_info = {
+                'nickname': author_node.get('author_name', ''),
+                # 好看视频的作者唯一ID是 mthid
+                'author_id': str(author_node.get('mthid', '')),
+                # URL中可能会有转义字符，做一个安全替换
+                'avatar_url': author_node.get('author_photo', '').replace('\\/', '/')
+            }
+            return author_info
+        except (KeyError, json.JSONDecodeError, AttributeError) as e:
+            logger.warning(f"Failed to parse author info: {e}")
+            return {}
 
 
 if __name__ == '__main__':
     real_url = 'https://haokan.baidu.com/v?vid=17831460188721240800&pd=pcshare&hkRelaunch=p1%3Dpc%26p2%3Dvideoland%26p3%3Dshare_input'
+
     dl = HaokanDownloader(real_url)
-    print(dl.get_title_content())
-    print(dl.get_cover_photo_url())
-    print(dl.get_real_video_url())
+
+    print("-" * 30)
+    print(f"作者信息：{dl.get_author_info()}")
+    print(f"标题内容：{dl.get_title_content()[:30]}...")  # 仅打印前30字
+    print(f"封面图片：{dl.get_cover_photo_url()}")
+    print(f"视频链接：{dl.get_real_video_url()}")
+    print("-" * 30)

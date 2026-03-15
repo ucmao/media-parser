@@ -6,7 +6,8 @@ from requests.exceptions import RequestException, ChunkedEncodingError
 from bs4 import BeautifulSoup
 from urllib3.util.retry import Retry
 from configs.general_constants import SAVE_VIDEO_PATH, SAVE_IMAGE_PATH
-from configs.logging_config import logger
+from configs.logging_config import get_logger
+logger = get_logger(__name__)
 
 
 class BaseDownloader:
@@ -14,6 +15,7 @@ class BaseDownloader:
         self.real_url = real_url
         self.headers = None
         self.html_content = None
+        self.session = requests.Session()
 
     def get_real_video_url(self):
         raise NotImplementedError
@@ -24,15 +26,30 @@ class BaseDownloader:
     def get_cover_photo_url(self):
         raise NotImplementedError
 
+    def get_author_info(self):
+        """获取作者信息 (昵称、头像、ID等)"""
+        raise NotImplementedError
+
+    def get_audio_url(self):
+        """获取音频下载链接"""
+        return None
+
+    def get_image_list(self):
+        """获取图文列表"""
+        return []
+
     def fetch_html_content(self):
         try:
-            resp = requests.get(self.real_url, headers=self.headers, timeout=5)
+            resp = self.session.get(self.real_url, headers=self.headers, timeout=5)
             resp.raise_for_status()
-            return resp.text
+            self.html_content = resp.text
+            return self.html_content
         except requests.RequestException as e:
-            logger.error(f"Failed to get the page: {e}")
+            logger.error(f"Failed to get the page: {self.real_url}, Error: {e}")
+            return None
         except Exception as e:
-            logger.error(f"An error occurred: {e}")
+            logger.error(f"An unexpected error occurred while fetching {self.real_url}: {e}")
+            return None
 
     @staticmethod
     def parse_html_data(html_content, pattern):

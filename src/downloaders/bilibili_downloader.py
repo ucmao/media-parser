@@ -3,7 +3,8 @@ import json
 import random
 from src.downloaders.base_downloader import BaseDownloader
 from configs.general_constants import USER_AGENT_PC
-from configs.logging_config import logger
+from configs.logging_config import get_logger
+logger = get_logger(__name__)
 
 
 class BilibiliDownloader(BaseDownloader):
@@ -27,31 +28,78 @@ class BilibiliDownloader(BaseDownloader):
     def get_real_video_url(self):
         try:
             data_dict = json.loads(self.data)
-            video_url = data_dict['data']['dash']['video'][0]['baseUrl']
-            return video_url
-        except (KeyError, json.JSONDecodeError) as e:
-            logger.warning(f"Failed to parse video URL: {e}")
+            videos = data_dict.get('data', {}).get('dash', {}).get('video', [])
+            if videos:
+                return videos[0].get('baseUrl')
+            return None
+        except (KeyError, json.JSONDecodeError, TypeError) as e:
+            logger.warning(f"Failed to parse Bilibili video URL: {e}")
+            return None
 
     def get_title_content(self):
         try:
             data_dict = json.loads(self.data2)
-            title_content = data_dict['videoData']['title']
-            return title_content
-        except (KeyError, json.JSONDecodeError) as e:
-            logger.warning(f"Failed to parse title content:: {e}")
+            return data_dict.get('videoData', {}).get('title', '')
+        except (KeyError, json.JSONDecodeError, TypeError) as e:
+            logger.warning(f"Failed to parse Bilibili title: {e}")
+            return ""
 
     def get_cover_photo_url(self):
         try:
             data_dict = json.loads(self.data2)
-            cover_url = data_dict['videoData']['pic']
-            return cover_url
-        except (KeyError, json.JSONDecodeError) as e:
-            logger.warning(f"Failed to parse cover URL: {e}")
+            return data_dict.get('videoData', {}).get('pic', '')
+        except (KeyError, json.JSONDecodeError, TypeError) as e:
+            logger.warning(f"Failed to parse Bilibili cover URL: {e}")
+            return ""
+
+    def get_audio_url(self):
+        try:
+            data_dict = json.loads(self.data)
+            audios = data_dict.get('data', {}).get('dash', {}).get('audio', [])
+            if audios:
+                return audios[0].get('baseUrl')
+            return None
+        except (KeyError, json.JSONDecodeError, TypeError) as e:
+            logger.warning(f"Failed to parse Bilibili audio URL: {e}")
+            return None
+
+    def get_author_info(self):
+        try:
+            data_dict = json.loads(self.data2)
+            # 定位到作者信息节点
+            owner_info = data_dict.get('videoData', {}).get('owner', {})
+
+            # 如果 videoData 中没有，可以尝试从 upData 节点获取作为备用
+            if not owner_info:
+                owner_info = data_dict.get('upData', {})
+
+            # 提取并格式化为你需要的字典结构
+            author_info = {
+                'nickname': owner_info.get('name', ''),
+                # B站的核心唯一ID是 mid
+                'author_id': str(owner_info.get('mid', '')),
+                'avatar_url': owner_info.get('face', '')
+            }
+
+            # B站的头像 URL 经常以 // 开头，缺少 http: 或 https: 协议头，这里做个兼容处理
+            if author_info['avatar_url'] and author_info['avatar_url'].startswith('//'):
+                author_info['avatar_url'] = 'https:' + author_info['avatar_url']
+
+            return author_info
+        except (KeyError, json.JSONDecodeError, AttributeError) as e:
+            logger.warning(f"Failed to parse author info: {e}")
+            return {}
 
 
 if __name__ == '__main__':
     real_url = 'https://www.bilibili.com/video/BV1df421v7xm/?share_source=copy_web&vd_source=5ac2e55972f5e2fd96b63d01ee42ff01'
-    bilibili_dl = BilibiliDownloader(real_url)
-    print(bilibili_dl.get_title_content())
-    print(bilibili_dl.get_cover_photo_url())
-    print(bilibili_dl.get_real_video_url())
+
+    dl = BilibiliDownloader(real_url)
+
+    print("-" * 30)
+    print(f"作者信息：{dl.get_author_info()}")
+    print(f"标题内容：{dl.get_title_content()[:30]}...")  # 仅打印前30字
+    print(f"封面图片：{dl.get_cover_photo_url()}")
+    print(f"视频链接：{dl.get_real_video_url()}")
+    print(f"音频链接：{dl.get_audio_url()}")
+    print("-" * 30)
