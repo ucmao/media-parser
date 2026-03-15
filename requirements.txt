@@ -4,7 +4,7 @@ gunicorn==23.0.0
 python-dotenv==1.0.1
 
 # 数据库
-mysql-connector-python==9.0.0
+# Removed for lite version
 
 # 网络请求与解析
 requests==2.32.3
