@@ -379,7 +379,7 @@
                             authorIdEl.classList.add('hidden');
                         }
 
-                        document.getElementById('authorAvatar').src = res.data.author.avatar_url || "{{ url_for('static', filename='images/logo.png') }}";
+                        document.getElementById('authorAvatar').src = res.data.author.avatar || "{{ url_for('static', filename='images/logo.png') }}";
                         authorInfo.classList.remove('hidden');
                         authorInfo.classList.add('flex');
                     } else {

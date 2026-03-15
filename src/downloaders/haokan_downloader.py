@@ -65,7 +65,7 @@ class HaokanDownloader(BaseDownloader):
                 # 好看视频的作者唯一ID是 mthid
                 'author_id': str(author_node.get('mthid', '')),
                 # URL中可能会有转义字符，做一个安全替换
-                'avatar_url': author_node.get('author_photo', '').replace('\\/', '/')
+                'avatar': author_node.get('author_photo', '').replace('\\/', '/')
             }
             return author_info
         except (KeyError, json.JSONDecodeError, AttributeError) as e:

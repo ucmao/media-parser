@@ -37,7 +37,7 @@ class XiaohongshuDownloader(BaseDownloader):
         return {
             'nickname': user.get('nickname', ''),
             'author_id': user.get('userId', ''),
-            'avatar_url': user.get('avatar', '')
+            'avatar': user.get('avatar', '')
         }
 
     def get_real_video_url(self):

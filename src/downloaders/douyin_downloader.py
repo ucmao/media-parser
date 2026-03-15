@@ -224,7 +224,7 @@ class DouyinDownloader(BaseDownloader):
             return {
                 "nickname": author.get('nickname', ''),
                 "author_id": author.get('unique_id') or author.get('short_id', ''),
-                "avatar_url": avatar_url_list[0]
+                "avatar": avatar_url_list[0]
             }
         except Exception as e:
             logger.warning(f"Failed to parse author info: {e}")

@@ -78,12 +78,12 @@ class BilibiliDownloader(BaseDownloader):
                 'nickname': owner_info.get('name', ''),
                 # B站的核心唯一ID是 mid
                 'author_id': str(owner_info.get('mid', '')),
-                'avatar_url': owner_info.get('face', '')
+                'avatar': owner_info.get('face', '')
             }
 
             # B站的头像 URL 经常以 // 开头，缺少 http: 或 https: 协议头，这里做个兼容处理
-            if author_info['avatar_url'] and author_info['avatar_url'].startswith('//'):
-                author_info['avatar_url'] = 'https:' + author_info['avatar_url']
+            if author_info['avatar'] and author_info['avatar'].startswith('//'):
+                author_info['avatar'] = 'https:' + author_info['avatar']
 
             return author_info
         except (KeyError, json.JSONDecodeError, AttributeError) as e:
@@ -100,6 +100,7 @@ if __name__ == '__main__':
     print(f"作者信息：{dl.get_author_info()}")
     print(f"标题内容：{dl.get_title_content()[:30]}...")  # 仅打印前30字
     print(f"封面图片：{dl.get_cover_photo_url()}")
+    print("\nB站采用 DASH 流媒体技术，将视频画面与音频音轨分开存储和传输（通常为两个 .m4s 文件），需要通过 FFmpeg 等工具无损合并才能得到完整的 MP4。")
     print(f"视频链接：{dl.get_real_video_url()}")
     print(f"音频链接：{dl.get_audio_url()}")
     print("-" * 30)

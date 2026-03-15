@@ -104,7 +104,7 @@ class LishipinDownloader(BaseDownloader):
             author_info = {
                 'nickname': nickname,
                 'author_id': unique_id,
-                'avatar_url': avatar
+                'avatar': avatar
             }
             return author_info
 

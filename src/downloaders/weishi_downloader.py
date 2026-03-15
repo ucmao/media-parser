@@ -55,7 +55,7 @@ class WeishiDownloader(BaseDownloader):
 
             author_info = {
                 "nickname": poster.get('nick', '未知用户'),
-                "avatar_url": poster.get('avatar', '').replace("\u002F", "/"),
+                "avatar": poster.get('avatar', '').replace("\u002F", "/"),
                 "author_id": poster.get('id', '')
             }
             return author_info
