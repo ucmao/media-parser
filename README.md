@@ -17,7 +17,7 @@
 Media Parser是一款专为短视频创作者打造的**自动化解析工具**。
 
 <p align="center">
-  <img src="static/images/Interface.webp" width="600" alt="Media Parser 后端管理界面预览">
+  <img src="static/images/Interface.png" width="600" alt="Media Parser 后端管理界面预览">
 </p>
 
 通过“智能识别 -> 绕过水印 -> 提取地址 -> 快捷下载”的闭环，助你高效获取无水印素材。
@@ -30,9 +30,7 @@ Media Parser是一款专为短视频创作者打造的**自动化解析工具**�
 
 为了方便快速了解系统功能，我们提供了全套解决方案：
 
-* **🌐 项目门户**: [https://parse.ucmao.cn/](https://parse.ucmao.cn/) (扫码引导页)
-* **⚙️ 管理后台**: [https://parse.ucmao.cn/admin/](https://parse.ucmao.cn/admin/)
-    * 演示者: `guest` / `guest123` （仅查看权限，部分功能需部署后使用）
+* **🌐 项目门户**: [https://parse.ucmao.cn/](https://parse.ucmao.cn/) 
 * **🧩 小程序端**: 扫描下方太阳码进行体验
 
 <p align="center">
