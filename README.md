@@ -1,7 +1,7 @@
 <div align="center">
 <img src="static/images/logo.png" width="120" height="auto" alt="Media Parser Logo">
 
-# 🚀 Media Parser 后端(media-parser)
+# 🚀 媒体解析去水印(media-parser)
 
 **基于 Python 的高性能多平台视频解析与自动化管理系统（Starter 极简版）**
 
@@ -14,10 +14,10 @@
 <a href="#-联系作者">联系作者</a>
 </p>
 
-Media Parser是一款专为短视频创作者打造的**自动化解析工具**。
+媒体解析去水印是一款专为短视频创作者打造的**自动化解析工具**。
 
 <p align="center">
-  <img src="static/images/Interface.png" width="600" alt="Media Parser 后端管理界面预览">
+  <img src="static/images/Interface.png" width="600" alt="媒体解析去水印 后端管理界面预览">
 </p>
 
 通过“智能识别 -> 绕过水印 -> 提取地址 -> 快捷下载”的闭环，助你高效获取无水印素材。
@@ -37,7 +37,7 @@ Media Parser是一款专为短视频创作者打造的**自动化解析工具**�
 <img src="static/images/qr_code.jpg" width="180" alt="Media Parser太阳码">
 </p>
 
-> **协作提示**：本仓库提供核心解析逻辑与 RESTful API。如需构建完整应用，请配合前端仓库使用： [https://github.com/ucmao/parse-ucmao-mp](https://github.com/ucmao/parse-ucmao-mp)
+> **协作提示**：本仓库提供核心解析逻辑与 RESTful API。如需构建完整应用，请配合前端仓库使用： [https://github.com/ucmao/media-parser-mp](https://github.com/ucmao/media-parser-mp)
 
 ---
 
