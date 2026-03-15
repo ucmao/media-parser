@@ -27,7 +27,7 @@ def parse():
         title = cover_url = video_url = author = image_list = None
         
         if platform == '小红书':
-            max_attempts = 5
+            max_attempts = 3
             attempts = 0
             while attempts < max_attempts:
                 downloader = DownloaderFactory.create_downloader(platform, real_url)
@@ -47,7 +47,7 @@ def parse():
                 attempts += 1
                 logger.debug(f"Attempt {attempts} failed. Retrying...")
             if not video_url and not image_list:
-                logger.error("Failed to retrieve media content after 5 attempts.")
+                logger.error("Failed to retrieve media content after 3 attempts.")
         else:
             downloader = DownloaderFactory.create_downloader(platform, real_url)
             title = downloader.get_title_content()
