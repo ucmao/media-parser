@@ -1,7 +1,7 @@
 <div align="center">
 <img src="static/images/logo.png" width="120" height="auto" alt="Media Parser Logo">
 
-# 🚀 Media Parser 后端(parse-ucmao-backend)
+# 🚀 Media Parser 后端(media-parser)
 
 **基于 Python 的高性能多平台视频解析与自动化管理系统（Starter 极简版）**
 
@@ -81,8 +81,8 @@ Media Parser是一款专为短视频创作者打造的**自动化解析工具**�
 ### 1. 获取源码
 
 ```bash
-git clone https://github.com/ucmao/parse-ucmao-backend.git
-cd parse-ucmao-backend
+git clone https://github.com/ucmao/media-parser.git
+cd media-parser
 
 ```
 
@@ -132,7 +132,7 @@ gunicorn -w 4 -b 0.0.0.0:5001 app:app
 ## 📂 项目结构
 
 ```text
-parse-ucmao-backend/
+media-parser/
 ├── app.py                # 程序入口
 ├── configs/              # 核心配置与业务常量
 ├── src/
@@ -153,7 +153,7 @@ parse-ucmao-backend/
 * **微信 (WeChat)**：csdnxr
 * **QQ**：294323976
 * **邮箱 (Email)**：leoucmao@gmail.com
-* **Bug反馈**：[GitHub Issues](https://github.com/ucmao/parse-ucmao-backend/issues)
+* **Bug反馈**：[GitHub Issues](https://github.com/ucmao/media-parser/issues)
 
 ---
 
