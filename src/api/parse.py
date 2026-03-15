@@ -22,7 +22,7 @@ def parse():
 
         if not platform:
             logger.error(f'This link is not supported for extraction: {real_url}')
-            return make_response(400, '该链接尚未支持提取', None, None, False), 400
+            return make_response(400, '该链接尚未支持提取', None, False), 400
 
         title = cover_url = video_url = author = image_list = None
         
@@ -73,8 +73,8 @@ def parse():
                      'author': author, 'image_list': updated_image_list}
         
         logger.debug(f'Parse Success for platform {platform}')
-        return make_response(200, '成功', data_dict, None, True), 200
+        return make_response(200, '成功', data_dict, True), 200
 
     except Exception as e:
         logger.error(e)
-        return make_response(500, '功能太火爆啦，请稍后再试', None, None, False), 500
+        return make_response(500, '功能太火爆啦，请稍后再试', None, False), 500
