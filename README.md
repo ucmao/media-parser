@@ -3,9 +3,9 @@
 
 # 🚀 Media Parser 后端(parse-ucmao-backend)
 
-**基于 Python 的高性能多平台视频解析与自动化管理系统**
+**基于 Python 的高性能多平台视频解析与自动化管理系统（Starter 极简版）**
 
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Python Version](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/) [![MySQL](https://img.shields.io/badge/database-MySQL-orange.svg)](https://www.mysql.com/) [![Support](https://img.shields.io/badge/support-8+%20Platforms-brightgreen.svg)](#💾-支持的平台矩阵)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Python Version](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/) [![Support](https://img.shields.io/badge/support-8+%20Platforms-brightgreen.svg)](#💾-支持的平台矩阵)
 
 <p align="center">
 <a href="#-立即体验">在线体验</a> •
@@ -47,8 +47,7 @@ Media Parser是一款专为短视频创作者打造的**自动化解析工具**�
 
 * **多平台智能适配**：内置 `DownloaderFactory` 工厂模式，自动识别链接来源并分配对应解析器。
 * **深度无水印提取**：封装 `WebFetcher` 高效抓取逻辑，精准绕过平台限制获取视频真实地址。
-* **用户与权限系统**：集成微信登录鉴权，记录查询日志与视频访问频次，支持运营数据统计。
-* **灵活分发接口**：提供标准 RESTful 接口，可轻松对接小程序、Web 端或第三方自动化脚本。
+* **纯粹解析 API**：极简版只保留了最核心的 JSON 解析服务，无数据库依赖，无鉴权门槛，非常适合开发者快速提取原型直接使用！
 
 ---
 
@@ -70,8 +69,6 @@ Media Parser是一款专为短视频创作者打造的**自动化解析工具**�
 | 参数 | 描述 | 示例值 |
 | --- | --- | --- |
 | `text` | 视频分享链接/包含链接的文本 | `https://v.douyin.com/...` |
-| `code` | (Login 接口) 微信登录凭证 | `wx_login_code` |
-| `video_url` | (Download 接口) 视频原始地址 | `http://...` |
 
 ---
 
@@ -80,7 +77,6 @@ Media Parser是一款专为短视频创作者打造的**自动化解析工具**�
 ### 0. 环境要求
 
 * **Python**: 3.8 及以上版本
-* **MySQL**: 5.7 或 8.0+
 
 ### 1. 获取源码
 
@@ -107,41 +103,17 @@ DOMAIN = your_domain_here
 # 用于加密 Session
 SECRET_KEY =your_secret_key
 
-# 微信小程序登录配置
+# 微信小程序登录配置 (若自行扩展需要用到)
 WECHAT_APP_ID = your_wechat_app_id_here
 WECHAT_APP_SECRET = your_wechat_app_secret_here
 
-# MYSQL 数据库配置
-DB_HOST = localhost
-DB_PORT = 3306
-DB_NAME = parse_ucmao
-DB_USER = root
-DB_PASSWORD = your_password_here
-
-# 服务端下载缓存配置（可选）
+# 服务端下载缓存配置
 # 仅缓存不超过该大小的小文件，单位：MB，默认 15
 MAX_CACHE_SIZE_MB = 15
 
-# 后台管理员账号 (可选)
-ADMIN_USER = admin
-ADMIN_PASSWORD = admin123
-# 后台游客账号 (可选)
-DEMO_USER = guest
-DEMO_PASSWORD = guest123
-
-
-
 ```
 
-### 4. 初始化数据库
-
-```bash
-# 导入表结构（脚本会自动创建数据库 parse_ucmao）
-mysql -u root -p < schema.sql
-
-```
-
-### 5. 启动应用
+### 4. 启动应用
 
 **开发模式：**
 
@@ -164,15 +136,12 @@ parse-ucmao-backend/
 ├── app.py                # 程序入口
 ├── configs/              # 核心配置与业务常量
 ├── src/
-│   ├── api/             # 路由层：API 接口处理
-│   ├── database/        # 数据层：MySQL CRUD 封装
+│   ├── api/             # 路由层：API 接口处理仅保留核心 parse.py
 │   ├── downloaders/     # 核心：各平台视频解析实现
 │   └── downloader_factory.py # 工厂模式实现
-├── static/              # 静态资源
+├── static/              # 静态资源保存位置
 ├── utils/               # 通用工具函数 (网络请求等)
-├── schema.sql           # 数据库初始化脚本
 └── tests/               # 自动化测试用例
-
 ```
 
 ---
