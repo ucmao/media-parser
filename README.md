@@ -64,9 +64,50 @@
 
 **解析接口**：`POST /api/parse`
 
-| 参数 | 描述 | 示例值 |
-| --- | --- | --- |
-| `text` | 视频分享链接/包含链接的文本 | `https://v.douyin.com/...` |
+### 请求参数 (Request Body)
+格式: `application/json`
+
+| 参数名 | 类型 | 必填 | 描述 | 示例值 |
+| --- | --- | --- | --- | --- |
+| `text` | `string` | 是 | 视频分享链接或包含链接的文本短语 | `"https://v.douyin.com/..."` |
+
+### 返回说明 (Response)
+格式: `application/json`
+
+成功响应示例：
+```json
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "video_id": "7123...",
+    "platform": "抖音",
+    "title": "视频标题内容",
+    "video_url": "https://... (无水印视频真实地址)",
+    "cover_url": "https://... (高清封面地址)",
+    "author": {
+      "nickname": "作者昵称",
+      "author_id": "作者ID",
+      "avatar": "https://..."
+    },
+    "image_list": [
+      "https://... (图文/图集地址1)",
+      "https://... (图集地址2)"
+    ]
+  },
+  "succ": true
+}
+```
+
+失败响应示例：
+```json
+{
+  "code": 400,
+  "msg": "该链接尚未支持提取 / 解析失败",
+  "data": null,
+  "succ": false
+}
+```
 
 ---
 

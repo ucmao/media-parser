@@ -14,9 +14,9 @@ def parse():
         data = request.json
         text = data.get('text')
         
+        # 1. 解析基础信息
         redirect_url = WebFetcher.fetch_redirect_url(UrlParser.get_url(text))
         platform = DOMAIN_TO_NAME.get(UrlParser.get_domain(redirect_url))
-        video_id = UrlParser.get_video_id(redirect_url)
         real_url = UrlParser.extract_video_address(redirect_url)
         logger.debug(f'real_url {real_url}')
 
@@ -24,57 +24,58 @@ def parse():
             logger.error(f'This link is not supported for extraction: {real_url}')
             return make_response(400, '该链接尚未支持提取', None, False), 400
 
-        title = cover_url = video_url = author = image_list = None
+        # 2. 获取下载器
+        downloader = DownloaderFactory.create_downloader(platform, real_url)
         
-        if platform == '小红书':
-            max_attempts = 3
-            attempts = 0
-            while attempts < max_attempts:
-                downloader = DownloaderFactory.create_downloader(platform, real_url)
-                title = downloader.get_title_content()
-                video_url = downloader.get_real_video_url()
-                cover_url = downloader.get_cover_photo_url()
-                try:
-                    author = downloader.get_author_info()
-                except Exception:
-                    author = None
-                try:
-                    image_list = downloader.get_image_list()
-                except Exception:
-                    image_list = []
-                if video_url or image_list:
-                    break
-                attempts += 1
-                logger.debug(f"Attempt {attempts} failed. Retrying...")
-            if not video_url and not image_list:
-                logger.error("Failed to retrieve media content after 3 attempts.")
-        else:
-            downloader = DownloaderFactory.create_downloader(platform, real_url)
-            title = downloader.get_title_content()
-            video_url = downloader.get_real_video_url()
-            cover_url = downloader.get_cover_photo_url()
-            try:
-                author = downloader.get_author_info()
-            except Exception:
-                author = None
+        # 3. 核心抓取逻辑
+        content_data = _fetch_with_retry(downloader, platform)
 
-            try:
-                image_list = downloader.get_image_list()
-            except Exception:
-                image_list = []
+        if not content_data['video_url'] and not content_data['image_list']:
+            logger.error(f"Failed to retrieve media content for {platform}")
 
-        updated_video_url = UrlParser.convert_to_https(video_url)
-        updated_cover_url = UrlParser.convert_to_https(cover_url)
-        # Convert image list to https
-        updated_image_list = [UrlParser.convert_to_https(img) for img in image_list] if image_list else []
-        
-        data_dict = {'video_id': video_id, 'platform': platform, 'title': title,
-                     'video_url': updated_video_url, 'cover_url': updated_cover_url,
-                     'author': author, 'image_list': updated_image_list}
+        # 4. 统一转换 HTTPS
+        data_dict = {
+            'video_id': UrlParser.get_video_id(redirect_url),
+            'platform': platform,
+            'title': content_data['title'],
+            'video_url': UrlParser.convert_to_https(content_data['video_url']),
+            'cover_url': UrlParser.convert_to_https(content_data['cover_url']),
+            'author': content_data['author'],
+            'image_list': [UrlParser.convert_to_https(img) for img in content_data['image_list']] if content_data['image_list'] else []
+        }
         
         logger.debug(f'Parse Success for platform {platform}')
         return make_response(200, '成功', data_dict, True), 200
 
     except Exception as e:
-        logger.error(e)
+        logger.exception("Parse Error") # 使用 exception 会带上堆栈信息
         return make_response(500, '功能太火爆啦，请稍后再试', None, False), 500
+
+
+def _fetch_with_retry(downloader, platform):
+    """提取公共的抓取逻辑，小红书特殊处理"""
+    max_attempts = 3 if platform == '小红书' else 1
+    
+    for i in range(max_attempts):
+        res = {
+            'title': downloader.get_title_content(),
+            'video_url': downloader.get_real_video_url(),
+            'cover_url': downloader.get_cover_photo_url(),
+            'author': safe_execute(downloader.get_author_info),
+            'image_list': safe_execute(downloader.get_image_list, default=[])
+        }
+        if res['video_url'] or res['image_list']:
+            return res
+            
+        if i < max_attempts - 1:
+            logger.debug(f"Attempt {i + 1} failed. Retrying...")
+            
+    return res
+
+
+def safe_execute(func, default=None):
+    """安全执行辅助函数，减少 try-except 视觉噪音"""
+    try:
+        return func()
+    except Exception:
+        return default
