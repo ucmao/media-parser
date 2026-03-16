@@ -18,7 +18,6 @@ import copy
 from utils.web_fetcher import UrlParser
 from utils.douyin_utils.bogus_sign_utils import CommonUtils
 from configs.logging_config import get_logger
-
 logger = get_logger(__name__)
 from src.downloaders.base_downloader import BaseDownloader
 
@@ -86,14 +85,14 @@ class DouyinDownloader(BaseDownloader):
 
             referer_url = f"https://www.douyin.com/video/{self.aweme_id}?previous_page=web_code_link"
             play_url = f"https://www.douyin.com/aweme/v1/web/aweme/detail/?device_platform=webapp&aid=6383&channel=channel_pc_web&aweme_id={self.aweme_id}&msToken={self.ms_token}"
-
+            
             new_headers = copy.deepcopy(self.headers)
             new_headers['Referer'] = referer_url
             new_headers['Cookie'] = f"ttwid={ttwid}"
-
+            
             abogus = self.common_utils.get_abogus(play_url, self.common_utils.user_agent)
             url = f"{play_url}&a_bogus={abogus}"
-
+            
             try:
                 response = self.session.get(url, headers=new_headers, verify=False, timeout=5)
                 if response.status_code == 200 and response.text:
@@ -122,18 +121,18 @@ class DouyinDownloader(BaseDownloader):
             data_dict = self.data
             if not data_dict or not data_dict.get('aweme_detail'):
                 return None
-
+            
             detail = data_dict.get('aweme_detail', {}) or {}
             video = detail.get('video', {}) or {}
             bit_rate = video.get('bit_rate', []) or []
-
+            
             if not bit_rate:
                 return None
-
+                
             play_addr_list = bit_rate[0].get('play_addr', {}).get('url_list', []) or []
             if len(play_addr_list) < 3:
                 return play_addr_list[0] if play_addr_list else None
-
+                
             # play_addr_list[0]:主CDN节点; play_addr_list[1]:备用CDN节点; play_addr_list[2]:抖音官方的源站URL
             play_addr = play_addr_list[2]
             return play_addr
@@ -157,10 +156,10 @@ class DouyinDownloader(BaseDownloader):
             data_dict = self.data
             if not data_dict:
                 return None
-
+            
             # 使用 or {} 确保 detail 不是 None
             detail = data_dict.get('aweme_detail') or {}
-
+            
             # 1. 尝试获取视频动态封面
             video_cover = None
             video_data = detail.get('video') or {}
@@ -168,7 +167,7 @@ class DouyinDownloader(BaseDownloader):
                 url_list = video_data['dynamic_cover'].get('url_list') or []
                 if url_list:
                     video_cover = url_list[0]
-
+            
             # 2. 尝试获取图集封面 (如果视频封面不存在)
             images_cover = None
             images_list = detail.get('images') or []
@@ -177,15 +176,15 @@ class DouyinDownloader(BaseDownloader):
                 url_list = first_img.get('url_list') or []
                 if url_list:
                     images_cover = url_list[0]
-
+            
             # 3. 优先级逻辑：有视频封面优先用视频，否则用图集封面
             play_cover = video_cover or images_cover
-
+            
             if not play_cover:
                 logger.info("No cover URL found in both video and images.")
-
+            
             return play_cover
-
+            
         except Exception as e:
             logger.warning(f"Failed to parse cover URL: {e}")
             return None
@@ -211,16 +210,16 @@ class DouyinDownloader(BaseDownloader):
             data_dict = self.data
             if not data_dict or not data_dict.get('aweme_detail'):
                 return None
-
+                
             author = (data_dict['aweme_detail'].get('author') or {})
             if not author:
                 return None
-
+                
             # 1. 抖音号逻辑：优先取 unique_id (自定义号)，没有则取 short_id
             # 2. 头像逻辑：安全取 url_list 的第一个元素
             avatar_thumb = author.get('avatar_thumb') or {}
             avatar_url_list = avatar_thumb.get('url_list') or [None]
-
+            
             return {
                 "nickname": author.get('nickname', ''),
                 "author_id": author.get('unique_id') or author.get('short_id', ''),
@@ -249,12 +248,14 @@ class DouyinDownloader(BaseDownloader):
             for img in images:
                 if not img:
                     continue
-                # 优先提取无水印下载链接，如果没有则取普通高清链接
-                # download_url_list 通常比 url_list 更清晰且更适合转存
-                urls = img.get('download_url_list') or img.get('url_list')
+                # ⚠️ 注意：download_url_list 包含带水印的图片！
+                # url_list 才是无水印的原始图片链接（已通过 f2 等主流项目验证）
+                # url_list 中最后一个元素通常是最高质量的 CDN 链接
+                urls = img.get('url_list')
 
                 if urls and isinstance(urls, list) and len(urls) > 0:
-                    image_urls.append(urls[0])
+                    # 优先取最后一个 URL（通常是最高质量的源站 CDN）
+                    image_urls.append(urls[-1])
 
             return image_urls
 
@@ -265,7 +266,7 @@ class DouyinDownloader(BaseDownloader):
 
 if __name__ == '__main__':
     # real_url = 'https://www.douyin.com/video/7396822576074460467'
-    real_url = 'https://www.douyin.com/note/7616399587141737704'
+    real_url = 'https://www.douyin.com/note/7616742473729667171'
 
     dl = DouyinDownloader(real_url)
 
@@ -277,3 +278,4 @@ if __name__ == '__main__':
     print(f"图片列表：{dl.get_image_list()}")
     print(f"音频链接：{dl.get_audio_url()}")
     print("-" * 30)
+
