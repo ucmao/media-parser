@@ -133,8 +133,8 @@ docker-compose up -d --build
 docker-compose logs -f
 ```
 
-容器默认运行在 `8051` 端口。
-
+容器默认运行在 `8051` 端口。启动成功后，你可以直接在浏览器中打开: 
+[http://localhost:8051](http://localhost:8051)
 ### 3. 本地环境部署 (不使用 Docker)
 
 #### 3.1 环境要求
