@@ -10,9 +10,10 @@ ENV PYTHONDONTWRITEBYTECODE 1
 # 确保在输出日志时不会被缓冲，便于查看 Docker 日志
 ENV PYTHONUNBUFFERED 1
 
-# 复制依赖说明文件并安装 Python 包
+# 复制依赖说明文件并配置国内镜像源后安装 Python 包
 COPY requirements.txt /app/
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/ && \
+    pip install --no-cache-dir -r requirements.txt
 
 # 复制项目所有代码
 COPY . /app/
