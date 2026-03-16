@@ -1,0 +1,17 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+.idea/
+.vscode/
+.git/
+.gitignore
+*.log
+static/videos/
+*.mp4
+*.mp3
+*.m4s

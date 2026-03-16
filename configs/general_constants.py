@@ -1,13 +1,10 @@
 import os
 import json
-from dotenv import load_dotenv
 
-# 加载环境变量与基础配置
-load_dotenv()
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # 核心域名
-DOMAIN = os.getenv("DOMAIN")
+DOMAIN = os.getenv("DOMAIN", "")
 
 
 def load_business_json(json_path):

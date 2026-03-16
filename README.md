@@ -72,10 +72,6 @@
 
 ## 🚀 快速开始
 
-### 0. 环境要求
-
-* **Python**: 3.8 及以上版本
-
 ### 1. 获取源码
 
 ```bash
@@ -84,34 +80,34 @@ cd media-parser
 
 ```
 
-### 2. 安装依赖
+### 2. Docker 部署 (推荐)
+
+项目自带完整的 Dockerfile 和 docker-compose 配置文件。如果你已经安装了 Docker，一键即可拉起服务：
+
+```bash
+# 构建并后台启动容器
+docker-compose up -d --build
+
+# 查看运行日志
+docker-compose logs -f
+```
+
+容器默认运行在 `8051` 端口。
+
+### 3. 本地环境部署 (不使用 Docker)
+
+#### 3.1 环境要求
+
+* **Python**: 3.8 及以上版本
+
+#### 3.2 安装依赖
 
 ```bash
 pip install -r requirements.txt
 
 ```
 
-### 3. 环境配置 (.env)
-
-在项目根目录下创建 `.env` 文件（参考 `.env.example`）：
-
-```ini
-# 核心域名
-DOMAIN = your_domain_here
-# 用于加密 Session
-SECRET_KEY =your_secret_key
-
-# 微信小程序登录配置 (若自行扩展需要用到)
-WECHAT_APP_ID = your_wechat_app_id_here
-WECHAT_APP_SECRET = your_wechat_app_secret_here
-
-# 服务端下载缓存配置
-# 仅缓存不超过该大小的小文件，单位：MB，默认 15
-MAX_CACHE_SIZE_MB = 15
-
-```
-
-### 4. 启动应用
+#### 3.3 启动应用
 
 **开发模式：**
 
@@ -123,9 +119,10 @@ python app.py
 **生产模式 (Gunicorn)：**
 
 ```bash
-gunicorn -w 4 -b 0.0.0.0:5001 app:app
+gunicorn -w 4 -b 0.0.0.0:8051 app:app
 
 ```
+
 
 ## 📂 项目结构
 
