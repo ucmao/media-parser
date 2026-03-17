@@ -6,6 +6,14 @@ from src.downloaders.haokan_downloader import HaokanDownloader
 from src.downloaders.weishi_downloader import WeishiDownloader
 from src.downloaders.lishipin_downloader import LishipinDownloader
 from src.downloaders.pipigaoxiao_downloader import PipigaoxiaoDownloader
+from src.downloaders.acfun_downloader import AcfunDownloader
+from src.downloaders.instagram_downloader import InstagramDownloader
+from src.downloaders.tiktok_downloader import TiktokDownloader
+from src.downloaders.twitter_downloader import TwitterDownloader
+from src.downloaders.weibo_downloader import WeiboDownloader
+from src.downloaders.xigua_downloader import XiguaDownloader
+from src.downloaders.youtube_downloader import YoutubeDownloader
+from src.downloaders.zhihu_downloader import ZhihuDownloader
 
 
 class DownloaderFactory:
@@ -17,7 +25,15 @@ class DownloaderFactory:
         "好看视频": HaokanDownloader,
         "微视": WeishiDownloader,
         "梨视频": LishipinDownloader,
-        "皮皮搞笑": PipigaoxiaoDownloader
+        "皮皮搞笑": PipigaoxiaoDownloader,
+        "AcFun": AcfunDownloader,
+        "Instagram": InstagramDownloader,
+        "TikTok": TiktokDownloader,
+        "Twitter": TwitterDownloader,
+        "微博": WeiboDownloader,
+        "西瓜视频": XiguaDownloader,
+        "YouTube": YoutubeDownloader,
+        "知乎": ZhihuDownloader
     }
 
     @staticmethod

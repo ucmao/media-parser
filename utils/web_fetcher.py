@@ -96,6 +96,16 @@ class UrlParser:
                 address = f"{address}?xsec_token={xsec_token}"
         elif platform == "快手":
             address = address.replace('http://', 'https://')
+        elif platform == "抖音":
+            query_params = parse_qs(parsed_url.query)
+            modal_id = query_params.get('modal_id', [None])[0]
+            if modal_id:
+                address = f"{address}?modal_id={modal_id}"
+        elif platform == "YouTube":
+            query_params = parse_qs(parsed_url.query)
+            v = query_params.get('v', [None])[0]
+            if v:
+                address = f"{address}?v={v}"
         return address
 
     @staticmethod
@@ -110,6 +120,12 @@ class UrlParser:
             params_id = query_params.get('id', [None])[0]
             if params_id:
                 return params_id
+            params_modal_id = query_params.get('modal_id', [None])[0]
+            if params_modal_id:
+                return params_modal_id
+            params_v = query_params.get('v', [None])[0]
+            if params_v:
+                return params_v
             # 尝试从URL路径中获取视频ID
             path_segments = parsed_url.path.strip('/').split('/')
             if path_segments:
@@ -130,7 +146,15 @@ class UrlParser:
             '哔哩哔哩': 'https://www.bilibili.com/video/',
             '抖音': 'https://www.iesdouyin.com/share/video/',
             '快手': 'https://www.kuaishou.com/short-video/',
-            '梨视频': 'https://www.pearvideo.com/'
+            '梨视频': 'https://www.pearvideo.com/',
+            'AcFun': 'https://www.acfun.cn/v/',
+            'Instagram': 'https://www.instagram.com/p/',
+            'TikTok': 'https://www.tiktok.com/@/video/',
+            'Twitter': 'https://twitter.com/x/status/',
+            '微博': 'https://m.weibo.cn/status/',
+            '西瓜视频': 'https://www.ixigua.com/',
+            'YouTube': 'https://www.youtube.com/watch?v=',
+            '知乎': 'https://www.zhihu.com/question/'
         }
         # 检查platform是否在映射表中
         if platform not in url_map:

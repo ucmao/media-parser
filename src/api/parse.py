@@ -39,6 +39,7 @@ def parse():
             'platform': platform,
             'title': content_data['title'],
             'video_url': UrlParser.convert_to_https(content_data['video_url']),
+            'audio_url': UrlParser.convert_to_https(content_data.get('audio_url')),
             'cover_url': UrlParser.convert_to_https(content_data['cover_url']),
             'author': content_data['author'],
             'image_list': [UrlParser.convert_to_https(img) for img in content_data['image_list']] if content_data['image_list'] else []
@@ -62,7 +63,8 @@ def _fetch_with_retry(downloader, platform):
             'video_url': downloader.get_real_video_url(),
             'cover_url': downloader.get_cover_photo_url(),
             'author': safe_execute(downloader.get_author_info),
-            'image_list': safe_execute(downloader.get_image_list, default=[])
+            'image_list': safe_execute(downloader.get_image_list, default=[]),
+            'audio_url': safe_execute(downloader.get_audio_url)
         }
         if res['video_url'] or res['image_list']:
             return res

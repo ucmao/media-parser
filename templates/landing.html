@@ -206,6 +206,12 @@
                             <h3 id="resultTitle"
                                 class="text-lg font-bold text-slate-800 mb-6 line-clamp-2 leading-relaxed"></h3>
 
+                            <!-- Audio Player Container -->
+                            <div id="audioContainer" class="hidden mb-6 w-full">
+                                <h4 class="text-sm font-bold text-slate-700 mb-2"><i class="fas fa-music mr-2 text-indigo-500"></i>音频分享</h4>
+                                <audio id="resultAudio" controls class="w-full h-12 rounded-lg bg-slate-50 outline-none"></audio>
+                            </div>
+
                             <div class="mt-auto grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <a id="resultVideoDl" href="" target="_blank"
                                     class="flex items-center justify-center space-x-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors shadow-sm">
@@ -401,6 +407,19 @@
                         // In case of image-only platforms like Xiaohongshu without video
                         videoPlayBtn.parentElement.classList.add('hidden');
                         videoDlBtn.style.display = 'none';
+                    }
+
+                    // Parse Audio
+                    const audioContainer = document.getElementById('audioContainer');
+                    const resultAudio = document.getElementById('resultAudio');
+                    if (res.data.audio_url) {
+                        resultAudio.src = res.data.audio_url;
+                        audioContainer.classList.remove('hidden');
+                        audioContainer.classList.add('block');
+                    } else {
+                        resultAudio.src = '';
+                        audioContainer.classList.add('hidden');
+                        audioContainer.classList.remove('block');
                     }
 
                     // Parse Album Images
