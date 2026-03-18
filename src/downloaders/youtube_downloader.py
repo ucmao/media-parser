@@ -73,6 +73,49 @@ class YoutubeDownloader(BaseDownloader):
              logger.warning(f"yt-dlp fallback failed: {e}")
         return None
 
+    def get_audio_url(self):
+        try:
+            streamingData = self.post_data.get('streamingData', {})
+            adaptiveFormats = streamingData.get('adaptiveFormats', [])
+            
+            # Prioritize m4a (audio/mp4) or webm audio
+            for fmt in adaptiveFormats:
+                mime = fmt.get('mimeType', '')
+                if 'audio/' in mime:
+                    url = fmt.get('url')
+                    if url:
+                        return url
+                        
+            # If no direct URL, it might have a signature cipher
+            for fmt in adaptiveFormats:
+                 if 'audio/' in fmt.get('mimeType', ''):
+                     s_cipher = fmt.get('signatureCipher')
+                     if s_cipher:
+                         return self._fallback_ytdlp_audio_url()
+                         
+        except Exception as e:
+            logger.warning(f"Youtube audio URL extraction error: {e}")
+            
+        return self._fallback_ytdlp_audio_url()
+
+    def _fallback_ytdlp_audio_url(self):
+        try:
+            import yt_dlp
+            ydl_opts = {
+                'quiet': True,
+                'skip_download': True,
+                'extract_flat': False,
+                'nocheckcertificate': True,
+                'format': 'bestaudio[ext=m4a]/bestaudio',
+                'extractor_args': {'youtube': {'player_client': ['web_creator', 'web']}},
+            }
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(self.real_url, download=False)
+                return info.get('url')
+        except Exception as e:
+             logger.warning(f"yt-dlp audio fallback failed: {e}")
+        return None
+
     def get_title_content(self):
         details = self.post_data.get('videoDetails', {})
         title = details.get('title', '')
@@ -122,4 +165,6 @@ if __name__ == '__main__':
     print(f"封面图片：{dl.get_cover_photo_url()}")
     url = dl.get_real_video_url()
     print(f"视频链接长度：{len(url) if url else 'None'} ")
+    audio_url = dl.get_audio_url()
+    print(f"音频链接长度：{len(audio_url) if audio_url else 'None'} ")
     print("-" * 30)

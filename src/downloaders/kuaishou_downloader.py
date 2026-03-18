@@ -145,6 +145,48 @@ class KuaishouDownloader(BaseDownloader):
             logger.error(f"Author parse error: {e}")
         return None
 
+    def get_audio_url(self):
+        """
+        获取独立的音频链接。
+        快手网页端大部分不直接暴露独立的音频源 URL，因此采用通用提取方案：
+        获取无水印视频 URL -> 下载此视频 -> 使用 FFmpeg 分离提取纯音频（不重编码） -> 存放在服务器 -> 返回本地链接
+        """
+        video_url = self.get_real_video_url()
+        if not video_url:
+             return None
+             
+        import os, uuid, subprocess
+        from configs.general_constants import SAVE_VIDEO_PATH, DOMAIN
+        
+        video_path = self.download_and_save(SAVE_VIDEO_PATH, video_url, "mp4")
+        if not video_path:
+             logger.error("快手获取视频文件失败，无法提取音频")
+             return None
+             
+        output_filename = f"{uuid.uuid4()}_audio.m4a"
+        output_path = os.path.join(SAVE_VIDEO_PATH, output_filename)
+        
+        command = [
+             "ffmpeg",
+             "-y",
+             "-i", video_path,
+             "-vn",           # 去掉视频流
+             "-c:a", "copy",  # 直接提取底层原始音频流，无需重复编码，极速秒级完成
+             output_path
+        ]
+        
+        try:
+             logger.debug(f"正在使用 FFmpeg 提取快手音频: {' '.join(command)}")
+             subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+             return f"{DOMAIN}/static/videos/{output_filename}"
+        except subprocess.CalledProcessError as e:
+             error_message = e.stderr.decode("utf-8") if e.stderr else str(e)
+             logger.error(f"FFmpeg 提取音频失败: {error_message}")
+             return None
+        finally:
+             if os.path.exists(video_path):
+                 os.remove(video_path)
+
 
 if __name__ == '__main__':
     real_url = 'https://www.kuaishou.com/short-video/3xwyjn4ipdhss5c?authorId=3xasa85baf6ipp4&streamSource=find&area=homexxbrilliant'
@@ -156,4 +198,5 @@ if __name__ == '__main__':
     print(f"标题内容：{dl.get_title_content()[:30]}...")  # 仅打印前30字
     print(f"封面图片：{dl.get_cover_photo_url()}")
     print(f"视频链接：{dl.get_real_video_url()}")
+    print(f"音频链接：{dl.get_audio_url()}")
     print("-" * 30)

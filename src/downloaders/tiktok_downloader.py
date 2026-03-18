@@ -99,6 +99,26 @@ class TiktokDownloader(BaseDownloader):
             pass
         return images
 
+    def get_audio_url(self):
+        try:
+            music_url = self.post_data.get('play', '') if self.post_data.get('music') is None else self.post_data.get('music')
+            # Fallback to music_info if music is empty string
+            if not music_url:
+                music_url = self.post_data.get('music_info', {}).get('play')
+            
+            # Note: actual tikwm API typically uses 'music' for the background music track
+            if not music_url:
+                music_url = self.post_data.get('music')
+                
+            if music_url:
+                if music_url.startswith('/'):
+                     return f"https://www.tikwm.com{music_url}"
+                return music_url
+        except Exception as e:
+            logger.warning(f"Failed to extract audio url: {e}")
+            
+        return None
+
     def get_author_info(self):
         try:
             author = self.post_data.get('author', {})
@@ -127,5 +147,6 @@ if __name__ == '__main__':
     print(f"标题内容：{dl.get_title_content()[:30]}...")
     print(f"封面图片：{dl.get_cover_photo_url()}")
     print(f"视频链接：{dl.get_real_video_url()}")
+    print(f"音频链接：{dl.get_audio_url()}")
     print(f"图片列表：{dl.get_image_list()}")
     print("-" * 30)

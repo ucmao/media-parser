@@ -138,6 +138,42 @@ class BilibiliDownloader(BaseDownloader):
             logger.warning(f"Failed to parse Bilibili audio URL: {e}")
             return None
 
+    def get_audio_url(self):
+        """
+        获取独立的音频链接：下载 m4s 音频流缓存，并转封装为通用 m4a，返回服务器可访问地址
+        """
+        audio_url = self.get_audio_m4s_url()
+        if not audio_url:
+            return None
+            
+        audio_m4s_path = self.download_and_save(SAVE_VIDEO_PATH, audio_url, "m4s")
+        if not audio_m4s_path:
+            logger.error("下载 B 站音频 m4s 文件失败")
+            return None
+
+        output_filename = f"{uuid.uuid4()}_audio.m4a"
+        output_path = os.path.join(SAVE_VIDEO_PATH, output_filename)
+
+        command = [
+            "ffmpeg",
+            "-y",
+            "-i", audio_m4s_path,
+            "-c:a", "copy",
+            output_path
+        ]
+
+        try:
+            logger.debug(f"正在使用 FFmpeg 转换提取音频: {' '.join(command)}")
+            subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            return f"{DOMAIN}/static/videos/{output_filename}"
+        except subprocess.CalledProcessError as e:
+            error_message = e.stderr.decode("utf-8") if e.stderr else str(e)
+            logger.error(f"FFmpeg 转换音频失败: {error_message}")
+            return None
+        finally:
+            if os.path.exists(audio_m4s_path):
+                os.remove(audio_m4s_path)
+
     def get_title_content(self):
         return self.video_info.get('title', '')
 
@@ -268,5 +304,7 @@ if __name__ == '__main__':
     print(f"视频链接：{dl.get_real_video_url()}")
     print(f"\n【DASH 高清方案 - 1080P（需要 FFmpeg 合并）】")
     print(f"视频链接：{dl.get_real_video_url_hd()}")
+    print(f"\n【独立音频流（m4a）】")
+    print(f"音频链接：{dl.get_audio_url()}")
     print("-" * 30)
 
