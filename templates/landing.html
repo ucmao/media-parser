@@ -430,14 +430,38 @@
                     albumGrid.innerHTML = '';
                     if (res.data.image_list && res.data.image_list.length > 0) {
                         document.getElementById('albumCount').innerText = res.data.image_list.length;
-                        res.data.image_list.forEach(imgUrl => {
-                            const imgEl = document.createElement('a');
-                            imgEl.href = imgUrl;
-                            imgEl.target = '_blank';
-                            imgEl.className = 'w-full h-full shrink-0 flex-none snap-center relative block';
-                            imgEl.innerHTML = `<img src="${imgUrl}" class="w-full h-full object-cover">
-                                               <div class="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center text-white backdrop-blur-sm"><i class="fas fa-expand text-4xl drop-shadow-md"></i></div>`;
-                            albumGrid.appendChild(imgEl);
+                        res.data.image_list.forEach(item => {
+                            let imgUrl = item;
+                            let livePhotoUrl = null;
+                            if (typeof item === 'object' && item !== null) {
+                                imgUrl = item.url;
+                                livePhotoUrl = item.live_photo_url;
+                            }
+
+                            const imgContainer = document.createElement('div');
+                            imgContainer.className = 'w-full h-full shrink-0 flex-none snap-center relative';
+                            
+                            let innerHtml = `<a href="${imgUrl}" target="_blank" class="block w-full h-full relative group">
+                                <img src="${imgUrl}" class="w-full h-full object-cover">
+                                <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white backdrop-blur-sm space-y-2">
+                                    <i class="fas fa-expand text-4xl drop-shadow-md"></i>
+                                    <span class="text-sm font-bold bg-black/50 px-3 py-1 rounded-full">查看高清大图</span>
+                                </div>
+                            </a>`;
+
+                            if (livePhotoUrl) {
+                                innerHtml += `<a href="${livePhotoUrl}" target="_blank" class="absolute bottom-6 left-1/2 -translate-x-1/2 bg-indigo-600/90 hover:bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg backdrop-blur-md flex items-center space-x-2 transition-transform hover:scale-105 z-10 w-max">
+                                    <i class="fas fa-video"></i>
+                                    <span>获取实况/动图</span>
+                                </a>`;
+                                innerHtml += `<div class="absolute top-12 left-4 bg-black/60 backdrop-blur-md text-white px-3 py-1 rounded-full text-xs font-bold border border-white/20 shadow-sm flex items-center space-x-1 z-10 pointer-events-none">
+                                    <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                                    <span>Live</span>
+                                </div>`;
+                            }
+
+                            imgContainer.innerHTML = innerHtml;
+                            albumGrid.appendChild(imgContainer);
                         });
                         coverBlock.classList.add('hidden');
                         albumContainer.classList.remove('hidden');

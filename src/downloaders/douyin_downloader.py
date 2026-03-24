@@ -255,7 +255,16 @@ class DouyinDownloader(BaseDownloader):
 
                 if urls and isinstance(urls, list) and len(urls) > 0:
                     # 优先取最后一个 URL（通常是最高质量的源站 CDN）
-                    image_urls.append(urls[-1])
+                    img_data = urls[-1]
+                    # 检查是否有 livePhoto
+                    if 'video' in img and 'play_addr' in img['video']:
+                        live_urls = img['video']['play_addr'].get('url_list')
+                        if live_urls and isinstance(live_urls, list) and len(live_urls) > 0:
+                            img_data = {
+                                'url': img_data,
+                                'live_photo_url': live_urls[0]
+                            }
+                    image_urls.append(img_data)
 
             return image_urls
 
@@ -266,7 +275,7 @@ class DouyinDownloader(BaseDownloader):
 
 if __name__ == '__main__':
     # real_url = 'https://www.douyin.com/video/7396822576074460467'
-    real_url = 'https://www.douyin.com/note/7616742473729667171'
+    real_url = 'https://www.douyin.com/note/7616399587141737704'
 
     dl = DouyinDownloader(real_url)
 

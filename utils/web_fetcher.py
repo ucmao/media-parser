@@ -106,6 +106,16 @@ class UrlParser:
             v = query_params.get('v', [None])[0]
             if v:
                 address = f"{address}?v={v}"
+        elif platform == "全民K歌":
+            query_params = parse_qs(parsed_url.query)
+            s = query_params.get('s', [None])[0]
+            if s:
+                address = f"{address}?s={s}"
+        elif platform == "最右":
+            query_params = parse_qs(parsed_url.query)
+            pid = query_params.get('pid', [None])[0]
+            if pid:
+                address = f"{address}?pid={pid}"
         return address
 
     @staticmethod
@@ -126,10 +136,18 @@ class UrlParser:
             params_v = query_params.get('v', [None])[0]
             if params_v:
                 return params_v
+            params_s = query_params.get('s', [None])[0]
+            if params_s:
+                return params_s
+            params_pid = query_params.get('pid', [None])[0]
+            if params_pid:
+                return params_pid
             # 尝试从URL路径中获取视频ID
             path_segments = parsed_url.path.strip('/').split('/')
             if path_segments:
                 video_id = path_segments[-1]
+                if video_id.endswith('.html'):
+                    video_id = video_id[:-5]
                 return video_id
             logger.warning(f'Unable to retrieve video ID from URL: {url}')
             return None
@@ -154,7 +172,17 @@ class UrlParser:
             '微博': 'https://m.weibo.cn/status/',
             '西瓜视频': 'https://www.ixigua.com/',
             'YouTube': 'https://www.youtube.com/watch?v=',
-            '知乎': 'https://www.zhihu.com/question/'
+            '知乎': 'https://www.zhihu.com/question/',
+            '逗拍': 'https://v2.doupai.cc/topic/',
+            '虎牙': 'https://v.huya.com/play/',
+            '绿洲': 'https://oasis.weibo.cn/v1/h5/share?sid=',
+            '美拍': 'https://www.meipai.com/media/',
+            '皮皮虾': 'https://h5.pipix.com/item/',
+            '全民小视频': 'https://quanmin.baidu.com/v/',
+            '全民K歌': 'https://kg.qq.com/node/play?s=',
+            '六间房': 'https://v.6.cn/video/',
+            '新片场': 'https://www.xinpianchang.com/a',
+            '最右': 'https://izuiyou.com/post/'
         }
         # 检查platform是否在映射表中
         if platform not in url_map:

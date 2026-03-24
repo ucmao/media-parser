@@ -69,14 +69,27 @@ class XiaohongshuDownloader(BaseDownloader):
         for image in image_list:
             url = image.get('urlDefault', '')
             if url:
-                image_url_list.append(url.replace("\\u002F", "/"))
+                img_data = url.replace("\\u002F", "/")
+                # 检查是否有livePhoto
+                if image.get('livePhoto', False):
+                    stream = image.get('stream', {})
+                    h264_data = stream.get('h264', [])
+                    if h264_data:
+                        master_url = h264_data[0].get('masterUrl', '')
+                        if master_url:
+                            img_data = {
+                                'url': img_data,
+                                'live_photo_url': master_url.replace("\\u002F", "/")
+                            }
+                image_url_list.append(img_data)
         return image_url_list
 
 
 if __name__ == '__main__':
-    real_url = 'https://www.xiaohongshu.com/discovery/item/699ec585000000002602eb4c?xsec_token=ABxyNDjNzyo7x607F-O1PLIKtfYSPsQPi8ZscMk3c8JCI='
+    # 测试链接
+    test_url = 'https://www.xiaohongshu.com/discovery/item/699ec585000000002602eb4c?xsec_token=ABxyNDjNzyo7x607F-O1PLIKtfYSPsQPi8ZscMk3c8JCI='
 
-    dl = XiaohongshuDownloader(real_url)
+    dl = XiaohongshuDownloader(test_url)
 
     print("-" * 30)
     print(f"作者信息：{dl.get_author_info()}")

@@ -14,7 +14,16 @@ from src.downloaders.weibo_downloader import WeiboDownloader
 from src.downloaders.xigua_downloader import XiguaDownloader
 from src.downloaders.youtube_downloader import YoutubeDownloader
 from src.downloaders.zhihu_downloader import ZhihuDownloader
-
+from src.downloaders.doupai_downloader import DoupaiDownloader
+from src.downloaders.huya_downloader import HuyaDownloader
+from src.downloaders.lvzhou_downloader import LvzhouDownloader
+from src.downloaders.meipai_downloader import MeipaiDownloader
+from src.downloaders.pipixia_downloader import PipixiaDownloader
+from src.downloaders.quanmin_downloader import QuanminDownloader
+from src.downloaders.quanminkge_downloader import QuanminkgeDownloader
+from src.downloaders.sixroom_downloader import SixroomDownloader
+from src.downloaders.xinpianchang_downloader import XinpianchangDownloader
+from src.downloaders.zuiyou_downloader import ZuiyouDownloader
 
 class DownloaderFactory:
     platform_to_downloader = {
@@ -33,7 +42,17 @@ class DownloaderFactory:
         "微博": WeiboDownloader,
         "西瓜视频": XiguaDownloader,
         "YouTube": YoutubeDownloader,
-        "知乎": ZhihuDownloader
+        "知乎": ZhihuDownloader,
+        "逗拍": DoupaiDownloader,
+        "虎牙": HuyaDownloader,
+        "绿洲": LvzhouDownloader,
+        "美拍": MeipaiDownloader,
+        "皮皮虾": PipixiaDownloader,
+        "全民小视频": QuanminDownloader,
+        "全民K歌": QuanminkgeDownloader,
+        "六间房": SixroomDownloader,
+        "新片场": XinpianchangDownloader,
+        "最右": ZuiyouDownloader
     }
 
     @staticmethod

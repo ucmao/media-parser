@@ -33,6 +33,17 @@ def parse():
         if not content_data['video_url'] and not content_data['image_list']:
             logger.error(f"Failed to retrieve media content for {platform}")
 
+        processed_image_list = []
+        if content_data.get('image_list'):
+            for img in content_data['image_list']:
+                if isinstance(img, dict):
+                    processed_image_list.append({
+                        'url': UrlParser.convert_to_https(img.get('url')),
+                        'live_photo_url': UrlParser.convert_to_https(img.get('live_photo_url'))
+                    })
+                else:
+                    processed_image_list.append(UrlParser.convert_to_https(img))
+
         # 4. 统一转换 HTTPS
         data_dict = {
             'video_id': UrlParser.get_video_id(redirect_url),
@@ -42,7 +53,7 @@ def parse():
             'audio_url': UrlParser.convert_to_https(content_data.get('audio_url')),
             'cover_url': UrlParser.convert_to_https(content_data['cover_url']),
             'author': content_data['author'],
-            'image_list': [UrlParser.convert_to_https(img) for img in content_data['image_list']] if content_data['image_list'] else []
+            'image_list': processed_image_list
         }
         
         logger.debug(f'Parse Success for platform {platform}')
