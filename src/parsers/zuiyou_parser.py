@@ -1,8 +1,8 @@
 
-from src.downloaders.base_downloader import BaseDownloader
+from src.parsers.base_parser import BaseParser
 from utils.web_fetcher import UrlParser
 
-class ZuiyouDownloader(BaseDownloader):
+class ZuiyouParser(BaseParser):
     def fetch_html_data(self):
         video_id = UrlParser.get_video_id(self.real_url)
         try:

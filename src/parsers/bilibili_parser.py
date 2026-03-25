@@ -5,21 +5,21 @@ import random
 import requests
 import subprocess
 import concurrent.futures
-from src.downloaders.base_downloader import BaseDownloader
+from src.parsers.base_parser import BaseParser
 from configs.general_constants import USER_AGENT_PC, SAVE_VIDEO_PATH, DOMAIN
 from configs.logging_config import get_logger
 logger = get_logger(__name__)
 
 
-class BilibiliDownloader(BaseDownloader):
+class BilibiliParser(BaseParser):
     """
-    B站下载器 —— 通过官方 API 获取视频信息和 DASH 流地址。
+    B站解析器 —— 通过官方 API 获取视频信息和 DASH 流地址。
 
     调用链路：
     1. 从 URL 中提取 BV 号
     2. 调用 /x/web-interface/view 接口获取视频元信息（标题、封面、作者、cid）
-    3. 调用 /x/player/playurl 接口获取 DASH 视频流和音频流的下载地址
-    4. 并发下载 video.m4s + audio.m4s，使用 FFmpeg 合并为 mp4
+    3. 调用 /x/player/playurl 接口获取 DASH 视频流和音频流的解析地址
+    4. 并发解析 video.m4s + audio.m4s，使用 FFmpeg 合并为 mp4
 
     相比旧版爬取网页 HTML 的方案，API 方案的优势：
     - 不受 B 站针对数据中心 IP 的网页 WAF (412) 拦截
@@ -140,7 +140,7 @@ class BilibiliDownloader(BaseDownloader):
 
     def get_audio_url(self):
         """
-        获取独立的音频链接：下载 m4s 音频流缓存，并转封装为通用 m4a，返回服务器可访问地址
+        获取独立的音频链接：解析 m4s 音频流缓存，并转封装为通用 m4a，返回服务器可访问地址
         """
         audio_url = self.get_audio_m4s_url()
         if not audio_url:
@@ -148,7 +148,7 @@ class BilibiliDownloader(BaseDownloader):
             
         audio_m4s_path = self.download_and_save(SAVE_VIDEO_PATH, audio_url, "m4s")
         if not audio_m4s_path:
-            logger.error("下载 B 站音频 m4s 文件失败")
+            logger.error("解析 B 站音频 m4s 文件失败")
             return None
 
         output_filename = f"{uuid.uuid4()}_audio.m4a"
@@ -195,7 +195,7 @@ class BilibiliDownloader(BaseDownloader):
     def get_real_video_url(self):
         """
         durl 单文件方案（480P）：获取包含视频+音频的单个 mp4 文件链接，
-        下载到服务器后返回自有域名的可播放链接。
+        解析到服务器后返回自有域名的可播放链接。
         B站 CDN 有 Referer 防盗链和链接时效限制，无法直接返回 CDN 原始链接。
         """
         cid = self._get_cid()
@@ -221,7 +221,7 @@ class BilibiliDownloader(BaseDownloader):
                 if durls:
                     cdn_url = durls[0].get('url')
                     logger.debug(f"B站 durl 单文件链接获取成功: {self.bvid}")
-                    # 下载到服务器，返回自有域名链接
+                    # 解析到服务器，返回自有域名链接
                     saved_path = self.download_and_save(SAVE_VIDEO_PATH, cdn_url, "mp4")
                     if saved_path:
                         filename = os.path.basename(saved_path)
@@ -235,7 +235,7 @@ class BilibiliDownloader(BaseDownloader):
 
     def get_real_video_url_hd(self):
         """
-        DASH 高清方案（1080P）：下载视频的 m4s 和音频的 m4s 文件，
+        DASH 高清方案（1080P）：解析视频的 m4s 和音频的 m4s 文件，
         使用 FFmpeg 合并为 mp4，保存到 static/videos 中，并返回服务器可访问的视频链接。
         """
         video_url = self.get_video_m4s_url()
@@ -245,7 +245,7 @@ class BilibiliDownloader(BaseDownloader):
             logger.error("无法获取 B 站视频或音频链接 m4s 地址")
             return None
 
-        # 并发下载 m4s 发挥最大网络带宽
+        # 并发解析 m4s 发挥最大网络带宽
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
             future_video = executor.submit(self.download_and_save, SAVE_VIDEO_PATH, video_url, "m4s")
             future_audio = executor.submit(self.download_and_save, SAVE_VIDEO_PATH, audio_url, "m4s")
@@ -254,7 +254,7 @@ class BilibiliDownloader(BaseDownloader):
             audio_m4s_path = future_audio.result()
 
         if not video_m4s_path or not audio_m4s_path:
-            logger.error("下载 B 站视频或音频 m4s 文件失败")
+            logger.error("解析 B 站视频或音频 m4s 文件失败")
             return None
 
         # 随机生成最终的 mp4 文件名
@@ -294,7 +294,7 @@ class BilibiliDownloader(BaseDownloader):
 if __name__ == '__main__':
     real_url = 'https://www.bilibili.com/video/BV1df421v7xm/?share_source=copy_web&vd_source=5ac2e55972f5e2fd96b63d01ee42ff01'
 
-    dl = BilibiliDownloader(real_url)
+    dl = BilibiliParser(real_url)
 
     print("-" * 30)
     print(f"作者信息：{dl.get_author_info()}")

@@ -1,13 +1,13 @@
 import random
 from utils.web_fetcher import UrlParser
-from src.downloaders.base_downloader import BaseDownloader
+from src.parsers.base_parser import BaseParser
 from configs.general_constants import USER_AGENT_PC
 from configs.logging_config import get_logger
 
 logger = get_logger(__name__)
 
 
-class PipigaoxiaoDownloader(BaseDownloader):
+class PipigaoxiaoParser(BaseParser):
     def __init__(self, url):
         super().__init__(url)
         self.headers = {
@@ -106,7 +106,7 @@ class PipigaoxiaoDownloader(BaseDownloader):
 if __name__ == '__main__':
     real_url = 'https://h5.pipigx.com/pp/post/815491325984?pid=815491325984&type=post'
 
-    dl = PipigaoxiaoDownloader(real_url)
+    dl = PipigaoxiaoParser(real_url)
 
     print("-" * 30)
     print(f"作者信息：{dl.get_author_info()}")

@@ -1,14 +1,14 @@
 import json
 import random
 from utils.web_fetcher import UrlParser
-from src.downloaders.base_downloader import BaseDownloader
+from src.parsers.base_parser import BaseParser
 from configs.general_constants import USER_AGENT_PC
 from configs.logging_config import get_logger
 
 logger = get_logger(__name__)
 
 
-class KuaishouDownloader(BaseDownloader):
+class KuaishouParser(BaseParser):
     def __init__(self, real_url):
         super().__init__(real_url)
 
@@ -149,7 +149,7 @@ class KuaishouDownloader(BaseDownloader):
         """
         获取独立的音频链接。
         快手网页端大部分不直接暴露独立的音频源 URL，因此采用通用提取方案：
-        获取无水印视频 URL -> 下载此视频 -> 使用 FFmpeg 分离提取纯音频（不重编码） -> 存放在服务器 -> 返回本地链接
+        获取无水印视频 URL -> 解析此视频 -> 使用 FFmpeg 分离提取纯音频（不重编码） -> 存放在服务器 -> 返回本地链接
         """
         video_url = self.get_real_video_url()
         if not video_url:
@@ -191,7 +191,7 @@ class KuaishouDownloader(BaseDownloader):
 if __name__ == '__main__':
     real_url = 'https://www.kuaishou.com/short-video/3xwyjn4ipdhss5c?authorId=3xasa85baf6ipp4&streamSource=find&area=homexxbrilliant'
 
-    dl = KuaishouDownloader(real_url)
+    dl = KuaishouParser(real_url)
 
     print("-" * 30)
     print(f"作者信息：{dl.get_author_info()}")

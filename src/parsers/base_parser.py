@@ -10,7 +10,7 @@ from configs.logging_config import get_logger
 logger = get_logger(__name__)
 
 
-class BaseDownloader:
+class BaseParser:
     def __init__(self, real_url):
         self.real_url = real_url
         self.headers = None
@@ -31,7 +31,7 @@ class BaseDownloader:
         raise NotImplementedError
 
     def get_audio_url(self):
-        """获取音频下载链接"""
+        """获取音频解析链接"""
         return None
 
     def get_image_list(self):
@@ -73,7 +73,7 @@ class BaseDownloader:
         return False
 
     def download_and_save(self, folder, url, file_extension):
-        BaseDownloader.mkdir(folder)
+        BaseParser.mkdir(folder)
         retries = Retry(total=5, backoff_factor=1, status_forcelist=[500, 502, 503, 504])
         session = requests.Session()
         session.mount('http://', HTTPAdapter(max_retries=retries))
@@ -98,14 +98,14 @@ class BaseDownloader:
 
     def download_and_save_video(self):
         video_url = self.get_real_video_url()
-        logger.debug(f'视频下载地址：{video_url}')
+        logger.debug(f'视频解析地址：{video_url}')
         return self.download_and_save(SAVE_VIDEO_PATH, video_url, 'mp4')
 
     def download_and_save_image(self):
         photo_url = self.get_cover_photo_url()
         if photo_url:
-            logger.debug(f'封面下载地址：{photo_url}')
+            logger.debug(f'封面解析地址：{photo_url}')
             return self.download_and_save(SAVE_IMAGE_PATH, photo_url, 'jpg')
         else:
-            logger.debug(f'未获取到封面下载地址')
+            logger.debug(f'未获取到封面解析地址')
             return None

@@ -1,10 +1,10 @@
 import re
-from src.downloaders.base_downloader import BaseDownloader
+from src.parsers.base_parser import BaseParser
 from configs.logging_config import get_logger
 
 logger = get_logger(__name__)
 
-class TwitterDownloader(BaseDownloader):
+class TwitterParser(BaseParser):
     def __init__(self, real_url):
         super().__init__(real_url)
         self.post_data = self._fetch_post_data()
@@ -95,7 +95,7 @@ class TwitterDownloader(BaseDownloader):
 if __name__ == '__main__':
     # Test with a known tweet that contains a video (this is a random spacex video tweet just for placeholder)
     real_url = 'https://twitter.com/SpaceX/status/1768270529452372412' 
-    dl = TwitterDownloader(real_url)
+    dl = TwitterParser(real_url)
     print("-" * 30)
     print(f"作者信息：{dl.get_author_info()}")
     print(f"标题内容：{dl.get_title_content()[:50]}...")

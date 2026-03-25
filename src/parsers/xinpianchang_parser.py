@@ -1,9 +1,9 @@
 
 import json
 import re
-from src.downloaders.base_downloader import BaseDownloader
+from src.parsers.base_parser import BaseParser
 
-class XinpianchangDownloader(BaseDownloader):
+class XinpianchangParser(BaseParser):
     def fetch_html_data(self):
         resp = self.session.get(self.real_url, headers=self.headers)
         pattern = re.compile(r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>')

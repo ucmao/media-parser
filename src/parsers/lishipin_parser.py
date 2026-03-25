@@ -2,14 +2,14 @@ import re
 import random
 from bs4 import BeautifulSoup
 from utils.web_fetcher import UrlParser
-from src.downloaders.base_downloader import BaseDownloader
+from src.parsers.base_parser import BaseParser
 from configs.general_constants import USER_AGENT_PC
 from configs.logging_config import get_logger
 
 logger = get_logger(__name__)
 
 
-class LishipinDownloader(BaseDownloader):
+class LishipinParser(BaseParser):
     def __init__(self, real_url):
         super().__init__(real_url)
         self.headers = {
@@ -116,7 +116,7 @@ class LishipinDownloader(BaseDownloader):
 if __name__ == '__main__':
     real_url = 'https://www.pearvideo.com/video_1805408'
 
-    dl = LishipinDownloader(real_url)
+    dl = LishipinParser(real_url)
 
     print("-" * 30)
     print(f"作者信息：{dl.get_author_info()}")

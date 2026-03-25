@@ -1,13 +1,13 @@
 import re
 import json
 import random
-from src.downloaders.base_downloader import BaseDownloader
+from src.parsers.base_parser import BaseParser
 from configs.general_constants import USER_AGENT_PC, USER_AGENT_M
 from configs.logging_config import get_logger
 
 logger = get_logger(__name__)
 
-class XiguaDownloader(BaseDownloader):
+class XiguaParser(BaseParser):
     def __init__(self, real_url):
         super().__init__(real_url)
         self.headers = {
@@ -30,7 +30,7 @@ class XiguaDownloader(BaseDownloader):
 
     def _fetch_post_data(self):
         if not self.video_id:
-            logger.error("XiguaDownloader: Could not extract video ID.")
+            logger.error("XiguaParser: Could not extract video ID.")
             return {}
             
         req_url = (
@@ -153,7 +153,7 @@ class XiguaDownloader(BaseDownloader):
 if __name__ == '__main__':
     # Test
     real_url = 'https://www.ixigua.com/7123456789012345678'
-    dl = XiguaDownloader(real_url)
+    dl = XiguaParser(real_url)
     print("-" * 30)
     print(f"作者信息：{dl.get_author_info()}")
     print(f"标题内容：{dl.get_title_content()[:30]}...")

@@ -2,13 +2,13 @@ import re
 import json
 import random
 import urllib.parse
-from src.downloaders.base_downloader import BaseDownloader
+from src.parsers.base_parser import BaseParser
 from configs.general_constants import USER_AGENT_PC, USER_AGENT_M
 from configs.logging_config import get_logger
 
 logger = get_logger(__name__)
 
-class AcfunDownloader(BaseDownloader):
+class AcfunParser(BaseParser):
     def __init__(self, real_url):
         super().__init__(real_url)
         self.headers = {
@@ -88,7 +88,7 @@ class AcfunDownloader(BaseDownloader):
 
 if __name__ == '__main__':
     real_url = 'https://www.acfun.cn/v/ac43445963'
-    dl = AcfunDownloader(real_url)
+    dl = AcfunParser(real_url)
     print("-" * 30)
     print(f"作者信息：{dl.get_author_info()}")
     print(f"标题内容：{dl.get_title_content()[:50]}...")

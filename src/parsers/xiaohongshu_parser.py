@@ -1,11 +1,11 @@
 import re
 import json
-from src.downloaders.base_downloader import BaseDownloader
+from src.parsers.base_parser import BaseParser
 from configs.logging_config import get_logger
 logger = get_logger(__name__)
 
 
-class XiaohongshuDownloader(BaseDownloader):
+class XiaohongshuParser(BaseParser):
     def __init__(self, real_url):
         super().__init__(real_url)
         self.headers = {
@@ -16,7 +16,7 @@ class XiaohongshuDownloader(BaseDownloader):
         # 获取 HTML 并解析 JSON 状态
         html_content = self.fetch_html_content()
         pattern = re.compile(r'window\.__INITIAL_STATE__\s*=\s*(\{.*\})', re.DOTALL)
-        json_str = BaseDownloader.parse_html_data(html_content, pattern)
+        json_str = BaseParser.parse_html_data(html_content, pattern)
 
         # 初始化数据容器
         self.note_data = {}
@@ -89,7 +89,7 @@ if __name__ == '__main__':
     # 测试链接
     test_url = 'https://www.xiaohongshu.com/discovery/item/699ec585000000002602eb4c?xsec_token=ABxyNDjNzyo7x607F-O1PLIKtfYSPsQPi8ZscMk3c8JCI='
 
-    dl = XiaohongshuDownloader(test_url)
+    dl = XiaohongshuParser(test_url)
 
     print("-" * 30)
     print(f"作者信息：{dl.get_author_info()}")

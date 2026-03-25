@@ -2,13 +2,13 @@ import re
 import json
 import random
 from urllib.parse import unquote
-from src.downloaders.base_downloader import BaseDownloader
+from src.parsers.base_parser import BaseParser
 from configs.general_constants import USER_AGENT_M
 from configs.logging_config import get_logger
 logger = get_logger(__name__)
 
 
-class HaokanDownloader(BaseDownloader):
+class HaokanParser(BaseParser):
     def __init__(self, real_url):
         super().__init__(real_url)
         self.headers = {
@@ -21,7 +21,7 @@ class HaokanDownloader(BaseDownloader):
     def fetch_html_data(self):
         self.html_content = self.fetch_html_content()
         pattern = re.compile(r'window\.__PRELOADED_STATE__\s*=\s*(\{.*\};)', re.DOTALL)
-        json_data = BaseDownloader.parse_html_data(self.html_content, pattern)
+        json_data = BaseParser.parse_html_data(self.html_content, pattern)
         return json_data
 
     def get_real_video_url(self):
@@ -76,7 +76,7 @@ class HaokanDownloader(BaseDownloader):
 if __name__ == '__main__':
     real_url = 'https://haokan.baidu.com/v?vid=17831460188721240800&pd=pcshare&hkRelaunch=p1%3Dpc%26p2%3Dvideoland%26p3%3Dshare_input'
 
-    dl = HaokanDownloader(real_url)
+    dl = HaokanParser(real_url)
 
     print("-" * 30)
     print(f"作者信息：{dl.get_author_info()}")

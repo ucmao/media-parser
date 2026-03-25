@@ -1,8 +1,8 @@
 
-from src.downloaders.base_downloader import BaseDownloader
+from src.parsers.base_parser import BaseParser
 from utils.web_fetcher import UrlParser
 
-class SixroomDownloader(BaseDownloader):
+class SixroomParser(BaseParser):
     def fetch_html_data(self):
         video_id = UrlParser.get_video_id(self.real_url)
         req_url = f"https://v.6.cn/profile/tmv/getVideoInfo.php?vid={video_id}"
