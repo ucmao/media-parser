@@ -1,10 +1,10 @@
 import logging
-from src.downloaders.base_downloader import BaseDownloader
+from src.parsers.base_parser import BaseParser
 from configs.logging_config import get_logger
 
 logger = get_logger(__name__)
 
-class InstagramDownloader(BaseDownloader):
+class InstagramParser(BaseParser):
     def __init__(self, real_url):
         super().__init__(real_url)
         self.post_data = self._fetch_post_data()
@@ -95,7 +95,7 @@ class InstagramDownloader(BaseDownloader):
 if __name__ == '__main__':
     # Test will likely fail without cookies on local, but logic is sound
     real_url = 'https://www.instagram.com/p/C-UqV3YpU3Z/?hl=en'
-    dl = InstagramDownloader(real_url)
+    dl = InstagramParser(real_url)
     print("-" * 30)
     print(f"作者信息：{dl.get_author_info()}")
     print(f"标题内容：{dl.get_title_content()[:50]}...")

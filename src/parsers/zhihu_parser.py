@@ -3,13 +3,13 @@ import json
 import random
 import urllib.parse
 from bs4 import BeautifulSoup
-from src.downloaders.base_downloader import BaseDownloader
+from src.parsers.base_parser import BaseParser
 from configs.general_constants import USER_AGENT_PC, USER_AGENT_M
 from configs.logging_config import get_logger
 
 logger = get_logger(__name__)
 
-class ZhihuDownloader(BaseDownloader):
+class ZhihuParser(BaseParser):
     def __init__(self, real_url):
         super().__init__(real_url)
         self.headers = {
@@ -84,7 +84,7 @@ class ZhihuDownloader(BaseDownloader):
                     data = resp.json()
                     
         except Exception as e:
-            logger.warning(f"ZhihuDownloader fetch API error: {e}")
+            logger.warning(f"ZhihuParser fetch API error: {e}")
             
         return data
 
@@ -106,7 +106,7 @@ class ZhihuDownloader(BaseDownloader):
                     if quality in playlist and playlist[quality].get('play_url'):
                         return playlist[quality]['play_url']
         except Exception as e:
-            logger.warning(f"ZhihuDownloader lens video error: {e}")
+            logger.warning(f"ZhihuParser lens video error: {e}")
         return None
 
     def get_real_video_url(self):
@@ -225,7 +225,7 @@ class ZhihuDownloader(BaseDownloader):
 
 if __name__ == '__main__':
     real_url = 'https://www.zhihu.com/question/441253090/answer/1703034136'
-    dl = ZhihuDownloader(real_url)
+    dl = ZhihuParser(real_url)
     print("-" * 30)
     print(f"作者信息：{dl.get_author_info()}")
     print(f"标题内容：{dl.get_title_content()[:50]}...")

@@ -19,12 +19,12 @@ from utils.web_fetcher import UrlParser
 from utils.douyin_utils.bogus_sign_utils import CommonUtils
 from configs.logging_config import get_logger
 logger = get_logger(__name__)
-from src.downloaders.base_downloader import BaseDownloader
+from src.parsers.base_parser import BaseParser
 
 warnings.filterwarnings("ignore", category=urllib3.exceptions.InsecureRequestWarning)
 
 
-class DouyinDownloader(BaseDownloader):
+class DouyinParser(BaseParser):
     def __init__(self, real_url):
         super().__init__(real_url)
         self.common_utils = CommonUtils()
@@ -52,8 +52,8 @@ class DouyinDownloader(BaseDownloader):
         """
         动态获取 ttwid，增加了类级别的缓存以减少重复请求
         """
-        if DouyinDownloader._TTWID_CACHE:
-            return DouyinDownloader._TTWID_CACHE
+        if DouyinParser._TTWID_CACHE:
+            return DouyinParser._TTWID_CACHE
 
         try:
             url = "https://ttwid.bytedance.com/ttwid/union/register/"
@@ -70,7 +70,7 @@ class DouyinDownloader(BaseDownloader):
             resp = self.session.post(url, data=json.dumps(data), timeout=5)
             ttwid = resp.cookies.get('ttwid')
             if ttwid:
-                DouyinDownloader._TTWID_CACHE = ttwid
+                DouyinParser._TTWID_CACHE = ttwid
             return ttwid
         except Exception as e:
             logger.warning(f"Failed to get dynamic ttwid: {e}")
@@ -99,19 +99,19 @@ class DouyinDownloader(BaseDownloader):
                     data = response.json()
                     # 如果返回结果中没有核心字段，说明 ttwid 可能在服务器端已失效，清空缓存重试
                     if not data.get('aweme_detail') and attempt == 0:
-                        DouyinDownloader._TTWID_CACHE = None
+                        DouyinParser._TTWID_CACHE = None
                         continue
                     return data
                 else:
                     if attempt == 0:
-                        DouyinDownloader._TTWID_CACHE = None
+                        DouyinParser._TTWID_CACHE = None
                         continue
                     logger.warning(f"获取抖音视频详情失败: Status={response.status_code}")
                     return None
             except Exception as e:
                 logger.error(f"请求抖音详情接口异常: {e}")
                 if attempt == 0:
-                    DouyinDownloader._TTWID_CACHE = None
+                    DouyinParser._TTWID_CACHE = None
                     continue
                 return None
         return None
@@ -277,7 +277,7 @@ if __name__ == '__main__':
     # real_url = 'https://www.douyin.com/video/7396822576074460467'
     real_url = 'https://www.douyin.com/note/7616399587141737704'
 
-    dl = DouyinDownloader(real_url)
+    dl = DouyinParser(real_url)
 
     print("-" * 30)
     print(f"作者信息：{dl.get_author_info()}")

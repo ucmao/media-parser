@@ -1,12 +1,12 @@
 import re
 import json
 import random
-from src.downloaders.base_downloader import BaseDownloader
+from src.parsers.base_parser import BaseParser
 from configs.general_constants import USER_AGENT_PC
 from configs.logging_config import logger
 
 
-class WeishiDownloader(BaseDownloader):
+class WeishiParser(BaseParser):
     def __init__(self, real_url):
         super().__init__(real_url)
         self.headers = {
@@ -19,7 +19,7 @@ class WeishiDownloader(BaseDownloader):
     def fetch_html_data(self):
         self.html_content = self.fetch_html_content()
         pattern = re.compile(r'window\.Vise\.initState\s*=\s*(\{.*\};)', re.DOTALL)
-        json_data = BaseDownloader.parse_html_data(self.html_content, pattern)
+        json_data = BaseParser.parse_html_data(self.html_content, pattern)
         return json_data
 
     def get_real_video_url(self):
@@ -67,7 +67,7 @@ class WeishiDownloader(BaseDownloader):
 if __name__ == '__main__':
     real_url = 'https://video.weishi.qq.com/5D41bben'
 
-    dl = WeishiDownloader(real_url)
+    dl = WeishiParser(real_url)
 
     print("-" * 30)
     print(f"作者信息：{dl.get_author_info()}")

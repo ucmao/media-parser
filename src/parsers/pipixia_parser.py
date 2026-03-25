@@ -1,8 +1,8 @@
 
-from src.downloaders.base_downloader import BaseDownloader
+from src.parsers.base_parser import BaseParser
 from utils.web_fetcher import UrlParser
 
-class PipixiaDownloader(BaseDownloader):
+class PipixiaParser(BaseParser):
     def fetch_html_data(self):
         resp = self.session.get(self.real_url, headers=self.headers, allow_redirects=False)
         location_url = resp.headers.get("location", "")

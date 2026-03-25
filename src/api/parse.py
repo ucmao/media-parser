@@ -2,7 +2,7 @@ from flask import Blueprint, request
 from configs.logging_config import logger
 from configs.general_constants import DOMAIN_TO_NAME
 from utils.web_fetcher import WebFetcher, UrlParser
-from src.downloader_factory import DownloaderFactory
+from src.parser_factory import ParserFactory
 from utils.common_utils import make_response
 
 bp = Blueprint('parse', __name__)
@@ -24,11 +24,11 @@ def parse():
             logger.error(f'This link is not supported for extraction: {real_url}')
             return make_response(400, '该链接尚未支持提取', None, False), 400
 
-        # 2. 获取下载器
-        downloader = DownloaderFactory.create_downloader(platform, real_url)
+        # 2. 获取解析器
+        parser = ParserFactory.create_parser(platform, real_url)
         
         # 3. 核心抓取逻辑
-        content_data = _fetch_with_retry(downloader, platform)
+        content_data = _fetch_with_retry(parser, platform)
 
         if not content_data['video_url'] and not content_data['image_list']:
             logger.error(f"Failed to retrieve media content for {platform}")
@@ -64,18 +64,18 @@ def parse():
         return make_response(500, '功能太火爆啦，请稍后再试', None, False), 500
 
 
-def _fetch_with_retry(downloader, platform):
+def _fetch_with_retry(parser, platform):
     """提取公共的抓取逻辑，小红书特殊处理"""
     max_attempts = 3 if platform == '小红书' else 1
     
     for i in range(max_attempts):
         res = {
-            'title': downloader.get_title_content(),
-            'video_url': downloader.get_real_video_url(),
-            'cover_url': downloader.get_cover_photo_url(),
-            'author': safe_execute(downloader.get_author_info),
-            'image_list': safe_execute(downloader.get_image_list, default=[]),
-            'audio_url': safe_execute(downloader.get_audio_url)
+            'title': parser.get_title_content(),
+            'video_url': parser.get_real_video_url(),
+            'cover_url': parser.get_cover_photo_url(),
+            'author': safe_execute(parser.get_author_info),
+            'image_list': safe_execute(parser.get_image_list, default=[]),
+            'audio_url': safe_execute(parser.get_audio_url)
         }
         if res['video_url'] or res['image_list']:
             return res

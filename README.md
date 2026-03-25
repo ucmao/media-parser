@@ -43,7 +43,7 @@
 
 ## 💎 核心解析逻辑
 
-* **多平台智能适配**：内置 `DownloaderFactory` 工厂模式，自动识别链接来源并分配对应解析器。
+* **多平台智能适配**：内置 `ParserFactory` 工厂模式，自动识别链接来源并分配对应解析器。
 * **深度无水印提取**：封装 `WebFetcher` 高效抓取逻辑，精准绕过平台限制获取视频真实地址。
 * **纯粹解析 API**：极简版只保留了最核心的 JSON 解析服务，无数据库依赖，无鉴权门槛，非常适合开发者快速提取原型直接使用！
 
@@ -86,9 +86,6 @@ cd media-parser
 ```bash
 # 构建并后台启动容器
 docker-compose up -d --build
-
-# 查看运行日志
-docker-compose logs -f
 ```
 
 容器默认运行在 `8051` 端口。启动成功后，你可以直接在浏览器中打开: 
@@ -131,8 +128,8 @@ media-parser/
 ├── configs/              # 核心配置与业务常量
 ├── src/
 │   ├── api/             # 路由层：API 接口处理仅保留核心 parse.py
-│   ├── downloaders/     # 核心：各平台视频解析实现
-│   └── downloader_factory.py # 工厂模式实现
+│   ├── parsers/     # 核心：各平台视频解析实现
+│   └── parser_factory.py # 工厂模式实现
 ├── static/              # 静态资源保存位置
 ├── utils/               # 通用工具函数 (网络请求等)
 └── tests/               # 自动化测试用例

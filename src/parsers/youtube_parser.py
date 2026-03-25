@@ -2,12 +2,12 @@ import logging
 import re
 import json
 import urllib.parse
-from src.downloaders.base_downloader import BaseDownloader
+from src.parsers.base_parser import BaseParser
 from configs.logging_config import get_logger
 
 logger = get_logger(__name__)
 
-class YoutubeDownloader(BaseDownloader):
+class YoutubeParser(BaseParser):
     def __init__(self, real_url):
         super().__init__(real_url)
         self.headers = {
@@ -158,7 +158,7 @@ class YoutubeDownloader(BaseDownloader):
 if __name__ == '__main__':
     # Try a video with signatureCipher (e.g. music video)
     real_url = 'https://www.youtube.com/watch?v=kffacxfA7G4' # Justin Bieber - Baby
-    dl = YoutubeDownloader(real_url)
+    dl = YoutubeParser(real_url)
     print("-" * 30)
     print(f"作者信息：{dl.get_author_info()}")
     print(f"标题内容：{dl.get_title_content()[:50]}...")

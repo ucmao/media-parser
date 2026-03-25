@@ -1,9 +1,9 @@
 
-from src.downloaders.base_downloader import BaseDownloader
+from src.parsers.base_parser import BaseParser
 import re
 from bs4 import BeautifulSoup
 
-class LvzhouDownloader(BaseDownloader):
+class LvzhouParser(BaseParser):
     def fetch_html_data(self):
         resp = self.session.get(self.real_url, headers=self.headers)
         return resp.text

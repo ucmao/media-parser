@@ -2,9 +2,9 @@
 import re
 import base64
 from bs4 import BeautifulSoup
-from src.downloaders.base_downloader import BaseDownloader
+from src.parsers.base_parser import BaseParser
 
-class MeipaiDownloader(BaseDownloader):
+class MeipaiParser(BaseParser):
     def fetch_html_data(self):
         resp = self.session.get(self.real_url, headers=self.headers)
         return resp.text

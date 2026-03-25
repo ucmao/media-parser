@@ -1,13 +1,13 @@
 import re
 import json
 import random
-from src.downloaders.base_downloader import BaseDownloader
+from src.parsers.base_parser import BaseParser
 from configs.general_constants import USER_AGENT_PC, USER_AGENT_M
 from configs.logging_config import get_logger
 
 logger = get_logger(__name__)
 
-class TiktokDownloader(BaseDownloader):
+class TiktokParser(BaseParser):
     def __init__(self, real_url):
         super().__init__(real_url)
         self.headers = {
@@ -37,7 +37,7 @@ class TiktokDownloader(BaseDownloader):
 
     def _fetch_post_data(self):
         if not self.video_id:
-            logger.error("TiktokDownloader: Could not extract video ID.")
+            logger.error("TiktokParser: Could not extract video ID.")
             return {}
             
         # Using tikwm API as primary, since TikTok's own web download addresses
@@ -141,7 +141,7 @@ class TiktokDownloader(BaseDownloader):
 
 if __name__ == '__main__':
     real_url = 'https://www.tiktok.com/@tiktok/video/7106594312292453675'
-    dl = TiktokDownloader(real_url)
+    dl = TiktokParser(real_url)
     print("-" * 30)
     print(f"作者信息：{dl.get_author_info()}")
     print(f"标题内容：{dl.get_title_content()[:30]}...")
