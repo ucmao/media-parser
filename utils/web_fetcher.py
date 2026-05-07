@@ -1,7 +1,7 @@
 import re
 import requests
 import random
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urljoin, urlparse, parse_qs
 from configs.logging_config import logger
 from configs.general_constants import USER_AGENT_PC, DOMAIN_TO_NAME
 
@@ -23,22 +23,19 @@ class WebFetcher:
                 # 获取重定向后的URL
                 redirect_url = resp.headers.get("location")
                 if redirect_url:
-                    if DOMAIN_TO_NAME.get(UrlParser.get_domain(redirect_url)):
+                    redirect_url = urljoin(current_url, redirect_url)
+                    current_url = redirect_url
+                    if DOMAIN_TO_NAME.get(UrlParser.get_domain(current_url)):
                         break
-                    else:
-                        current_url = redirect_url
                 else:
                     break
             else:
                 return None
-            if redirect_url:
-                return UrlParser.extract_video_address(redirect_url)
-            else:
-                if not DOMAIN_TO_NAME.get(UrlParser.get_domain(url)):
-                    return None
-                else:
-                    format_real_url = UrlParser.extract_video_address(url)
-                    return format_real_url
+
+            if not DOMAIN_TO_NAME.get(UrlParser.get_domain(current_url)):
+                return None
+
+            return UrlParser.extract_video_address(current_url)
         except requests.RequestException as e:
             logger.error(f"Failed to get the page: {e}")
             return None

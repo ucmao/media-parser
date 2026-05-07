@@ -66,9 +66,7 @@ class WeishiParser(BaseParser):
 
 if __name__ == '__main__':
     real_url = 'https://video.weishi.qq.com/5D41bben'
-
     dl = WeishiParser(real_url)
-
     print("-" * 30)
     print(f"作者信息：{dl.get_author_info()}")
     print(f"标题内容：{dl.get_title_content()[:30]}...")  # 仅打印前30字

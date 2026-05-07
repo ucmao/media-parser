@@ -293,9 +293,7 @@ class BilibiliParser(BaseParser):
 
 if __name__ == '__main__':
     real_url = 'https://www.bilibili.com/video/BV1df421v7xm/?share_source=copy_web&vd_source=5ac2e55972f5e2fd96b63d01ee42ff01'
-
     dl = BilibiliParser(real_url)
-
     print("-" * 30)
     print(f"作者信息：{dl.get_author_info()}")
     print(f"标题内容：{dl.get_title_content()[:30]}...")

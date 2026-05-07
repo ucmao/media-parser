@@ -32,21 +32,115 @@ class KuaishouParser(BaseParser):
 
     def _extract_json_object(self, text, start_index):
         """稳健提取 JSON 对象：通过括号匹配解决额外数据报错"""
-        if start_index == -1: return None
+        if start_index == -1 or not text:
+            return None
+
         bracket_count = 0
-        found_start = False
+        in_string = False
+        escape_next = False
+        quote_char = ""
+
         for i in range(start_index, len(text)):
-            if text[i] == '{':
+            char = text[i]
+            if in_string:
+                if escape_next:
+                    escape_next = False
+                elif char == "\\":
+                    escape_next = True
+                elif char == quote_char:
+                    in_string = False
+                continue
+
+            if char in ("'", '"'):
+                in_string = True
+                quote_char = char
+            elif char == '{':
                 bracket_count += 1
-                found_start = True
-            elif text[i] == '}':
+            elif char == '}':
                 bracket_count -= 1
-                if found_start and bracket_count == 0:
+                if bracket_count == 0:
                     return text[start_index:i + 1]
         return None
 
+    def _find_nested_dict(self, data, required_keys):
+        """在快手扁平状态里查找同时具备指定字段的节点。"""
+        stack = [data]
+        while stack:
+            current = stack.pop()
+            if isinstance(current, dict):
+                if all(key in current for key in required_keys):
+                    return current
+                stack.extend(
+                    value for value in current.values()
+                    if isinstance(value, (dict, list))
+                )
+            elif isinstance(current, list):
+                stack.extend(
+                    item for item in current
+                    if isinstance(item, (dict, list))
+                )
+        return {}
+
+    def _get_atlas_payload(self):
+        if self.page_type != "ATLAS":
+            return {}
+        return self._find_nested_dict(self.structured_data, ("atlas", "photo"))
+
+    @staticmethod
+    def _normalize_url(url):
+        if not url:
+            return None
+        url = str(url).replace("\\u002F", "/")
+        if url.startswith("//"):
+            return f"https:{url}"
+        return url
+
+    def _first_url(self, candidates):
+        if isinstance(candidates, str):
+            return self._normalize_url(candidates)
+        if not isinstance(candidates, list):
+            return None
+
+        for item in candidates:
+            if isinstance(item, str):
+                return self._normalize_url(item)
+            if isinstance(item, dict) and item.get("url"):
+                return self._normalize_url(item.get("url"))
+        return None
+
+    @staticmethod
+    def _first_cdn(atlas):
+        cdn_list = atlas.get("cdn") or []
+        if not cdn_list:
+            cdn_list = [
+                item.get("cdn") for item in atlas.get("cdnList", [])
+                if isinstance(item, dict) and item.get("cdn")
+            ]
+        if isinstance(cdn_list, str):
+            return cdn_list
+        return cdn_list[0] if cdn_list else None
+
+    def _build_resource_url(self, cdn, path):
+        path = self._normalize_url(path)
+        if not path:
+            return None
+        if path.startswith("http://") or path.startswith("https://"):
+            return path
+        if path.startswith("//"):
+            return f"https:{path}"
+        if not cdn:
+            return path
+
+        cdn = self._normalize_url(cdn).rstrip("/")
+        if not cdn.startswith("http://") and not cdn.startswith("https://"):
+            cdn = f"https://{cdn}"
+        return f"{cdn}/{path.lstrip('/')}"
+
     def _identify_and_parse_data(self):
         """识别快手不同的数据载体（Apollo 或 InitState）"""
+        if not self.html_content:
+            return "UNKNOWN", {}
+
         # 1. 视频详情页 (Apollo)
         if "window.__APOLLO_STATE__" in self.html_content:
             marker = "window.__APOLLO_STATE__"
@@ -56,8 +150,8 @@ class KuaishouParser(BaseParser):
             if json_str:
                 try:
                     return "VIDEO", json.loads(json_str)
-                except:
-                    pass
+                except json.JSONDecodeError as e:
+                    logger.warning(f"Failed to decode Kuaishou Apollo data: {e}")
 
         # 2. 某些图文或移动端适配页 (INIT_STATE)
         if "window.INIT_STATE" in self.html_content:
@@ -68,8 +162,8 @@ class KuaishouParser(BaseParser):
             if json_str:
                 try:
                     return "ATLAS", json.loads(json_str, strict=False)
-                except:
-                    pass
+                except json.JSONDecodeError as e:
+                    logger.warning(f"Failed to decode Kuaishou INIT_STATE data: {e}")
 
         return "UNKNOWN", {}
 
@@ -93,16 +187,31 @@ class KuaishouParser(BaseParser):
             photo_key = f"VisionVideoDetailPhoto:{self.video_id}"
             if self.page_type == "VIDEO":
                 return self.client.get(photo_key, {}).get('caption', '')
-            # 图文页兜底逻辑...
-        except:
+            if self.page_type == "ATLAS":
+                payload = self._get_atlas_payload()
+                return payload.get("photo", {}).get("caption", "")
+        except Exception as e:
+            logger.warning(f"Failed to parse title content: {e}")
             pass
         return ""
 
     def get_cover_photo_url(self):
         try:
             photo_key = f"VisionVideoDetailPhoto:{self.video_id}"
-            return self.client.get(photo_key, {}).get('coverUrl', '')
-        except:
+            if self.page_type == "VIDEO":
+                return self.client.get(photo_key, {}).get('coverUrl', '')
+
+            if self.page_type == "ATLAS":
+                payload = self._get_atlas_payload()
+                photo = payload.get("photo", {})
+                cover_url = (
+                    self._first_url(photo.get("coverUrls"))
+                    or self._first_url(photo.get("webpCoverUrls"))
+                    or self._first_url(self.get_image_list())
+                )
+                return cover_url or ""
+        except Exception as e:
+            logger.warning(f"Failed to parse cover URL: {e}")
             pass
         return ""
 
@@ -132,6 +241,17 @@ class KuaishouParser(BaseParser):
                         "avatar": author_detail.get('headerUrl')
                     }
             elif self.page_type == "ATLAS":
+                payload = self._get_atlas_payload()
+                photo = payload.get("photo", {})
+                if photo:
+                    author_id = photo.get("kwaiId") or photo.get("userEid") or photo.get("userId")
+                    return {
+                        "nickname": photo.get("userName", ""),
+                        "author_id": str(author_id) if author_id else "",
+                        "unique_id": str(author_id) if author_id else "",
+                        "avatar": self._first_url(photo.get("headUrls")) or photo.get("headUrl", "")
+                    }
+
                 # 图文页通常直接在某个 Profile 节点下
                 for val in self.structured_data.values():
                     if isinstance(val, dict) and "userProfile" in val:
@@ -151,6 +271,26 @@ class KuaishouParser(BaseParser):
         快手网页端大部分不直接暴露独立的音频源 URL，因此采用通用提取方案：
         获取无水印视频 URL -> 解析此视频 -> 使用 FFmpeg 分离提取纯音频（不重编码） -> 存放在服务器 -> 返回本地链接
         """
+        if self.page_type == "ATLAS":
+            try:
+                payload = self._get_atlas_payload()
+                photo_music = payload.get("photo", {}).get("music", {})
+                audio_url = (
+                    self._first_url(photo_music.get("audioUrls"))
+                    or self._normalize_url(photo_music.get("url"))
+                )
+                if audio_url:
+                    return audio_url
+
+                atlas = payload.get("atlas", {})
+                return self._build_resource_url(
+                    self._first_cdn({"cdnList": atlas.get("musicCdnList", [])}),
+                    atlas.get("music")
+                )
+            except Exception as e:
+                logger.warning(f"Failed to parse atlas audio URL: {e}")
+                return None
+
         video_url = self.get_real_video_url()
         if not video_url:
              return None
@@ -187,16 +327,47 @@ class KuaishouParser(BaseParser):
              if os.path.exists(video_path):
                  os.remove(video_path)
 
+    def get_image_list(self):
+        try:
+            if self.page_type != "ATLAS":
+                return []
+
+            payload = self._get_atlas_payload()
+            atlas = payload.get("atlas") or {}
+            if not atlas.get("list"):
+                atlas = payload.get("photo", {}).get("ext_params", {}).get("atlas", {})
+            image_paths = atlas.get("list") or []
+            cdn = self._first_cdn(atlas)
+
+            image_urls = []
+            for image_path in image_paths:
+                image_url = self._build_resource_url(cdn, image_path)
+                if image_url:
+                    image_urls.append(image_url)
+
+            if image_urls:
+                return image_urls
+
+            return [
+                url for url in (
+                    self._first_url(payload.get("photo", {}).get("coverUrls")),
+                    self._first_url(payload.get("photo", {}).get("webpCoverUrls"))
+                )
+                if url
+            ]
+        except Exception as e:
+            logger.warning(f"Failed to parse image list: {e}")
+            return []
+
 
 if __name__ == '__main__':
-    real_url = 'https://www.kuaishou.com/short-video/3xwyjn4ipdhss5c?authorId=3xasa85baf6ipp4&streamSource=find&area=homexxbrilliant'
-
+    real_url = 'https://v.m.chenzhongtech.com/fw/photo/3xbr5pi8hxi4e6s'
     dl = KuaishouParser(real_url)
-
     print("-" * 30)
     print(f"作者信息：{dl.get_author_info()}")
     print(f"标题内容：{dl.get_title_content()[:30]}...")  # 仅打印前30字
     print(f"封面图片：{dl.get_cover_photo_url()}")
+    print(f"图片列表：{dl.get_image_list()}")
     print(f"视频链接：{dl.get_real_video_url()}")
     print(f"音频链接：{dl.get_audio_url()}")
     print("-" * 30)

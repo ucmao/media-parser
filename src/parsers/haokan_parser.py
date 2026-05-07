@@ -75,9 +75,7 @@ class HaokanParser(BaseParser):
 
 if __name__ == '__main__':
     real_url = 'https://haokan.baidu.com/v?vid=17831460188721240800&pd=pcshare&hkRelaunch=p1%3Dpc%26p2%3Dvideoland%26p3%3Dshare_input'
-
     dl = HaokanParser(real_url)
-
     print("-" * 30)
     print(f"作者信息：{dl.get_author_info()}")
     print(f"标题内容：{dl.get_title_content()[:30]}...")  # 仅打印前30字

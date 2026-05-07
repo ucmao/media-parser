@@ -274,11 +274,8 @@ class DouyinParser(BaseParser):
 
 
 if __name__ == '__main__':
-    # real_url = 'https://www.douyin.com/video/7396822576074460467'
     real_url = 'https://www.douyin.com/note/7616399587141737704'
-
     dl = DouyinParser(real_url)
-
     print("-" * 30)
     print(f"作者信息：{dl.get_author_info()}")
     print(f"标题内容：{dl.get_title_content()[:30]}...")  # 仅打印前30字
