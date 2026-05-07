@@ -105,9 +105,7 @@ class PipigaoxiaoParser(BaseParser):
 
 if __name__ == '__main__':
     real_url = 'https://h5.pipigx.com/pp/post/815491325984?pid=815491325984&type=post'
-
     dl = PipigaoxiaoParser(real_url)
-
     print("-" * 30)
     print(f"作者信息：{dl.get_author_info()}")
     print(f"标题内容：{dl.get_title_content()[:30]}...")  # 仅打印前30字

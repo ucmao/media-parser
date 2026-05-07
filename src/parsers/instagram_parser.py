@@ -93,13 +93,12 @@ class InstagramParser(BaseParser):
         }
 
 if __name__ == '__main__':
-    # Test will likely fail without cookies on local, but logic is sound
-    real_url = 'https://www.instagram.com/p/C-UqV3YpU3Z/?hl=en'
+    real_url = 'https://www.instagram.com/reel/DYCZm8JjxzO/'
     dl = InstagramParser(real_url)
     print("-" * 30)
     print(f"作者信息：{dl.get_author_info()}")
     print(f"标题内容：{dl.get_title_content()[:50]}...")
     print(f"封面图片：{dl.get_cover_photo_url()}")
     print(f"视频链接：{dl.get_real_video_url()}")
-    print(f"图集数：{len(dl.get_image_list())}")
+    print(f"图片列表：{dl.get_image_list()}")
     print("-" * 30)

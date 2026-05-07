@@ -151,7 +151,6 @@ class XiguaParser(BaseParser):
 
 
 if __name__ == '__main__':
-    # Test
     real_url = 'https://www.ixigua.com/7123456789012345678'
     dl = XiguaParser(real_url)
     print("-" * 30)

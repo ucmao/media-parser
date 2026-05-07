@@ -156,15 +156,12 @@ class YoutubeParser(BaseParser):
         }
 
 if __name__ == '__main__':
-    # Try a video with signatureCipher (e.g. music video)
-    real_url = 'https://www.youtube.com/watch?v=kffacxfA7G4' # Justin Bieber - Baby
+    real_url = 'https://www.youtube.com/watch?v=kffacxfA7G4'
     dl = YoutubeParser(real_url)
     print("-" * 30)
     print(f"作者信息：{dl.get_author_info()}")
     print(f"标题内容：{dl.get_title_content()[:50]}...")
     print(f"封面图片：{dl.get_cover_photo_url()}")
-    url = dl.get_real_video_url()
-    print(f"视频链接长度：{len(url) if url else 'None'} ")
-    audio_url = dl.get_audio_url()
-    print(f"音频链接长度：{len(audio_url) if audio_url else 'None'} ")
+    print(f"视频链接：{dl.get_real_video_url()}")
+    print(f"音频链接：{dl.get_audio_url()} ")
     print("-" * 30)

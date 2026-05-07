@@ -86,11 +86,8 @@ class XiaohongshuParser(BaseParser):
 
 
 if __name__ == '__main__':
-    # 测试链接
     test_url = 'https://www.xiaohongshu.com/discovery/item/699ec585000000002602eb4c?xsec_token=ABxyNDjNzyo7x607F-O1PLIKtfYSPsQPi8ZscMk3c8JCI='
-
     dl = XiaohongshuParser(test_url)
-
     print("-" * 30)
     print(f"作者信息：{dl.get_author_info()}")
     print(f"标题内容：{dl.get_title_content()[:30]}...")  # 仅打印前30字
