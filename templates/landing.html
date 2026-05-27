@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>优创猫去水印 - 高效短视频解析工具</title>
+    <title>媒体解析去水印 - 高效短视频解析工具</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -82,7 +82,7 @@
                     <span class="text-indigo-600">赋能短视频创作。</span>
                 </h1>
                 <p class="text-xl text-slate-500 mb-10 leading-relaxed max-w-xl">
-                    优创猫是一款专为创作者打造的自动化视频解析工具。一键提取多平台无水印高清视频素材，让创作更简单，让灵感随手可得。
+                    我们是一款专为创作者打造的自动化视频解析工具。一键提取多平台无水印高清视频素材，让创作更简单，让灵感随手可得。
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4">
                     <button onclick="scrollToQr()"
@@ -131,7 +131,8 @@
         <div class="max-w-4xl mx-auto">
             <div class="text-center mb-12">
                 <h2 class="text-3xl font-black text-slate-800 mb-4">在线体验去水印</h2>
-                <p class="text-slate-500">支持抖音、快手、小红书、B站、微博、知乎、西瓜视频、TikTok、YouTube、AcFun、Instagram、Twitter、微视、好看视频、皮皮搞笑、梨视频等主流平台视频或图文链接</p>
+                <p class="text-slate-500">支持抖音、快手、小红书、B站、微博、知乎、西瓜视频、TikTok、YouTube、AcFun、微视、好看视频、皮皮搞笑、梨视频等主流平台视频或图文链接
+                </p>
             </div>
 
             <div
@@ -208,8 +209,10 @@
 
                             <!-- Audio Player Container -->
                             <div id="audioContainer" class="hidden mb-6 w-full">
-                                <h4 class="text-sm font-bold text-slate-700 mb-2"><i class="fas fa-music mr-2 text-indigo-500"></i>音频分享</h4>
-                                <audio id="resultAudio" controls class="w-full h-12 rounded-lg bg-slate-50 outline-none"></audio>
+                                <h4 class="text-sm font-bold text-slate-700 mb-2"><i
+                                        class="fas fa-music mr-2 text-indigo-500"></i>音频分享</h4>
+                                <audio id="resultAudio" controls
+                                    class="w-full h-12 rounded-lg bg-slate-50 outline-none"></audio>
                             </div>
 
                             <div class="mt-auto grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -248,7 +251,7 @@
     <section class="py-20 bg-white border-y border-slate-100 px-6">
         <div class="max-w-7xl mx-auto">
             <div class="text-center mb-16">
-                <h2 class="text-4xl font-black text-slate-800 mb-4">为什么选择优创猫？</h2>
+                <h2 class="text-4xl font-black text-slate-800 mb-4">为什么选择我们？</h2>
                 <p class="text-slate-400 max-w-2xl mx-auto">我们不仅仅是一个解析工具，更是您创作路上的得力助手。</p>
             </div>
             <div class="grid md:grid-cols-3 gap-8">
@@ -268,7 +271,8 @@
                         <i class="fas fa-layer-group"></i>
                     </div>
                     <h3 class="text-xl font-bold text-slate-800 mb-3">多平台支持</h3>
-                    <p class="text-slate-500 leading-relaxed">全面兼容抖音、快手、小红书、B站、微博、知乎、西瓜视频、TikTok、YouTube、AcFun、Instagram、Twitter、微视、好看视频、皮皮搞笑、梨视频等主流短视频平台，覆盖全网素材。</p>
+                    <p class="text-slate-500 leading-relaxed">
+                        全面兼容抖音、快手、小红书、B站、微博、知乎、西瓜视频、TikTok、YouTube、AcFun、微视、好看视频、皮皮搞笑、梨视频等主流短视频平台，覆盖全网素材。</p>
                 </div>
                 <div
                     class="p-8 bg-slate-50 rounded-3xl border border-slate-100 hover:border-indigo-200 transition-all group">
@@ -295,7 +299,7 @@
                     class="inline-block bg-white p-6 rounded-[2.5rem] shadow-2xl mb-8 transform hover:scale-105 transition-transform">
                     <img src="{{ url_for('static', filename='images/qr_code.jpg') }}" class="w-56 h-56">
                 </div>
-                <div class="text-indigo-200 font-medium">优创猫解析 · 赋能每一位创作者</div>
+                <div class="text-indigo-200 font-medium">媒体解析去水印 · 赋能每一位创作者</div>
             </div>
             <!-- Circles -->
             <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
@@ -311,7 +315,7 @@
                 <span class="text-slate-800 font-bold">Media Parse</span>
             </div>
             <div class="text-slate-400 text-sm font-medium">
-                © 2026 优创猫. All rights reserved. 专为创作者而生。
+                © 2026 媒体解析去水印. All rights reserved. 专为创作者而生。
             </div>
             <div class="flex space-x-6">
                 <a href="#" class="text-slate-400 hover:text-indigo-600 transition-colors"><i
@@ -440,7 +444,7 @@
 
                             const imgContainer = document.createElement('div');
                             imgContainer.className = 'w-full h-full shrink-0 flex-none snap-center relative';
-                            
+
                             let innerHtml = `<a href="${imgUrl}" target="_blank" class="block w-full h-full relative group">
                                 <img src="${imgUrl}" class="w-full h-full object-cover">
                                 <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white backdrop-blur-sm space-y-2">

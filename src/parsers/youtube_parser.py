@@ -1,7 +1,6 @@
 import logging
 import re
 import json
-import urllib.parse
 from src.parsers.base_parser import BaseParser
 from configs.logging_config import get_logger
 
@@ -41,36 +40,10 @@ class YoutubeParser(BaseParser):
                 url = fmt.get('url')
                 if url:
                     return url
-                    
-            # If no direct URL, it might have a signature cipher
-            for fmt in formats:
-                 s_cipher = fmt.get('signatureCipher')
-                 if s_cipher:
-                     # fallback to yt-dlp if raw extraction fails or needs decipher
-                     return self._fallback_ytdlp_url()
-                     
+
         except Exception as e:
             logger.warning(f"Youtube URL extraction error: {e}")
-            
-        return self._fallback_ytdlp_url()
-        
-    def _fallback_ytdlp_url(self):
-        try:
-            import yt_dlp
-            # We want to extract specifically format with both audio and video, up to 1080p
-            ydl_opts = {
-                'quiet': True,
-                'skip_download': True,
-                'extract_flat': False,
-                'nocheckcertificate': True,
-                'format': 'best[ext=mp4]',
-                'extractor_args': {'youtube': {'player_client': ['web_creator', 'web']}},
-            }
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info(self.real_url, download=False)
-                return info.get('url')
-        except Exception as e:
-             logger.warning(f"yt-dlp fallback failed: {e}")
+
         return None
 
     def get_audio_url(self):
@@ -85,35 +58,10 @@ class YoutubeParser(BaseParser):
                     url = fmt.get('url')
                     if url:
                         return url
-                        
-            # If no direct URL, it might have a signature cipher
-            for fmt in adaptiveFormats:
-                 if 'audio/' in fmt.get('mimeType', ''):
-                     s_cipher = fmt.get('signatureCipher')
-                     if s_cipher:
-                         return self._fallback_ytdlp_audio_url()
-                         
+
         except Exception as e:
             logger.warning(f"Youtube audio URL extraction error: {e}")
-            
-        return self._fallback_ytdlp_audio_url()
 
-    def _fallback_ytdlp_audio_url(self):
-        try:
-            import yt_dlp
-            ydl_opts = {
-                'quiet': True,
-                'skip_download': True,
-                'extract_flat': False,
-                'nocheckcertificate': True,
-                'format': 'bestaudio[ext=m4a]/bestaudio',
-                'extractor_args': {'youtube': {'player_client': ['web_creator', 'web']}},
-            }
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info(self.real_url, download=False)
-                return info.get('url')
-        except Exception as e:
-             logger.warning(f"yt-dlp audio fallback failed: {e}")
         return None
 
     def get_title_content(self):
