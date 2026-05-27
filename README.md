@@ -1,5 +1,5 @@
 <div align="center">
-<img src="static/images/logo.png" width="240" height="auto" alt="媒体解析去水印 Logo">
+<img src="static/images/logo.png" width="360" height="auto" alt="媒体解析去水印 Logo">
 
 **基于 Python 的多平台媒体原生本地解析系统（Starter 极简版）**
 
