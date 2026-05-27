@@ -1,47 +1,38 @@
 <div align="center">
-<img src="static/images/logo.png" width="120" height="auto" alt="Media Parser Logo">
+<img src="static/images/logo.png" width="240" height="auto" alt="媒体解析去水印 Logo">
 
-# 🚀 媒体解析去水印(media-parser)
-
-**基于 Python 的高性能多平台视频解析与自动化管理系统（Starter 极简版）**
+**基于 Python 的多平台媒体原生本地解析系统（Starter 极简版）**
 
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Python Version](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/) [![Support](https://img.shields.io/badge/support-8+%20Platforms-brightgreen.svg)](#💾-支持的平台矩阵)
 
 <p align="center">
-<a href="#-立即体验">在线体验</a> •
 <a href="#-核心解析逻辑">解析逻辑</a> •
 <a href="#-快速开始">部署指南</a> •
 <a href="#-联系作者">联系作者</a>
 </p>
 
-媒体解析去水印是一款专为短视频创作者打造的**自动化解析工具**。
+媒体解析去水印是一款专为短视频创作者打造的**原生本地解析工具**。
 
-通过“智能识别 -> 绕过水印 -> 提取地址 -> 快捷下载”的闭环，助你高效获取无水印素材。
+通过“智能识别 -> 本地抓取 -> 提取地址 -> 快捷下载”的闭环，助你高效获取无水印素材。
+
+**不依赖第三方解析服务，不中转用户链接，核心解析逻辑全部在本地代码中完成。**
 
 </div>
-
----
-
-## 📱 立即体验
-
-为了方便快速了解系统功能，我们提供了全套解决方案：
-
-* **🌐 项目门户**: [https://parse.ucmao.cn/](https://parse.ucmao.cn/) 
-* **🧩 小程序端**: 扫描下方太阳码进行体验
-
-<p align="center">
-<img src="static/images/qr_code.jpg" width="180" alt="Media Parser太阳码">
-</p>
-
-> **协作提示**：本仓库提供核心解析逻辑与 RESTful API。如需构建完整应用，请配合前端仓库使用： [https://github.com/ucmao/media-parser-mp](https://github.com/ucmao/media-parser-mp)
 
 ---
 
 ## 💎 核心解析逻辑
 
 * **多平台智能适配**：内置 `ParserFactory` 工厂模式，自动识别链接来源并分配对应解析器。
-* **深度无水印提取**：封装 `WebFetcher` 高效抓取逻辑，精准绕过平台限制获取视频真实地址。
-* **纯粹解析 API**：极简版只保留了最核心的 JSON 解析服务，无数据库依赖，无鉴权门槛，非常适合开发者快速提取原型直接使用！
+* **原生本地解析**：解析逻辑直接内置在项目代码中，由各平台 Parser 本地发起请求并提取真实媒体地址。
+* **不依赖第三方解析服务**：不接入外部“代解析 API”或 SaaS 中转服务，部署后即可独立运行。
+* **纯粹解析 API**：极简版只保留最核心的 JSON 解析服务，无数据库依赖，无鉴权门槛，适合开发者快速提取原型直接使用。
+
+## ✨ 项目特点
+
+* **本地可控**：解析链路和请求逻辑都在仓库内，方便审计、调试和二次开发。
+* **部署简单**：安装 Python 依赖后即可运行，不需要额外申请第三方解析平台账号或密钥。
+* **便于扩展**：每个平台对应独立 Parser，新增平台时可沿用现有工厂模式和统一返回结构。
 
 ---
 
@@ -60,12 +51,13 @@
 | **皮皮虾** | ✓ | ✓ | ✓ | ✓ | | | | **全民小视频**     | ✓ | ✓ | ✓ | ✓ | | | |
 | **全民K歌** | | ✓ | ✓ | ✓ | | | | **六间房**       | | ✓ | ✓ | ✓ | | | |
 | **新片场** | | ✓ | ✓ | ✓ | | | | **最右**        | ✓ | ✓ | | ✓ | | | |
-| **TikTok** | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | | **Instagram** | ✓ | ✓ | ✓ | ✓ | ✓ | | |
-| **YouTube** | ✓ | ✓ | ✓ | ✓ | | ✓ | | **X(Twitter)**       | ✓ | ✓ | ✓ | ✓ | ✓ | | |
+| **TikTok** | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | | **YouTube** | ✓ | ✓ | ✓ | ✓ | | ✓ | |
 
 ---
 
 ## 🚀 快速开始
+
+> 当前版本主打“原生本地解析”。只要目标平台仍可通过现有脚本抓取，就不需要额外依赖第三方解析服务。
 
 ### 1. 获取源码
 
@@ -192,9 +184,9 @@ media-parser/
 
 如果您在安装、使用过程中遇到问题，或有定制需求，请通过以下方式联系：
 
-* **微信 (WeChat)**：csdnxr
+* **微信**：csdnxr
 * **QQ**：294323976
-* **邮箱 (Email)**：leoucmao@gmail.com
+* **邮箱**：leoucmao@gmail.com
 * **Bug反馈**：[GitHub Issues](https://github.com/ucmao/media-parser/issues)
 
 ---
@@ -203,7 +195,5 @@ media-parser/
 
 1. 本项目基于 **[MIT LICENSE](LICENSE)** 协议开源。
 2. **免责声明**：本项目仅用于学习交流和技术研究。严禁用于任何非法目的。因滥用本项目造成的后果，由使用者自行承担。
-
-**Media Parser** - 高效解析，赋能创作。
 
 ---
