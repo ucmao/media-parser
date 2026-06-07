@@ -1,5 +1,6 @@
 import json
 import random
+import requests
 from utils.web_fetcher import UrlParser
 from src.parsers.base_parser import BaseParser
 from configs.general_constants import USER_AGENT_PC
@@ -20,15 +21,124 @@ class KuaishouParser(BaseParser):
             'cookie': f'kpf=PC_WEB; clientid=3; did=web_bfbcdb2f5b3dc663a745deabafcf61e6; kwpsecproductname=kuaishou-vision; didv=1773330035000; kwpsecproductname=kuaishou-vision; userId=446442483; kuaishou.server.webday7_st=ChprdWFpc2hvdS5zZXJ2ZXIud2ViZGF5Ny5zdBKwAeuBbGjVcz39sj4G7d7P54r9C1etC_QftYb2I1XMg01WSbw9NefL7E6EmwkYxHf70B9BM3Oyk20kFv1Y0xnRcfHtGNHYUHkmKguP6cvFeACofr2zPAZYRchRkndIBk5qExOlkr4FSoGpY-WqXeibapHNEbfZTLZl_QkQA4aGWotSZpBMv6wR3RxZWiMv60xc-CIndGICJbbRAaRGZNxz7QBj2Mr-SeU2o0bVi7esnD1AGhKquV16S9dezebl5ZuYo_R_JKgiIAidQF8n526Yos_GTgm3KrGknnEbkK-NMiNvTw3YBehZKAUwAQ; kuaishou.server.webday7_ph=f3720606882f1d7a76ab1ab52a489c4d44a1; bUserId=1000583835422; ktrace-context=1|MS44Nzg0NzI0NTc4Nzk2ODY5Ljg3MTE4OTQ4LjE3NzM1NzExNTEyMjQuNDQ0OTc1MTI=|MS44Nzg0NzI0NTc4Nzk2ODY5LjUxNTU3MjM4LjE3NzM1NzExNTEyMjQuNDQ0OTc1MTM=|0|webservice-user-growth-node|webservice|true|src-Js; kwssectoken=BIjmefxxiTpXOdz9/RQ6Gl7cR5/0J7xaPzJ18udJgBSLTrJy4O7LhrYtbeeHGW+AOJrI6P8LQnioDWSuuQxV8Q==; kwscode=75d440673de879734b8700f363119968b4fabb4eb0369b1607e206d8e8c1ac9d; kpn=KUAISHOU_VISION; kwfv1=PnGU+9+Y8008S+nH0U+0mjPf8fP08f+98f+nLlwnrIP9P9G98YPf8jPBQSweS0+nr9G0mD8B+fP/L98/qlPe4f8eDI8f8jwBGh8BPAPfLEGALhGf+f+AYj+e4jPfLl+AY0G/cI+/Q0G0DEPfc98/mjw/pSPBbjGArh8erl+ezfG/HlP0zf+0b0+n+DGnpj+0HI+9Qj+0p0PeDF+ADIPeL7+W==; kwssectoken=IMLS/eg005i6IUbIoIB/7WByh8ciKMPUXULQ3a5/m3dK5D9ez8He/oMP2QLhil52v7Bk3O0CO2g6t5R/5XjSCw==; kwscode=75d440673de879734b8700f363119968b4fabb4eb0369b1607e206d8e8c1ac9d'
         }
         self.video_id = UrlParser.get_video_id(self.real_url)
-        # 第一次请求获取基础数据
-        self.html_content = self.fetch_html_content()
+        self.page_type = "UNKNOWN"
+        self.structured_data = {}
+        self.client = {}
 
-        # 识别页面类型并解析数据
-        self.page_type, self.structured_data = self._identify_and_parse_data()
+        # 快手不同公开路由的稳定性差异较大，命中风控时自动切换备用路由重试。
+        self._load_page_with_fallbacks()
 
         # 提取核心数据客户端对象
         self.client = self.structured_data.get('defaultClient',
                                                {}) if self.page_type == "VIDEO" else self.structured_data
+
+    @staticmethod
+    def _is_blocked_payload(html_content):
+        if not html_content:
+            return False
+        try:
+            payload = json.loads(html_content)
+        except (TypeError, json.JSONDecodeError):
+            return False
+        return payload.get("result") == 2
+
+    def _candidate_urls(self):
+        if not self.video_id:
+            return [self.real_url]
+
+        candidates = [
+            self.real_url,
+            f"https://v.m.chenzhongtech.com/fw/photo/{self.video_id}",
+            f"https://www.kuaishou.com/photo/{self.video_id}",
+            f"https://www.kuaishou.com/short-video/{self.video_id}",
+        ]
+
+        deduped = []
+        for url in candidates:
+            if url and url not in deduped:
+                deduped.append(url)
+        return deduped
+
+    def _build_lightweight_headers(self):
+        return {
+            "User-Agent": "Mozilla/5.0",
+            "referer": "https://www.kuaishou.com/",
+            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        }
+
+    def _fetch_html_with_headers(self, url, headers):
+        try:
+            resp = requests.get(url, headers=headers, timeout=5)
+            resp.raise_for_status()
+            return resp.text
+        except requests.RequestException as e:
+            logger.error(f"Failed to get the page: {url}, Error: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"An unexpected error occurred while fetching {url}: {e}")
+            return None
+
+    def _is_valid_video_state(self, page_type, structured_data):
+        if not structured_data:
+            return False
+
+        if page_type == "ATLAS":
+            payload = self._find_nested_dict(structured_data, ("photo",))
+            if not payload:
+                return False
+            photo = payload.get("photo", {})
+            return bool(
+                photo.get("caption")
+                or photo.get("coverUrls")
+                or photo.get("webpCoverUrls")
+                or photo.get("mainMvUrls")
+                or photo.get("manifest")
+                or payload.get("atlas")
+            )
+
+        if page_type != "VIDEO":
+            return True
+
+        default_client = structured_data.get("defaultClient", {})
+        if not isinstance(default_client, dict):
+            return False
+
+        if default_client.get("VisionVideoSetRepresentation:1"):
+            return True
+
+        for key in default_client.keys():
+            if "visionVideoDetail" in key or "VisionVideoDetailPhoto:" in key:
+                return True
+
+        return False
+
+    def _try_parse_candidate(self, candidate_url, headers):
+        self.real_url = candidate_url
+        self.html_content = self._fetch_html_with_headers(candidate_url, headers)
+        if self._is_blocked_payload(self.html_content):
+            logger.warning(f"Kuaishou blocked route {candidate_url}, trying fallback")
+            return False
+
+        page_type, structured_data = self._identify_and_parse_data()
+        if page_type == "UNKNOWN" or not structured_data:
+            return False
+        if not self._is_valid_video_state(page_type, structured_data):
+            logger.warning(f"Kuaishou route {candidate_url} returned incomplete video state, trying fallback")
+            return False
+
+        self.page_type = page_type
+        self.structured_data = structured_data
+        return True
+
+    def _load_page_with_fallbacks(self):
+        for candidate_url in self._candidate_urls():
+            if self._try_parse_candidate(candidate_url, self.headers):
+                return
+            if self._try_parse_candidate(candidate_url, self._build_lightweight_headers()):
+                return
+
+        self.page_type = "UNKNOWN"
+        self.structured_data = {}
 
     def _extract_json_object(self, text, start_index):
         """稳健提取 JSON 对象：通过括号匹配解决额外数据报错"""
@@ -82,9 +192,18 @@ class KuaishouParser(BaseParser):
         return {}
 
     def _get_atlas_payload(self):
-        if self.page_type != "ATLAS":
+        if self.page_type not in ("ATLAS", "VIDEO"):
             return {}
-        return self._find_nested_dict(self.structured_data, ("atlas", "photo"))
+
+        payload = self._find_nested_dict(self.structured_data, ("atlas", "photo"))
+        if payload:
+            return payload
+
+        payload = self._find_nested_dict(self.structured_data, ("photo",))
+        if payload:
+            return payload
+
+        return {}
 
     @staticmethod
     def _normalize_url(url):
@@ -168,26 +287,53 @@ class KuaishouParser(BaseParser):
         return "UNKNOWN", {}
 
     def get_real_video_url(self):
-        if self.page_type != "VIDEO": return None
         try:
-            # 优先从标准表示层获取
-            video_url = self.client.get('VisionVideoSetRepresentation:1', {}).get('url')
-            # 兜底：直接从 Photo 对象获取
-            if not video_url:
-                photo_key = f"VisionVideoDetailPhoto:{self.video_id}"
-                video_url = self.client.get(photo_key, {}).get('photoUrl')
+            if self.page_type == "VIDEO":
+                # 优先从标准表示层获取
+                video_url = self.client.get('VisionVideoSetRepresentation:1', {}).get('url')
+                # 兜底：直接从 Photo 对象获取
+                if not video_url:
+                    photo_key = f"VisionVideoDetailPhoto:{self.video_id}"
+                    video_url = self.client.get(photo_key, {}).get('photoUrl')
 
-            return video_url.replace("\u002F", "/") if video_url else None
+                return video_url.replace("\u002F", "/") if video_url else None
+
+            payload = self._get_atlas_payload()
+            photo = payload.get("photo", {})
+            video_url = (
+                self._first_url(photo.get("mainMvUrls"))
+                or self._first_url(photo.get("photoUrls"))
+            )
+
+            if video_url:
+                return video_url
+
+            manifest = photo.get("manifest", {})
+            for adaptation_set in manifest.get("adaptationSet", []):
+                for representation in adaptation_set.get("representation", []):
+                    backup_urls = representation.get("backupUrl") or []
+                    if backup_urls:
+                        return self._first_url(backup_urls)
+                    m3u8_slice = representation.get("m3u8Slice")
+                    if m3u8_slice and "http" in m3u8_slice:
+                        for line in m3u8_slice.splitlines():
+                            line = line.strip()
+                            if line.startswith("http://") or line.startswith("https://"):
+                                return line
         except Exception as e:
             logger.warning(f"Failed to parse video URL: {e}")
             return None
+
+        return None
 
     def get_title_content(self):
         try:
             photo_key = f"VisionVideoDetailPhoto:{self.video_id}"
             if self.page_type == "VIDEO":
-                return self.client.get(photo_key, {}).get('caption', '')
-            if self.page_type == "ATLAS":
+                title = self.client.get(photo_key, {}).get('caption', '')
+                if title:
+                    return title
+            if self.page_type in ("ATLAS", "VIDEO"):
                 payload = self._get_atlas_payload()
                 return payload.get("photo", {}).get("caption", "")
         except Exception as e:
@@ -199,9 +345,11 @@ class KuaishouParser(BaseParser):
         try:
             photo_key = f"VisionVideoDetailPhoto:{self.video_id}"
             if self.page_type == "VIDEO":
-                return self.client.get(photo_key, {}).get('coverUrl', '')
+                cover_url = self.client.get(photo_key, {}).get('coverUrl', '')
+                if cover_url:
+                    return cover_url
 
-            if self.page_type == "ATLAS":
+            if self.page_type in ("ATLAS", "VIDEO"):
                 payload = self._get_atlas_payload()
                 photo = payload.get("photo", {})
                 cover_url = (
@@ -240,16 +388,16 @@ class KuaishouParser(BaseParser):
                         "unique_id": author_detail.get('id'),
                         "avatar": author_detail.get('headerUrl')
                     }
-            elif self.page_type == "ATLAS":
+            if self.page_type in ("ATLAS", "VIDEO"):
                 payload = self._get_atlas_payload()
                 photo = payload.get("photo", {})
                 if photo:
-                    author_id = photo.get("kwaiId") or photo.get("userEid") or photo.get("userId")
+                    author_id = photo.get("kwaiId") or photo.get("userEid") or photo.get("userId") or photo.get("eid")
                     return {
-                        "nickname": photo.get("userName", ""),
+                        "nickname": photo.get("userName", "") or photo.get("user_name", ""),
                         "author_id": str(author_id) if author_id else "",
                         "unique_id": str(author_id) if author_id else "",
-                        "avatar": self._first_url(photo.get("headUrls")) or photo.get("headUrl", "")
+                        "avatar": self._first_url(photo.get("headUrls")) or photo.get("headUrl", "") or photo.get("headurl", "")
                     }
 
                 # 图文页通常直接在某个 Profile 节点下
@@ -329,7 +477,7 @@ class KuaishouParser(BaseParser):
 
     def get_image_list(self):
         try:
-            if self.page_type != "ATLAS":
+            if self.page_type not in ("ATLAS", "VIDEO"):
                 return []
 
             payload = self._get_atlas_payload()
