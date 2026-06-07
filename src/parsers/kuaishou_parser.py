@@ -1,6 +1,7 @@
 import json
 import random
 import requests
+from urllib.parse import urlparse
 from utils.web_fetcher import UrlParser
 from src.parsers.base_parser import BaseParser
 from configs.general_constants import USER_AGENT_PC
@@ -46,18 +47,23 @@ class KuaishouParser(BaseParser):
         if not self.video_id:
             return [self.real_url]
 
-        candidates = [
-            self.real_url,
-            f"https://v.m.chenzhongtech.com/fw/photo/{self.video_id}",
-            f"https://www.kuaishou.com/photo/{self.video_id}",
-            f"https://www.kuaishou.com/short-video/{self.video_id}",
-        ]
+        candidates = [self.real_url]
+
+        if not self._is_fw_photo_url(self.real_url):
+            candidates.append(f"https://v.m.chenzhongtech.com/fw/photo/{self.video_id}")
 
         deduped = []
         for url in candidates:
             if url and url not in deduped:
                 deduped.append(url)
         return deduped
+
+    @staticmethod
+    def _is_fw_photo_url(url):
+        if not url:
+            return False
+        path = urlparse(url).path.rstrip("/")
+        return path.startswith("/fw/photo/")
 
     def _build_lightweight_headers(self):
         return {
@@ -87,6 +93,8 @@ class KuaishouParser(BaseParser):
             if not payload:
                 return False
             photo = payload.get("photo", {})
+            if not isinstance(photo, dict):
+                return False
             return bool(
                 photo.get("caption")
                 or photo.get("coverUrls")
@@ -204,6 +212,26 @@ class KuaishouParser(BaseParser):
             return payload
 
         return {}
+
+    def _get_atlas_variants(self):
+        payload = self._get_atlas_payload()
+        photo = payload.get("photo", {})
+
+        variants = []
+        ext_atlas = photo.get("ext_params", {}).get("atlas")
+        if isinstance(ext_atlas, dict):
+            variants.append(ext_atlas)
+
+        atlas = payload.get("atlas")
+        if isinstance(atlas, dict):
+            variants.append(atlas)
+
+        return variants
+
+    @staticmethod
+    def _atlas_is_webp(atlas):
+        image_paths = atlas.get("list") or []
+        return any(str(path).lower().endswith(".webp") for path in image_paths)
 
     @staticmethod
     def _normalize_url(url):
@@ -353,9 +381,9 @@ class KuaishouParser(BaseParser):
                 payload = self._get_atlas_payload()
                 photo = payload.get("photo", {})
                 cover_url = (
-                    self._first_url(photo.get("coverUrls"))
-                    or self._first_url(photo.get("webpCoverUrls"))
-                    or self._first_url(self.get_image_list())
+                        self._first_url(photo.get("coverUrls"))
+                        or self._first_url(photo.get("webpCoverUrls"))
+                        or self._first_url(self.get_image_list())
                 )
                 return cover_url or ""
         except Exception as e:
@@ -416,16 +444,15 @@ class KuaishouParser(BaseParser):
     def get_audio_url(self):
         """
         获取独立的音频链接。
-        快手网页端大部分不直接暴露独立的音频源 URL，因此采用通用提取方案：
-        获取无水印视频 URL -> 解析此视频 -> 使用 FFmpeg 分离提取纯音频（不重编码） -> 存放在服务器 -> 返回本地链接
+        仅返回快手页面数据里直接暴露的音频地址；如果没有，则返回 None。
         """
-        if self.page_type == "ATLAS":
+        if self.page_type in ("ATLAS", "VIDEO"):
             try:
                 payload = self._get_atlas_payload()
                 photo_music = payload.get("photo", {}).get("music", {})
                 audio_url = (
-                    self._first_url(photo_music.get("audioUrls"))
-                    or self._normalize_url(photo_music.get("url"))
+                        self._first_url(photo_music.get("audioUrls"))
+                        or self._normalize_url(photo_music.get("url"))
                 )
                 if audio_url:
                     return audio_url
@@ -438,42 +465,7 @@ class KuaishouParser(BaseParser):
             except Exception as e:
                 logger.warning(f"Failed to parse atlas audio URL: {e}")
                 return None
-
-        video_url = self.get_real_video_url()
-        if not video_url:
-             return None
-             
-        import os, uuid, subprocess
-        from configs.general_constants import SAVE_VIDEO_PATH, DOMAIN
-        
-        video_path = self.download_and_save(SAVE_VIDEO_PATH, video_url, "mp4")
-        if not video_path:
-             logger.error("快手获取视频文件失败，无法提取音频")
-             return None
-             
-        output_filename = f"{uuid.uuid4()}_audio.m4a"
-        output_path = os.path.join(SAVE_VIDEO_PATH, output_filename)
-        
-        command = [
-             "ffmpeg",
-             "-y",
-             "-i", video_path,
-             "-vn",           # 去掉视频流
-             "-c:a", "copy",  # 直接提取底层原始音频流，无需重复编码，极速秒级完成
-             output_path
-        ]
-        
-        try:
-             logger.debug(f"正在使用 FFmpeg 提取快手音频: {' '.join(command)}")
-             subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-             return f"{DOMAIN}/static/videos/{output_filename}"
-        except subprocess.CalledProcessError as e:
-             error_message = e.stderr.decode("utf-8") if e.stderr else str(e)
-             logger.error(f"FFmpeg 提取音频失败: {error_message}")
-             return None
-        finally:
-             if os.path.exists(video_path):
-                 os.remove(video_path)
+        return None
 
     def get_image_list(self):
         try:
@@ -481,15 +473,15 @@ class KuaishouParser(BaseParser):
                 return []
 
             payload = self._get_atlas_payload()
-            atlas = payload.get("atlas") or {}
-            if not atlas.get("list"):
-                atlas = payload.get("photo", {}).get("ext_params", {}).get("atlas", {})
-            image_paths = atlas.get("list") or []
-            cdn = self._first_cdn(atlas)
+            atlas_variants = self._get_atlas_variants()
+            preferred_atlas = next(
+                (atlas for atlas in atlas_variants if self._atlas_is_webp(atlas)),
+                atlas_variants[0] if atlas_variants else {}
+            )
 
             image_urls = []
-            for image_path in image_paths:
-                image_url = self._build_resource_url(cdn, image_path)
+            for image_path in preferred_atlas.get("list") or []:
+                image_url = self._build_resource_url(self._first_cdn(preferred_atlas), image_path)
                 if image_url:
                     image_urls.append(image_url)
 
@@ -513,7 +505,7 @@ if __name__ == '__main__':
     dl = KuaishouParser(real_url)
     print("-" * 30)
     print(f"作者信息：{dl.get_author_info()}")
-    print(f"标题内容：{dl.get_title_content()[:30]}...")  # 仅打印前30字
+    print(f"标题内容：{dl.get_title_content()[:30]}...")
     print(f"封面图片：{dl.get_cover_photo_url()}")
     print(f"图片列表：{dl.get_image_list()}")
     print(f"视频链接：{dl.get_real_video_url()}")
