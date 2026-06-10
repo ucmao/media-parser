@@ -14,33 +14,45 @@ class WebFetcher:
 
     @staticmethod
     def fetch_redirect_url(url, max_redirects=5):
+        logger.debug(f"fetch_redirect_url start, url={url}")
         try:
             current_url = url
-            for _ in range(max_redirects):
-                # 发送请求，禁止重定向
-                resp = requests.get(current_url, headers=WebFetcher.headers, allow_redirects=False, timeout=5)
+            for step in range(max_redirects):
+                logger.debug(f"  [step {step}] requesting: {current_url}")
+                resp = requests.get(current_url, headers=WebFetcher.headers, allow_redirects=False, timeout=10)
+                logger.debug(f"  [step {step}] status={resp.status_code}, headers={dict(resp.headers)}")
                 resp.raise_for_status()
-                # 获取重定向后的URL
+
                 redirect_url = resp.headers.get("location")
                 if redirect_url:
+                    logger.debug(f"  [step {step}] location header: {redirect_url}")
                     redirect_url = urljoin(current_url, redirect_url)
+                    logger.debug(f"  [step {step}] after urljoin: {redirect_url}")
                     current_url = redirect_url
-                    if DOMAIN_TO_NAME.get(UrlParser.get_domain(current_url)):
+                    domain = UrlParser.get_domain(current_url)
+                    logger.debug(f"  [step {step}] domain={domain}, known={bool(DOMAIN_TO_NAME.get(domain))}")
+                    if DOMAIN_TO_NAME.get(domain):
                         break
                 else:
+                    logger.debug(f"  [step {step}] no location header, stopping redirect follow")
                     break
             else:
+                logger.warning(f"redirect chain exhausted after {max_redirects} hops, last url: {current_url}")
                 return None
 
-            if not DOMAIN_TO_NAME.get(UrlParser.get_domain(current_url)):
+            final_domain = UrlParser.get_domain(current_url)
+            if not DOMAIN_TO_NAME.get(final_domain):
+                logger.warning(f"final domain not recognized: {final_domain}, url={current_url}")
                 return None
 
-            return UrlParser.extract_video_address(current_url)
+            result = UrlParser.extract_video_address(current_url)
+            logger.debug(f"fetch_redirect_url success: {result}")
+            return result
         except requests.RequestException as e:
-            logger.error(f"Failed to get the page: {e}")
+            logger.error(f"Request failed for url={current_url}: {type(e).__name__}: {e}")
             return None
         except Exception as e:
-            logger.error(f"An error occurred: {e}")
+            logger.exception(f"Unexpected error for url={current_url}")
             return None
 
 

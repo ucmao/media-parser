@@ -12,14 +12,24 @@ bp = Blueprint('parse', __name__)
 def parse():
     try:
         data = request.json
-        text = data.get('text')
+        text = data.get('text', '')
         
-        # 1. 解析基础信息
-        redirect_url = WebFetcher.fetch_redirect_url(UrlParser.get_url(text))
-        platform = DOMAIN_TO_NAME.get(UrlParser.get_domain(redirect_url))
-        real_url = UrlParser.extract_video_address(redirect_url)
+        # 1. 从用户输入中提取URL
+        raw_url = UrlParser.get_url(text)
+        if not raw_url:
+            logger.error(f'No valid URL found in text: {text}')
+            return make_response(400, '未检测到有效链接', None, False), 400
+
+        # 2. 跟踪重定向，获取真实URL（fetch_redirect_url 内部已调用 extract_video_address）
+        real_url = WebFetcher.fetch_redirect_url(raw_url)
+        if not real_url:
+            logger.error(f'Failed to resolve redirect for: {raw_url}')
+            return make_response(400, '无法解析该链接，请检查链接是否有效', None, False), 400
+
         logger.debug(f'real_url {real_url}')
 
+        # 3. 识别平台
+        platform = DOMAIN_TO_NAME.get(UrlParser.get_domain(real_url))
         if not platform:
             logger.error(f'This link is not supported for extraction: {real_url}')
             return make_response(400, '该链接尚未支持提取', None, False), 400
@@ -46,7 +56,7 @@ def parse():
 
         # 4. 统一转换 HTTPS
         data_dict = {
-            'video_id': UrlParser.get_video_id(redirect_url),
+            'video_id': UrlParser.get_video_id(real_url),
             'platform': platform,
             'title': content_data['title'],
             'video_url': UrlParser.convert_to_https(content_data['video_url']),
