@@ -20,15 +20,18 @@ class WebFetcher:
                 # 发送请求，禁止重定向
                 resp = requests.get(current_url, headers=WebFetcher.headers, allow_redirects=False, timeout=5)
                 resp.raise_for_status()
-                # 获取重定向后的URL
                 redirect_url = resp.headers.get("location")
                 if redirect_url:
                     redirect_url = urljoin(current_url, redirect_url)
+                    # 如果重定向到了登录页、404拦截页、验证码校验页或错误页，不要更新 url，直接中断以保留原始有效 URL
+                    if any(path in redirect_url for path in ["/login", "/404", "/captcha", "/verify", "/error"]):
+                        break
                     current_url = redirect_url
                     if DOMAIN_TO_NAME.get(UrlParser.get_domain(current_url)):
                         break
                 else:
                     break
+
             else:
                 return None
 

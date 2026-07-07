@@ -1,7 +1,9 @@
 import re
 import json
+import os
 from src.parsers.base_parser import BaseParser
 from configs.logging_config import get_logger
+import requests
 logger = get_logger(__name__)
 
 
@@ -13,6 +15,11 @@ class XiaohongshuParser(BaseParser):
             'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
             'referer': 'https://www.xiaohongshu.com/'
         }
+        # 从环境变量中读取 Cookie 维持登录态，防止 302 重定向至登录页
+        cookie = os.getenv("XIAOHONGSHU_COOKIE")
+        if cookie:
+            self.headers['Cookie'] = cookie
+
         # 获取 HTML 并解析 JSON 状态
         html_content = self.fetch_html_content()
         pattern = re.compile(r'window\.__INITIAL_STATE__\s*=\s*(\{.*\})', re.DOTALL)
@@ -28,6 +35,24 @@ class XiaohongshuParser(BaseParser):
                     self.note_data = full_data['note']['noteDetailMap'].get(first_note_id, {}).get('note', {})
         except (json.JSONDecodeError, KeyError) as e:
             logger.error(f"初始化解析数据失败: {e}")
+
+    def fetch_html_content(self):
+        try:
+            resp = self.session.get(self.real_url, headers=self.headers, timeout=5)
+            resp.raise_for_status()
+            if "xiaohongshu.com/login" in resp.url:
+                logger.error("小红书解析提示: 未配置有效 Cookie，请求被重定向到了登录页面。请在环境变量或配置中设置 XIAOHONGSHU_COOKIE。")
+            elif "xiaohongshu.com/404" in resp.url:
+                logger.error("小红书解析提示: 遭遇安全拦截或页面未找到（404）。")
+            self.html_content = resp.text
+            return self.html_content
+        except requests.RequestException as e:
+            logger.error(f"Failed to get the page: {self.real_url}, Error: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"An unexpected error occurred while fetching {self.real_url}: {e}")
+            return None
+
 
     def get_author_info(self):
         """

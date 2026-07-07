@@ -13,3 +13,5 @@ services:
     # 设置容器内的时区为本地时区
     environment:
       - TZ=Asia/Shanghai
+      - XIAOHONGSHU_COOKIE=${XIAOHONGSHU_COOKIE}
+

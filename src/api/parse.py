@@ -32,6 +32,9 @@ def parse():
 
         if not content_data['video_url'] and not content_data['image_list']:
             logger.error(f"Failed to retrieve media content for {platform}")
+            if platform == '小红书':
+                return make_response(400, '解析失败：该链接需要小红书登录 Cookie 校验，请在配置中提供有效 Cookie 后重试', None, False), 400
+            return make_response(400, '提取媒体内容失败，请检查链接或稍后重试', None, False), 400
 
         processed_image_list = []
         if content_data.get('image_list'):
