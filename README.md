@@ -109,20 +109,20 @@ gunicorn -w 4 -b 0.0.0.0:8051 app:app
 
 ### 4. 环境变量配置（小红书高级解析，可选）
 
-> 默认小红书普通分享链接无需Cookie即可解析；仅解析电脑首页推荐流链接时，才需配置登录Cookie。
+> 默认小红书普通分享链接无需Cookie即可解析；仅解析推荐流链接如xsec_source=pc_feed时，才需配置登录Cookie。
 
 **Docker/本地部署步骤**
-  1. 复制模板生成配置文件
-	```bash
-	cp .env.example .env
-	```
-  2. 在`.env`填入小红书Cookie
-	```env
-	XIAOHONGSHU_COOKIE="a1=xxx;webId=xxx"
-	```
-  3. 启动服务
-	- Docker：`docker-compose up -d --build`
-	- 本地运行：`python app.py`
+1. 复制模板生成配置文件
+```bash
+cp .env.example .env
+```
+2. 在`.env`填入小红书Cookie
+```env
+XIAOHONGSHU_COOKIE="a1=xxx;webId=xxx"
+```
+3. 启动服务
+- Docker：`docker-compose up -d --build`
+- 本地运行：`python app.py`
 
 ## 📂 项目结构
 
