@@ -23,6 +23,7 @@ from src.parsers.sixroom_parser import SixroomParser
 from src.parsers.xinpianchang_parser import XinpianchangParser
 from src.parsers.zuiyou_parser import ZuiyouParser
 from src.parsers.doubao_parser import DoubaoParser
+from src.parsers.jimeng_parser import JimengParser
 
 class ParserFactory:
     platform_to_parser = {
@@ -50,7 +51,8 @@ class ParserFactory:
         "六间房": SixroomParser,
         "新片场": XinpianchangParser,
         "最右": ZuiyouParser,
-        "豆包": DoubaoParser
+        "豆包": DoubaoParser,
+        "即梦 AI": JimengParser
     }
 
     @staticmethod

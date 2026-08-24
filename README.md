@@ -3,7 +3,7 @@
 
 **基于 Python 的多平台媒体原生本地解析系统（Starter 极简版）**
 
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Python Version](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/) [![Support](https://img.shields.io/badge/support-25+%20Platforms-brightgreen.svg)](#💾-支持的平台矩阵)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Python Version](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/) [![Support](https://img.shields.io/badge/support-26+%20Platforms-brightgreen.svg)](#💾-支持的平台矩阵)
 
 <p align="center">
 <a href="#-核心解析逻辑">解析逻辑</a> •
@@ -42,6 +42,7 @@
 | --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |---------------| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | **抖音** | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **小红书**       | ✓ | ✓ | ✓ | ✓ | ✓ | | ✓ |
 | **快手** | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | | **哔哩哔哩**      | ✓ | ✓ | ✓ | ✓ | | ✓ | |
+| **豆包** | ✓ | ✓ | ✓ | ✓ | ✓ | | | **即梦 AI** | ✓ | ✓ | ✓ | ✓ | | | |
 | **皮皮搞笑** | ✓ | ✓ | ✓ | ✓ | | | | **好看视频**      | ✓ | ✓ | ✓ | ✓ | | | |
 | **微视** | ✓ | ✓ | ✓ | ✓ | | | | **梨视频**       | ✓ | ✓ | ✓ | ✓ | | | |
 | **AcFun** | ✓ | ✓ | ✓ | ✓ | | | | **微博**        | ✓ | ✓ | ✓ | ✓ | ✓ | | |
@@ -52,7 +53,6 @@
 | **全民K歌** | | ✓ | ✓ | ✓ | | | | **六间房**       | | ✓ | ✓ | ✓ | | | |
 | **新片场** | | ✓ | ✓ | ✓ | | | | **最右**        | ✓ | ✓ | | ✓ | | | |
 | **TikTok** | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | | **YouTube** | ✓ | ✓ | ✓ | ✓ | | ✓ | |
-| **豆包** | ✓ | ✓ | ✓ | ✓ | ✓ | | | | | | | | | | |
 
 ---
 

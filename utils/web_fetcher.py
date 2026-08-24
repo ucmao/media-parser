@@ -125,6 +125,15 @@ class UrlParser:
                     preserved_params.append((key, value))
             if preserved_params:
                 address = f"{address}?{urlencode(preserved_params)}"
+        elif platform == "即梦 AI":
+            query_params = parse_qs(parsed_url.query)
+            preserved_params = []
+            for key in ('item_id', 'id'):
+                value = query_params.get(key, [None])[0]
+                if value is not None:
+                    preserved_params.append((key, value))
+            if preserved_params:
+                address = f"{address}?{urlencode(preserved_params)}"
         return address
 
     @staticmethod
