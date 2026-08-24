@@ -1,7 +1,7 @@
 import re
 import requests
 import random
-from urllib.parse import urljoin, urlparse, parse_qs
+from urllib.parse import urljoin, urlparse, parse_qs, urlencode
 from configs.logging_config import logger
 from configs.general_constants import USER_AGENT_PC, DOMAIN_TO_NAME
 
@@ -116,6 +116,15 @@ class UrlParser:
             pid = query_params.get('pid', [None])[0]
             if pid:
                 address = f"{address}?pid={pid}"
+        elif platform == "豆包":
+            query_params = parse_qs(parsed_url.query)
+            preserved_params = []
+            for key in ('share_id', 'source_type', 'video_id', 'share_scene'):
+                value = query_params.get(key, [None])[0]
+                if value is not None:
+                    preserved_params.append((key, value))
+            if preserved_params:
+                address = f"{address}?{urlencode(preserved_params)}"
         return address
 
     @staticmethod
@@ -142,6 +151,9 @@ class UrlParser:
             params_pid = query_params.get('pid', [None])[0]
             if params_pid:
                 return params_pid
+            params_video_id = query_params.get('video_id', [None])[0]
+            if params_video_id:
+                return params_video_id
             # 尝试从URL路径中获取视频ID
             path_segments = parsed_url.path.strip('/').split('/')
             if path_segments:

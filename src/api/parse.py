@@ -30,7 +30,11 @@ def parse():
         # 3. 核心抓取逻辑
         content_data = _fetch_with_retry(parser, platform)
 
-        if not content_data['video_url'] and not content_data['image_list']:
+        if (
+            not content_data['video_url']
+            and not content_data['video_list']
+            and not content_data['image_list']
+        ):
             logger.error(f"Failed to retrieve media content for {platform}")
             if platform == '小红书':
                 return make_response(400, '解析失败：该链接需要小红书登录 Cookie 校验，请在配置中提供有效 Cookie 后重试', None, False), 400
@@ -47,12 +51,19 @@ def parse():
                 else:
                     processed_image_list.append(UrlParser.convert_to_https(img))
 
+        processed_video_list = [
+            UrlParser.convert_to_https(url)
+            for url in content_data.get('video_list', [])
+            if url
+        ]
+
         # 4. 统一转换 HTTPS
         data_dict = {
             'video_id': UrlParser.get_video_id(redirect_url),
             'platform': platform,
             'title': content_data['title'],
             'video_url': UrlParser.convert_to_https(content_data['video_url']),
+            'video_list': processed_video_list,
             'audio_url': UrlParser.convert_to_https(content_data.get('audio_url')),
             'cover_url': UrlParser.convert_to_https(content_data['cover_url']),
             'author': content_data['author'],
@@ -75,12 +86,15 @@ def _fetch_with_retry(parser, platform):
         res = {
             'title': parser.get_title_content(),
             'video_url': parser.get_real_video_url(),
+            'video_list': safe_execute(parser.get_video_list, default=[]),
             'cover_url': parser.get_cover_photo_url(),
             'author': safe_execute(parser.get_author_info),
             'image_list': safe_execute(parser.get_image_list, default=[]),
             'audio_url': safe_execute(parser.get_audio_url)
         }
-        if res['video_url'] or res['image_list']:
+        if res['video_url'] and not res['video_list']:
+            res['video_list'] = [res['video_url']]
+        if res['video_url'] or res['video_list'] or res['image_list']:
             return res
             
         if i < max_attempts - 1:

@@ -38,6 +38,10 @@ class BaseParser:
         """获取图文列表"""
         return []
 
+    def get_video_list(self):
+        """获取同一分享内容中的多个视频。"""
+        return []
+
     def fetch_html_content(self):
         try:
             resp = self.session.get(self.real_url, headers=self.headers, timeout=5)

@@ -3,7 +3,7 @@
 
 **基于 Python 的多平台媒体原生本地解析系统（Starter 极简版）**
 
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Python Version](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/) [![Support](https://img.shields.io/badge/support-8+%20Platforms-brightgreen.svg)](#💾-支持的平台矩阵)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Python Version](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/) [![Support](https://img.shields.io/badge/support-25+%20Platforms-brightgreen.svg)](#💾-支持的平台矩阵)
 
 <p align="center">
 <a href="#-核心解析逻辑">解析逻辑</a> •
@@ -52,6 +52,7 @@
 | **全民K歌** | | ✓ | ✓ | ✓ | | | | **六间房**       | | ✓ | ✓ | ✓ | | | |
 | **新片场** | | ✓ | ✓ | ✓ | | | | **最右**        | ✓ | ✓ | | ✓ | | | |
 | **TikTok** | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | | **YouTube** | ✓ | ✓ | ✓ | ✓ | | ✓ | |
+| **豆包** | ✓ | ✓ | ✓ | ✓ | ✓ | | | | | | | | | | |
 
 ---
 
@@ -120,6 +121,14 @@ cp .env.example .env
 ```env
 XIAOHONGSHU_COOKIE="a1=xxx;webId=xxx"
 ```
+
+豆包对话分享通常可以匿名解析。独立 AI 视频若遇到平台校验，可选配置：
+
+```env
+DOUBAO_COOKIE="your_doubao_cookie"
+```
+
+请勿将真实 Cookie 提交到代码仓库。
 3. 启动服务
 - Docker：`docker-compose up -d --build`
 - 本地运行：`python app.py`
@@ -166,6 +175,9 @@ media-parser/
     "platform": "抖音",
     "title": "视频标题内容",
     "video_url": "https://... (无水印视频真实地址)",
+    "video_list": [
+      "https://... (同一分享内容中的视频地址)"
+    ],
     "audio_url": "https://... (背景音乐/音频地址)",
     "cover_url": "https://... (高清封面地址)",
     "author": {

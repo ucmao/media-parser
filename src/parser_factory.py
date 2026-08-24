@@ -22,6 +22,7 @@ from src.parsers.quanminkge_parser import QuanminkgeParser
 from src.parsers.sixroom_parser import SixroomParser
 from src.parsers.xinpianchang_parser import XinpianchangParser
 from src.parsers.zuiyou_parser import ZuiyouParser
+from src.parsers.doubao_parser import DoubaoParser
 
 class ParserFactory:
     platform_to_parser = {
@@ -48,7 +49,8 @@ class ParserFactory:
         "全民K歌": QuanminkgeParser,
         "六间房": SixroomParser,
         "新片场": XinpianchangParser,
-        "最右": ZuiyouParser
+        "最右": ZuiyouParser,
+        "豆包": DoubaoParser
     }
 
     @staticmethod
