@@ -87,6 +87,7 @@ class BaseParser:
             response.raise_for_status()
         except RequestException as e:
             logger.error(f"Failed to download the resource: {e}")
+            return None
         _filename = os.path.join(folder, f'{str(uuid.uuid4())}.{file_extension}')
         full_name = os.path.abspath(_filename)
         try:
@@ -96,8 +97,10 @@ class BaseParser:
                         f.write(chunk)
         except ChunkedEncodingError as e:
             logger.error(f"Failed to save the resource: {e}")
+            return None
         except IOError as e:
             logger.error(f"Failed to save the resource: {e}")
+            return None
         return full_name
 
     def download_and_save_video(self):

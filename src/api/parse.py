@@ -11,11 +11,23 @@ bp = Blueprint('parse', __name__)
 @bp.route('/parse', methods=['POST'])
 def parse():
     try:
-        data = request.json
+        data = request.get_json(silent=True)
+        if not isinstance(data, dict):
+            return make_response(400, '请求体必须是 JSON 对象', None, False), 400
+
         text = data.get('text')
+        if not isinstance(text, str) or not text.strip():
+            return make_response(400, '请提供包含分享链接的文本', None, False), 400
+
+        share_url = UrlParser.get_url(text)
+        if not share_url:
+            return make_response(400, '未找到有效的分享链接', None, False), 400
         
         # 1. 解析基础信息
-        redirect_url = WebFetcher.fetch_redirect_url(UrlParser.get_url(text))
+        redirect_url = WebFetcher.fetch_redirect_url(share_url)
+        if not redirect_url:
+            return make_response(400, '无法访问或识别该分享链接', None, False), 400
+
         platform = DOMAIN_TO_NAME.get(UrlParser.get_domain(redirect_url))
         real_url = UrlParser.extract_video_address(redirect_url)
         logger.debug(f'real_url {real_url}')

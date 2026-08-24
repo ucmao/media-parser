@@ -14,6 +14,8 @@ class WebFetcher:
 
     @staticmethod
     def fetch_redirect_url(url, max_redirects=5):
+        if not isinstance(url, str) or not url.strip() or max_redirects < 1:
+            return None
         try:
             current_url = url
             for _ in range(max_redirects):
@@ -58,6 +60,8 @@ class UrlParser:
 
     @staticmethod
     def get_url(text):
+        if not isinstance(text, str):
+            return None
         url_pattern = re.compile(r'\bhttps?:\/\/(?:www\.|[-a-zA-Z0-9.@:%_+~#=]{1,256}\.[a-zA-Z0-9()]{1,6})\b(?:[-a-zA-Z0-9()@:%_+.~#?&//=]*)?')
         match = url_pattern.search(text)
         if match:
@@ -67,12 +71,16 @@ class UrlParser:
 
     @staticmethod
     def get_domain(url):
+        if not isinstance(url, str):
+            return ''
         parsed_url = urlparse(url)
         domain = parsed_url.netloc
         return domain
 
     @staticmethod
     def extract_video_address(url):
+        if not isinstance(url, str) or not url:
+            return None
         parsed_url = urlparse(url)
         domain = parsed_url.netloc
         platform = DOMAIN_TO_NAME.get(domain)

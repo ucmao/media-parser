@@ -58,5 +58,7 @@ class ParserFactory:
     @staticmethod
     def create_parser(platform, real_url):
         parser_class = ParserFactory.platform_to_parser.get(platform)
+        if parser_class is None:
+            raise ValueError(f"不支持的平台：{platform}")
 
         return parser_class(real_url)

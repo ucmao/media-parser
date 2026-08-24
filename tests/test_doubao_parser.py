@@ -96,6 +96,31 @@ class DoubaoParserTest(unittest.TestCase):
         self.assertNotIn("ignored=value", normalized)
         self.assertEqual(UrlParser.get_video_id(normalized), "video123")
 
+    def test_video_sharing_without_required_ids_does_not_call_api(self):
+        with patch("requests.Session.post") as post:
+            parser = DoubaoParser("https://www.doubao.com/video-sharing?share_id=456")
+
+        post.assert_not_called()
+        self.assertIsNone(parser.get_real_video_url())
+        self.assertEqual(parser.get_video_list(), [])
+
+    def test_thread_video_urls_drop_watermarks_and_keep_signed_parameters(self):
+        clean_url = "https://video.example.com/source.mp4?token=abc&lr=1"
+        watermarked_url = "https://video.example.com/video_gen_watermark.mp4"
+        video = {
+            "download_url": watermarked_url,
+            "video_model": json.dumps({
+                "video_list": [{
+                    "main_url": base64.b64encode(clean_url.encode()).decode(),
+                }]
+            }),
+        }
+
+        self.assertEqual(
+            DoubaoParser._extract_thread_video_urls(video),
+            ["https://video.example.com/source.mp4?token=abc"],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

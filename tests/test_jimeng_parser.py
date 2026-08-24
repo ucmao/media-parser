@@ -94,6 +94,37 @@ class JimengParserTest(unittest.TestCase):
             "1234567890123456",
         )
 
+    def test_missing_item_id_does_not_call_api(self):
+        with patch("requests.Session.post") as post:
+            parser = JimengParser("https://jimeng.jianying.com/activities/reflux/mproject")
+
+        post.assert_not_called()
+        self.assertIsNone(parser.get_real_video_url())
+        self.assertEqual(parser.get_video_list(), [])
+
+    def test_uses_highest_resolution_transcoded_video_as_fallback(self):
+        formatted = JimengParser._format_data({
+            "common_attr": {},
+            "author": {},
+            "video": {
+                "transcoded_video": {
+                    "small": {
+                        "video_url": "https://video.example.com/small.mp4",
+                        "width": 640,
+                        "height": 360,
+                    },
+                    "large": {
+                        "video_url": "https://video.example.com/large.mp4",
+                        "width": 1920,
+                        "height": 1080,
+                    },
+                }
+            },
+        })
+
+        self.assertEqual(formatted["video_url"], "https://video.example.com/large.mp4")
+        self.assertEqual(formatted["video_list"], ["https://video.example.com/large.mp4"])
+
 
 if __name__ == "__main__":
     unittest.main()
