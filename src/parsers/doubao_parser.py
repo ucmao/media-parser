@@ -22,7 +22,6 @@ logger = get_logger(__name__)
 class DoubaoParser(BaseParser):
     """解析豆包对话分享和独立 AI 视频分享。
 
-    解析流程参考 jiuhunwl/short_videos（MIT），并按本项目接口重写为 Python。
     """
 
     VIDEO_API = "https://www.doubao.com/creativity/share/get_video_share_info"

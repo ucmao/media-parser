@@ -56,19 +56,25 @@ def parse():
             for url in content_data.get('video_list', [])
             if url
         ]
+        processed_video_list = list(dict.fromkeys(processed_video_list))
+        primary_video_url = UrlParser.convert_to_https(content_data['video_url'])
+        if primary_video_url and primary_video_url in processed_video_list:
+            processed_video_list.remove(primary_video_url)
+            processed_video_list.insert(0, primary_video_url)
 
         # 4. 统一转换 HTTPS
         data_dict = {
             'video_id': UrlParser.get_video_id(redirect_url),
             'platform': platform,
             'title': content_data['title'],
-            'video_url': UrlParser.convert_to_https(content_data['video_url']),
-            'video_list': processed_video_list,
+            'video_url': primary_video_url,
             'audio_url': UrlParser.convert_to_https(content_data.get('audio_url')),
             'cover_url': UrlParser.convert_to_https(content_data['cover_url']),
             'author': content_data['author'],
             'image_list': processed_image_list
         }
+        if len(processed_video_list) > 1:
+            data_dict['video_list'] = processed_video_list
         
         logger.debug(f'Parse Success for platform {platform}')
         return make_response(200, '成功', data_dict, True), 200
@@ -92,8 +98,8 @@ def _fetch_with_retry(parser, platform):
             'image_list': safe_execute(parser.get_image_list, default=[]),
             'audio_url': safe_execute(parser.get_audio_url)
         }
-        if res['video_url'] and not res['video_list']:
-            res['video_list'] = [res['video_url']]
+        if not res['video_url'] and res['video_list']:
+            res['video_url'] = res['video_list'][0]
         if res['video_url'] or res['video_list'] or res['image_list']:
             return res
             

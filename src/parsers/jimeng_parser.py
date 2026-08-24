@@ -16,7 +16,6 @@ logger = get_logger(__name__)
 class JimengParser(BaseParser):
     """解析即梦 AI 视频分享。
 
-    解析流程参考 jiuhunwl/short_videos（MIT），并按本项目接口重写为 Python。
     """
 
     API_URL = "https://jimeng.jianying.com/mweb/v1/get_item_info"

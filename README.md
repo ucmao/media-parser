@@ -108,16 +108,20 @@ gunicorn -w 4 -b 0.0.0.0:8051 app:app
 
 ```
 
-### 4. 环境变量配置（小红书高级解析，可选）
+### 4. 平台 Cookie 配置（可选）
 
 > 默认小红书普通分享链接无需Cookie即可解析；仅解析推荐流链接如xsec_source=pc_feed时，才需配置登录Cookie。
 
 **Docker/本地部署步骤**
+
 1. 复制模板生成配置文件
+
 ```bash
 cp .env.example .env
 ```
+
 2. 在`.env`填入小红书Cookie
+
 ```env
 XIAOHONGSHU_COOKIE="a1=xxx;webId=xxx"
 ```
@@ -129,9 +133,26 @@ DOUBAO_COOKIE="your_doubao_cookie"
 ```
 
 请勿将真实 Cookie 提交到代码仓库。
+
 3. 启动服务
-- Docker：`docker-compose up -d --build`
-- 本地运行：`python app.py`
+
+* Docker：`docker-compose up -d --build`
+* 本地运行：`python app.py`
+
+### 5. 平台支持说明
+
+* **豆包**：支持 `/thread/` 对话分享中的图片和视频，以及 `/video-sharing` 独立 AI 视频。
+* **即梦 AI**：支持已发布作品。已失效、已取消发布或模板草稿类链接可能返回 `itemId not exist`，目前无法解析。
+* **媒体直链**：平台返回的图片、视频地址通常带有时效签名，请在解析成功后及时使用。
+
+### 6. 解析器单文件自测
+
+豆包和即梦解析器内置了可直接运行的成功样例：
+
+```bash
+python3 src/parsers/doubao_parser.py
+python3 src/parsers/jimeng_parser.py
+```
 
 ## 📂 项目结构
 
@@ -168,16 +189,13 @@ media-parser/
 成功响应示例：
 ```json
 {
-  "code": 200,
-  "msg": "成功",
+  "retcode": 200,
+  "retdesc": "成功",
   "data": {
     "video_id": "7123...",
     "platform": "抖音",
     "title": "视频标题内容",
-    "video_url": "https://... (无水印视频真实地址)",
-    "video_list": [
-      "https://... (同一分享内容中的视频地址)"
-    ],
+    "video_url": "https://... (主视频地址)",
     "audio_url": "https://... (背景音乐/音频地址)",
     "cover_url": "https://... (高清封面地址)",
     "author": {
@@ -200,12 +218,26 @@ media-parser/
 失败响应示例：
 ```json
 {
-  "code": 400,
-  "msg": "该链接尚未支持提取 / 解析失败",
+  "retcode": 400,
+  "retdesc": "该链接尚未支持提取 / 解析失败",
   "data": null,
   "succ": false
 }
 ```
+
+`video_url` 始终表示主视频。为了保持旧客户端兼容，单视频内容不会返回 `video_list`；只有豆包对话等确实包含多段视频的内容才会额外返回：
+
+```json
+{
+  "video_url": "https://.../video-1.mp4",
+  "video_list": [
+    "https://.../video-1.mp4",
+    "https://.../video-2.mp4"
+  ]
+}
+```
+
+多视频响应保证 `video_url` 与 `video_list[0]` 相同。
 
 ---
 
