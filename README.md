@@ -110,8 +110,6 @@ gunicorn -w 4 -b 0.0.0.0:8051 app:app
 
 ### 4. 平台 Cookie 配置（可选）
 
-> 默认小红书普通分享链接无需Cookie即可解析；仅解析推荐流链接如xsec_source=pc_feed时，才需配置登录Cookie。
-
 **Docker/本地部署步骤**
 
 1. 复制模板生成配置文件
@@ -120,7 +118,9 @@ gunicorn -w 4 -b 0.0.0.0:8051 app:app
 cp .env.example .env
 ```
 
-2. 在`.env`填入小红书Cookie
+2. 在`.env`配置 Cookie
+
+小红书普通分享链接通常可以匿名解析。推荐流链接（如 `xsec_source=pc_feed`）若遇到平台校验，可选配置：
 
 ```env
 XIAOHONGSHU_COOKIE="a1=xxx;webId=xxx"
@@ -138,21 +138,6 @@ DOUBAO_COOKIE="your_doubao_cookie"
 
 * Docker：`docker-compose up -d --build`
 * 本地运行：`python app.py`
-
-### 5. 平台支持说明
-
-* **豆包**：支持 `/thread/` 对话分享中的图片和视频，以及 `/video-sharing` 独立 AI 视频。
-* **即梦 AI**：支持已发布作品。已失效、已取消发布或模板草稿类链接可能返回 `itemId not exist`，目前无法解析。
-* **媒体直链**：平台返回的图片、视频地址通常带有时效签名，请在解析成功后及时使用。
-
-### 6. 解析器单文件自测
-
-豆包和即梦解析器内置了可直接运行的成功样例：
-
-```bash
-python3 src/parsers/doubao_parser.py
-python3 src/parsers/jimeng_parser.py
-```
 
 ## 📂 项目结构
 
