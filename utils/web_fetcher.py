@@ -212,6 +212,15 @@ class UrlParser:
             query_params = parse_qs(parsed_url.query)
             if value := query_params.get("sid", [None])[0]:
                 address = f"{address}?{urlencode({'sid': value})}"
+        elif platform == "通义千问":
+            query_params = parse_qs(parsed_url.query)
+            preserved_params = []
+            for key in ("shareId", "authorId", "enter_from", "fp_from", "channel_from", "image_index"):
+                value = query_params.get(key, [None])[0]
+                if value is not None:
+                    preserved_params.append((key, value))
+            if preserved_params:
+                address = f"{address}?{urlencode(preserved_params)}"
         return address
 
     @staticmethod
@@ -220,6 +229,9 @@ class UrlParser:
             parsed_url = urlparse(url)
             query_params = parse_qs(parsed_url.query)
             # 尝试从查询参数中获取视频ID
+            params_share_id = query_params.get('shareId', [None])[0]
+            if params_share_id:
+                return params_share_id
             params_vid = query_params.get('vid', [None])[0]
             if params_vid:
                 return params_vid

@@ -27,6 +27,7 @@
     {"platform": "腾讯频道", "url": "https://pd.qq.com/s/9df0az124?b=2", "media_types": ["video"], "expected_fields": ["video", "cover", "title", "author"], "note": "已验证"},
     {"platform": "虎牙", "url": "https://hy.fan/v3cwMK", "media_types": ["video"], "expected_fields": ["video", "cover", "title"], "note": "2026-08-27 已验证"},
     {"platform": "西瓜视频", "url": "https://www.iesdouyin.com/xg/video/7676450021063735414/?app=video_article&timestamp=1787834623&device_id=973518813013579&tt_from=copy_link&utm_source=copy_link&utm_medium=ios&utm_campaign=client_share&test_group=v1", "alternate_urls": ["https://v.douyin.com/Nid-fFF_sdI/"], "media_types": ["video"], "expected_fields": ["video", "cover", "title", "author"], "note": "2026-08-27 更新；App 短链会跳转到同类西瓜视频页面"},
-    {"platform": "豆包", "url": "https://www.doubao.com/video-sharing?share_id=41356597786354690&source_type=mobile&video_id=v0d69cg10004d6978e2ljht0i4fdpp00&share_scene=video_viewer", "media_types": ["video"], "expected_fields": ["video", "cover", "title", "author"], "note": "待人工复核"}
+    {"platform": "豆包", "url": "https://www.doubao.com/video-sharing?share_id=41356597786354690&source_type=mobile&video_id=v0d69cg10004d6978e2ljht0i4fdpp00&share_scene=video_viewer", "media_types": ["video"], "expected_fields": ["video", "cover", "title", "author"], "note": "待人工复核"},
+    {"platform": "通义千问", "url": "https://activity.qianwen.com/r/ai-studio-mobile/qwen-external-share?&shareId=ZeeOedXncnGlElkluRMA&authorId=OjTAcGHgZgyeCwY4jeMDuH9JkGZ10BNYFM1HfW4CcLhxRA%3D%3D&enter_from=create_share&fp_from=create_share&channel_from=qwen&image_index=0", "media_types": ["images"], "expected_fields": ["images", "cover", "title", "author"], "note": "2026-08-27 已验证"}
   ]
 }
