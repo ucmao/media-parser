@@ -30,6 +30,10 @@ class UrlParserTest(unittest.TestCase):
                 "https://klingai-share.kuaishou.com/h5-app/share?creative_id=123&work_id=123&creative_type=WORK",
             ),
             (
+                "https://w13.soulsmile.cn/activity/#/web/topic/detail?postIdEcpt=post&sign=signature&signVersion=0.0.1&noise=x",
+                "https://w13.soulsmile.cn/activity#/web/topic/detail?postIdEcpt=post&sign=signature&signVersion=0.0.1",
+            ),
+            (
                 "https://channels.weixin.qq.com/finder-preview/pages/sph?id=AzGrUgqzFv&noise=x",
                 "https://channels.weixin.qq.com/finder-preview/pages/sph?id=AzGrUgqzFv",
             ),
@@ -42,6 +46,7 @@ class UrlParserTest(unittest.TestCase):
         cases = [
             ("https://www.doubao.com/video-sharing?video_id=video-id", "video-id"),
             ("https://klingai-share.kuaishou.com/h5-app/share?creative_id=123", "123"),
+            ("https://w13.soulsmile.cn/activity#/web/topic/detail?postIdEcpt=post", "post"),
             ("https://www.bilibili.com/video/BV123", "BV123"),
             ("https://www.pearvideo.com/video_123.html", "video_123"),
         ]
@@ -82,6 +87,9 @@ class UrlParserTest(unittest.TestCase):
             UrlParser.get_platform("https://klingai-share.kuaishou.com/h5-app/share?creative_id=123"),
             "可灵 AI",
         )
+
+    def test_recognizes_soul_share_domain(self):
+        self.assertEqual(UrlParser.get_platform("https://w13.soulsmile.cn/activity/"), "Soul")
 
 class WebFetcherTest(unittest.TestCase):
     @staticmethod

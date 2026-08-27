@@ -158,6 +158,18 @@ class UrlParser:
                     preserved_params.append((key, value))
             if preserved_params:
                 address = f"{address}?{urlencode(preserved_params)}"
+        elif platform == "Soul":
+            fragment = parsed_url.fragment
+            if "?" in fragment:
+                fragment_path, fragment_query = fragment.split("?", 1)
+                query_params = parse_qs(fragment_query)
+                preserved_params = []
+                for key in ("postIdEcpt", "sign", "signVersion"):
+                    value = query_params.get(key, [None])[0]
+                    if value is not None:
+                        preserved_params.append((key, value))
+                if preserved_params:
+                    address = f"{address}#{fragment_path}?{urlencode(preserved_params)}"
         elif platform == "微信视频号":
             query_params = parse_qs(parsed_url.query)
             short_uri = query_params.get('id', [None])[0]
@@ -198,6 +210,10 @@ class UrlParser:
             params_work_id = query_params.get('work_id', [None])[0]
             if params_work_id:
                 return params_work_id
+            fragment_query = parse_qs(parsed_url.fragment.split('?', 1)[1]) if '?' in parsed_url.fragment else {}
+            params_post_id = fragment_query.get('postIdEcpt', [None])[0]
+            if params_post_id:
+                return params_post_id
             # 尝试从URL路径中获取视频ID
             path_segments = parsed_url.path.strip('/').split('/')
             if path_segments:

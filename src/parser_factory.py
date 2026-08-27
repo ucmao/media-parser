@@ -24,6 +24,7 @@ from src.parsers.doubao_parser import DoubaoParser
 from src.parsers.jimeng_parser import JimengParser
 from src.parsers.wechat_channels_parser import WeChatChannelsParser
 from src.parsers.kling_parser import KlingParser
+from src.parsers.soul_parser import SoulParser
 
 class ParserFactory:
     platform_to_parser = {
@@ -53,6 +54,7 @@ class ParserFactory:
         "即梦 AI": JimengParser,
         "微信视频号": WeChatChannelsParser,
         "可灵 AI": KlingParser,
+        "Soul": SoulParser,
     }
 
     @staticmethod
