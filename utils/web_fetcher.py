@@ -149,6 +149,11 @@ class UrlParser:
                     preserved_params.append((key, value))
             if preserved_params:
                 address = f"{address}?{urlencode(preserved_params)}"
+        elif platform == "微信视频号":
+            query_params = parse_qs(parsed_url.query)
+            short_uri = query_params.get('id', [None])[0]
+            if short_uri:
+                address = f"{address}?{urlencode({'id': short_uri})}"
         return address
 
     @staticmethod

@@ -22,6 +22,7 @@ from src.parsers.xinpianchang_parser import XinpianchangParser
 from src.parsers.zuiyou_parser import ZuiyouParser
 from src.parsers.doubao_parser import DoubaoParser
 from src.parsers.jimeng_parser import JimengParser
+from src.parsers.wechat_channels_parser import WeChatChannelsParser
 
 class ParserFactory:
     platform_to_parser = {
@@ -48,7 +49,8 @@ class ParserFactory:
         "新片场": XinpianchangParser,
         "最右": ZuiyouParser,
         "豆包": DoubaoParser,
-        "即梦 AI": JimengParser
+        "即梦 AI": JimengParser,
+        "微信视频号": WeChatChannelsParser,
     }
 
     @staticmethod

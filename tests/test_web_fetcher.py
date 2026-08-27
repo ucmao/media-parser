@@ -24,6 +24,11 @@ class UrlParserTest(unittest.TestCase):
             ("https://www.douyin.com/?modal_id=44&noise=x", "https://www.douyin.com?modal_id=44"),
             ("https://kg.qq.com/node/play?s=66&noise=x", "https://kg.qq.com/node/play?s=66"),
             ("https://izuiyou.com/post/detail?pid=77&noise=x", "https://izuiyou.com/post/detail?pid=77"),
+            ("https://weixin.qq.com/sph/AzGrUgqzFv?noise=x", "https://weixin.qq.com/sph/AzGrUgqzFv"),
+            (
+                "https://channels.weixin.qq.com/finder-preview/pages/sph?id=AzGrUgqzFv&noise=x",
+                "https://channels.weixin.qq.com/finder-preview/pages/sph?id=AzGrUgqzFv",
+            ),
         ]
         for original, expected in cases:
             with self.subTest(original=original):
@@ -59,6 +64,13 @@ class UrlParserTest(unittest.TestCase):
         for url in unsupported_urls:
             with self.subTest(url=url):
                 self.assertIsNone(UrlParser.get_platform(url))
+
+    def test_recognizes_wechat_channels_domains(self):
+        self.assertEqual(UrlParser.get_platform("https://weixin.qq.com/sph/AzGrUgqzFv"), "微信视频号")
+        self.assertEqual(
+            UrlParser.get_platform("https://channels.weixin.qq.com/finder-preview/pages/sph?id=abc"),
+            "微信视频号",
+        )
 
 class WebFetcherTest(unittest.TestCase):
     @staticmethod
