@@ -27,6 +27,7 @@ from src.parsers.tencent_channel_parser import TencentChannelParser
 from src.parsers.jianying_parser import JianyingParser
 from src.parsers.qianwen_parser import QianwenParser
 from src.parsers.xianyu_parser import XianyuParser
+from src.parsers.xiaoyunque_parser import XiaoyunqueParser
 
 class ParserFactory:
     platform_to_parser = {
@@ -51,6 +52,7 @@ class ParserFactory:
         "最右": ZuiyouParser,
         "豆包": DoubaoParser,
         "即梦 AI": JimengParser,
+        "小云雀 AI": XiaoyunqueParser,
         "微信视频号": WeChatChannelsParser,
         "可灵 AI": KlingParser,
         "Soul": SoulParser,

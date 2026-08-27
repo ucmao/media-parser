@@ -156,6 +156,9 @@ class UrlParser:
                     preserved_params.append((key, value))
             if preserved_params:
                 address = f"{address}?{urlencode(preserved_params)}"
+        elif platform == "小云雀 AI":
+            if parsed_url.query:
+                address = f"{address}?{parsed_url.query}"
         elif platform == "可灵 AI":
             query_params = parse_qs(parsed_url.query)
             preserved_params = []
