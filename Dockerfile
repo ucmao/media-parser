@@ -6,20 +6,27 @@ WORKDIR /app
 
 # 设置环境变量
 # 防止 Python 生成 .pyc 文件
-ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONDONTWRITEBYTECODE=1
 # 确保在输出日志时不会被缓冲，便于查看 Docker 日志
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONUNBUFFERED=1
+# 禁用 pip 版本检查，减少构建时的无用网络请求
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 
 # 复制依赖说明文件并配置国内镜像源后安装 Python 包
 COPY requirements.txt /app/
 RUN pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/ && \
     pip install --no-cache-dir -r requirements.txt
 
-# 复制项目所有代码
-COPY . /app/
+# 使用专用非 root 用户运行服务，降低容器进程权限。
+RUN addgroup --system app && adduser --system --ingroup app app
 
-# 如果 static/videos 目录用于存放缓存拼接视频，确保有权限使用
-RUN mkdir -p /app/static/videos && chmod -R 777 /app/static/videos
+# 复制项目所有代码
+COPY --chown=app:app . /app/
+
+# 如果 static/videos 目录用于存放缓存拼接视频，确保应用用户可以写入。
+RUN mkdir -p /app/static/videos && chown -R app:app /app/static
+
+USER app
 
 # 开放 8051 端口（在 app.py 中设定）
 EXPOSE 8051

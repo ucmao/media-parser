@@ -45,6 +45,10 @@ gunicorn.log
 # 日志 & 临时文件
 *.log
 logs/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
 
 # 视频文件
 *.mp4
