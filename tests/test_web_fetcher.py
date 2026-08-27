@@ -37,6 +37,11 @@ class UrlParserTest(unittest.TestCase):
                 "https://music.douyin.com/qishui/share/ugc_video?ugc_video_id=123&noise=x",
                 "https://music.douyin.com/qishui/share/ugc_video?ugc_video_id=123",
             ),
+            ("https://pd.qq.com/s/code?b=2&noise=x", "https://pd.qq.com/s/code?b=2"),
+            (
+                "https://lv.ulikecam.com/activity/lv/sharevideo?template_id=123&item_type=0&noise=x",
+                "https://lv.ulikecam.com/activity/lv/sharevideo?template_id=123&item_type=0",
+            ),
             (
                 "https://channels.weixin.qq.com/finder-preview/pages/sph?id=AzGrUgqzFv&noise=x",
                 "https://channels.weixin.qq.com/finder-preview/pages/sph?id=AzGrUgqzFv",
@@ -52,6 +57,7 @@ class UrlParserTest(unittest.TestCase):
             ("https://klingai-share.kuaishou.com/h5-app/share?creative_id=123", "123"),
             ("https://w13.soulsmile.cn/activity#/web/topic/detail?postIdEcpt=post", "post"),
             ("https://music.douyin.com/qishui/share/ugc_video?ugc_video_id=123", "123"),
+            ("https://lv.ulikecam.com/activity/lv/sharevideo?template_id=123", "123"),
             ("https://www.bilibili.com/video/BV123", "BV123"),
             ("https://www.pearvideo.com/video_123.html", "video_123"),
         ]
@@ -99,6 +105,12 @@ class UrlParserTest(unittest.TestCase):
     def test_recognizes_qishui_music_domains(self):
         self.assertEqual(UrlParser.get_platform("https://qishui.douyin.com/s/code/"), "汽水音乐")
         self.assertEqual(UrlParser.get_platform("https://music.douyin.com/track/123"), "汽水音乐")
+
+    def test_recognizes_tencent_channel_domain(self):
+        self.assertEqual(UrlParser.get_platform("https://pd.qq.com/s/code?b=2"), "腾讯频道")
+
+    def test_recognizes_jianying_share_domain(self):
+        self.assertEqual(UrlParser.get_platform("https://lv.ulikecam.com/activity/lv/sharevideo"), "剪映")
 
 class WebFetcherTest(unittest.TestCase):
     @staticmethod

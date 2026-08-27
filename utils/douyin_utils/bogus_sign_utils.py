@@ -1,7 +1,7 @@
 import os
 import urllib
 import random
-from py_mini_racer import MiniRacer
+from py_mini_racer._mini_racer import MiniRacer
 
 
 class CommonUtils(object):
@@ -56,6 +56,5 @@ class CommonUtils(object):
         for _ in range(randomlength):
             random_str += base_str[random.randint(0, length)]
         return random_str
-
 
 

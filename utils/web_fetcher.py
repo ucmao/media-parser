@@ -179,6 +179,19 @@ class UrlParser:
                     preserved_params.append((key, value))
             if preserved_params:
                 address = f"{address}?{urlencode(preserved_params)}"
+        elif platform == "腾讯频道":
+            query_params = parse_qs(parsed_url.query)
+            if value := query_params.get("b", [None])[0]:
+                address = f"{address}?{urlencode({'b': value})}"
+        elif platform == "剪映":
+            query_params = parse_qs(parsed_url.query)
+            preserved_params = []
+            for key in ("template_id", "item_type"):
+                value = query_params.get(key, [None])[0]
+                if value is not None:
+                    preserved_params.append((key, value))
+            if preserved_params:
+                address = f"{address}?{urlencode(preserved_params)}"
         elif platform == "微信视频号":
             query_params = parse_qs(parsed_url.query)
             short_uri = query_params.get('id', [None])[0]
@@ -229,6 +242,9 @@ class UrlParser:
             params_ugc_video_id = query_params.get('ugc_video_id', [None])[0]
             if params_ugc_video_id:
                 return params_ugc_video_id
+            params_template_id = query_params.get('template_id', [None])[0]
+            if params_template_id:
+                return params_template_id
             # 尝试从URL路径中获取视频ID
             path_segments = parsed_url.path.strip('/').split('/')
             if path_segments:

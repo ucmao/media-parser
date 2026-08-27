@@ -26,6 +26,8 @@ from src.parsers.wechat_channels_parser import WeChatChannelsParser
 from src.parsers.kling_parser import KlingParser
 from src.parsers.soul_parser import SoulParser
 from src.parsers.qsmusic_parser import QSMusicParser
+from src.parsers.tencent_channel_parser import TencentChannelParser
+from src.parsers.jianying_parser import JianyingParser
 
 class ParserFactory:
     platform_to_parser = {
@@ -57,6 +59,8 @@ class ParserFactory:
         "可灵 AI": KlingParser,
         "Soul": SoulParser,
         "汽水音乐": QSMusicParser,
+        "腾讯频道": TencentChannelParser,
+        "剪映": JianyingParser,
     }
 
     @staticmethod

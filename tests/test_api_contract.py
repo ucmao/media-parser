@@ -1,12 +1,6 @@
 import unittest
 from unittest.mock import Mock, patch
 
-import py_mini_racer
-
-
-if not hasattr(py_mini_racer, "MiniRacer"):
-    py_mini_racer.MiniRacer = object
-
 from app import app
 from src.api.parse import _fetch_with_retry, safe_execute
 
