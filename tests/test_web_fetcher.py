@@ -142,6 +142,13 @@ class WebFetcherTest(unittest.TestCase):
         get.assert_not_called()
         self.assertEqual(result, "https://www.zhihu.com/pin/2066168388699807826")
 
+    def test_passes_lvzhou_url_through_without_fetching_page(self):
+        url = "https://oasis.weibo.cn/v1/h5/share?sid=123456789"
+        with patch("utils.web_fetcher.requests.get") as get:
+            result = WebFetcher.fetch_redirect_url(url)
+        get.assert_not_called()
+        self.assertEqual(result, url)
+
     def test_follows_relative_redirect(self):
         responses = [
             self.response("https://www.douyin.com/share/123"),

@@ -17,7 +17,8 @@ class WebFetcher:
         if not isinstance(url, str) or not url.strip() or max_redirects < 1:
             return None
         # 知乎公开 API 可直接通过内容 ID 解析，访问网页常触发 403 风控。
-        if UrlParser.get_platform(url) == "知乎":
+        # 绿洲分享页会对通用桌面请求头返回 500，由解析器使用移动端请求头抓取。
+        if UrlParser.get_platform(url) in {"知乎", "绿洲", "新片场"}:
             return UrlParser.extract_video_address(url)
         try:
             current_url = url
@@ -207,6 +208,10 @@ class UrlParser:
             short_uri = query_params.get('id', [None])[0]
             if short_uri:
                 address = f"{address}?{urlencode({'id': short_uri})}"
+        elif platform == "绿洲":
+            query_params = parse_qs(parsed_url.query)
+            if value := query_params.get("sid", [None])[0]:
+                address = f"{address}?{urlencode({'sid': value})}"
         return address
 
     @staticmethod
