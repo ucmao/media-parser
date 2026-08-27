@@ -25,6 +25,7 @@ from src.parsers.jimeng_parser import JimengParser
 from src.parsers.wechat_channels_parser import WeChatChannelsParser
 from src.parsers.kling_parser import KlingParser
 from src.parsers.soul_parser import SoulParser
+from src.parsers.qsmusic_parser import QSMusicParser
 
 class ParserFactory:
     platform_to_parser = {
@@ -55,6 +56,7 @@ class ParserFactory:
         "微信视频号": WeChatChannelsParser,
         "可灵 AI": KlingParser,
         "Soul": SoulParser,
+        "汽水音乐": QSMusicParser,
     }
 
     @staticmethod

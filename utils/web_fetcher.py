@@ -170,6 +170,15 @@ class UrlParser:
                         preserved_params.append((key, value))
                 if preserved_params:
                     address = f"{address}#{fragment_path}?{urlencode(preserved_params)}"
+        elif platform == "汽水音乐":
+            query_params = parse_qs(parsed_url.query)
+            preserved_params = []
+            for key in ("track_id", "ugc_video_id"):
+                value = query_params.get(key, [None])[0]
+                if value is not None:
+                    preserved_params.append((key, value))
+            if preserved_params:
+                address = f"{address}?{urlencode(preserved_params)}"
         elif platform == "微信视频号":
             query_params = parse_qs(parsed_url.query)
             short_uri = query_params.get('id', [None])[0]
@@ -214,6 +223,12 @@ class UrlParser:
             params_post_id = fragment_query.get('postIdEcpt', [None])[0]
             if params_post_id:
                 return params_post_id
+            params_track_id = query_params.get('track_id', [None])[0]
+            if params_track_id:
+                return params_track_id
+            params_ugc_video_id = query_params.get('ugc_video_id', [None])[0]
+            if params_ugc_video_id:
+                return params_ugc_video_id
             # 尝试从URL路径中获取视频ID
             path_segments = parsed_url.path.strip('/').split('/')
             if path_segments:
