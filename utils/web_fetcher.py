@@ -29,7 +29,7 @@ class WebFetcher:
                     if any(path in redirect_url for path in ["/login", "/404", "/captcha", "/verify", "/error"]):
                         break
                     current_url = redirect_url
-                    if DOMAIN_TO_NAME.get(UrlParser.get_domain(current_url)):
+                    if UrlParser.get_platform(current_url):
                         break
                 else:
                     break
@@ -37,7 +37,7 @@ class WebFetcher:
             else:
                 return None
 
-            if not DOMAIN_TO_NAME.get(UrlParser.get_domain(current_url)):
+            if not UrlParser.get_platform(current_url):
                 return None
 
             return UrlParser.extract_video_address(current_url)
@@ -74,16 +74,28 @@ class UrlParser:
         if not isinstance(url, str):
             return ''
         parsed_url = urlparse(url)
-        domain = parsed_url.netloc
-        return domain
+        return (parsed_url.hostname or '').lower().rstrip('.')
+
+    @staticmethod
+    def get_platform(url):
+        """识别链接所属平台，并兼容快手生成的随机移动端子域名。"""
+        domain = UrlParser.get_domain(url)
+        platform = DOMAIN_TO_NAME.get(domain)
+        if platform:
+            return platform
+
+        if domain.endswith('.m.chenzhongtech.com'):
+            return '快手'
+
+        return None
 
     @staticmethod
     def extract_video_address(url):
         if not isinstance(url, str) or not url:
             return None
         parsed_url = urlparse(url)
-        domain = parsed_url.netloc
-        platform = DOMAIN_TO_NAME.get(domain)
+        domain = UrlParser.get_domain(url)
+        platform = UrlParser.get_platform(url)
         address = f"{parsed_url.scheme}://{domain}{parsed_url.path}"
         if address.endswith('/'):
             address = address[:-1]

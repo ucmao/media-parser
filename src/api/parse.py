@@ -1,6 +1,5 @@
 from flask import Blueprint, request
 from configs.logging_config import logger
-from configs.general_constants import DOMAIN_TO_NAME
 from utils.web_fetcher import WebFetcher, UrlParser
 from src.parser_factory import ParserFactory
 from utils.common_utils import make_response
@@ -28,7 +27,7 @@ def parse():
         if not redirect_url:
             return make_response(400, '无法访问或识别该分享链接', None, False), 400
 
-        platform = DOMAIN_TO_NAME.get(UrlParser.get_domain(redirect_url))
+        platform = UrlParser.get_platform(redirect_url)
         real_url = UrlParser.extract_video_address(redirect_url)
         logger.debug(f'real_url {real_url}')
 

@@ -46,6 +46,22 @@ class UrlParserTest(unittest.TestCase):
         self.assertEqual(UrlParser.convert_to_https("https://example.com/a"), "https://example.com/a")
         self.assertIsNone(UrlParser.convert_to_https(None))
 
+    def test_recognizes_kuaishou_random_mobile_subdomains(self):
+        self.assertEqual(
+            UrlParser.get_platform("https://random-value.m.chenzhongtech.com/fw/photo/123"),
+            "快手",
+        )
+
+    def test_rejects_domains_that_only_resemble_kuaishou_mobile_subdomains(self):
+        unsupported_urls = [
+            "https://random-value.m.chenzhongtech.com.evil.example/fw/photo/123",
+            "https://random-valuem.chenzhongtech.com/fw/photo/123",
+            "https://fakechenzhongtech.com/fw/photo/123",
+        ]
+        for url in unsupported_urls:
+            with self.subTest(url=url):
+                self.assertIsNone(UrlParser.get_platform(url))
+
 
 class WebFetcherTest(unittest.TestCase):
     @staticmethod
@@ -67,6 +83,15 @@ class WebFetcherTest(unittest.TestCase):
         with patch("utils.web_fetcher.requests.get", side_effect=responses):
             result = WebFetcher.fetch_redirect_url("https://short.example/a")
         self.assertEqual(result, "https://www.douyin.com/share/123")
+
+    def test_accepts_kuaishou_random_mobile_subdomain_redirect(self):
+        redirect_url = "https://random-value.m.chenzhongtech.com/fw/photo/123?noise=x"
+        with patch(
+            "utils.web_fetcher.requests.get",
+            return_value=self.response(redirect_url),
+        ):
+            result = WebFetcher.fetch_redirect_url("https://v.kuaishou.com/short-code")
+        self.assertEqual(result, "https://random-value.m.chenzhongtech.com/fw/photo/123")
 
     def test_stops_before_login_or_verification_page(self):
         for blocked_path in ("/login", "/404", "/captcha", "/verify", "/error"):

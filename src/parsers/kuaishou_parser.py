@@ -4,7 +4,7 @@ import requests
 from urllib.parse import urlparse
 from utils.web_fetcher import UrlParser
 from src.parsers.base_parser import BaseParser
-from configs.general_constants import USER_AGENT_PC
+from configs.general_constants import USER_AGENT_M, USER_AGENT_PC
 from configs.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -65,10 +65,10 @@ class KuaishouParser(BaseParser):
         path = urlparse(url).path.rstrip("/")
         return path.startswith("/fw/photo/")
 
-    def _build_lightweight_headers(self):
+    def _build_mobile_headers(self):
         return {
-            "User-Agent": "Mozilla/5.0",
-            "referer": "https://www.kuaishou.com/",
+            "User-Agent": random.choice(USER_AGENT_M),
+            "referer": "https://v.m.chenzhongtech.com/",
             "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         }
 
@@ -140,9 +140,10 @@ class KuaishouParser(BaseParser):
 
     def _load_page_with_fallbacks(self):
         for candidate_url in self._candidate_urls():
-            if self._try_parse_candidate(candidate_url, self.headers):
+            # 快手移动端页面优先返回完整的 INIT_STATE；桌面端页面仅作为兼容兜底。
+            if self._try_parse_candidate(candidate_url, self._build_mobile_headers()):
                 return
-            if self._try_parse_candidate(candidate_url, self._build_lightweight_headers()):
+            if self._try_parse_candidate(candidate_url, self.headers):
                 return
 
         self.page_type = "UNKNOWN"
