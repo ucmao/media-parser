@@ -121,11 +121,6 @@ class UrlParser:
             modal_id = query_params.get('modal_id', [None])[0]
             if modal_id:
                 address = f"{address}?modal_id={modal_id}"
-        elif platform == "YouTube":
-            query_params = parse_qs(parsed_url.query)
-            v = query_params.get('v', [None])[0]
-            if v:
-                address = f"{address}?v={v}"
         elif platform == "全民K歌":
             query_params = parse_qs(parsed_url.query)
             s = query_params.get('s', [None])[0]
@@ -207,10 +202,8 @@ class UrlParser:
             '快手': 'https://www.kuaishou.com/short-video/',
             '梨视频': 'https://www.pearvideo.com/',
             'AcFun': 'https://www.acfun.cn/v/',
-            'TikTok': 'https://www.tiktok.com/@/video/',
             '微博': 'https://m.weibo.cn/status/',
             '西瓜视频': 'https://www.ixigua.com/',
-            'YouTube': 'https://www.youtube.com/watch?v=',
             '知乎': 'https://www.zhihu.com/question/',
             '逗拍': 'https://v2.doupai.cc/topic/',
             '虎牙': 'https://v.huya.com/play/',

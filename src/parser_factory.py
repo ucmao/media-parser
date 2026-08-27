@@ -7,10 +7,8 @@ from src.parsers.weishi_parser import WeishiParser
 from src.parsers.lishipin_parser import LishipinParser
 from src.parsers.pipigaoxiao_parser import PipigaoxiaoParser
 from src.parsers.acfun_parser import AcfunParser
-from src.parsers.tiktok_parser import TiktokParser
 from src.parsers.weibo_parser import WeiboParser
 from src.parsers.xigua_parser import XiguaParser
-from src.parsers.youtube_parser import YoutubeParser
 from src.parsers.zhihu_parser import ZhihuParser
 from src.parsers.doupai_parser import DoupaiParser
 from src.parsers.huya_parser import HuyaParser
@@ -36,10 +34,8 @@ class ParserFactory:
         "梨视频": LishipinParser,
         "皮皮搞笑": PipigaoxiaoParser,
         "AcFun": AcfunParser,
-        "TikTok": TiktokParser,
         "微博": WeiboParser,
         "西瓜视频": XiguaParser,
-        "YouTube": YoutubeParser,
         "知乎": ZhihuParser,
         "逗拍": DoupaiParser,
         "虎牙": HuyaParser,

@@ -22,7 +22,6 @@ class UrlParserTest(unittest.TestCase):
             ("https://isee.weishi.qq.com/ws/app-pages/share/index.html?id=22&noise=x", "https://isee.weishi.qq.com/ws/app-pages/share/index.html?id=22"),
             ("https://www.xiaohongshu.com/explore/33?xsec_token=token&noise=x", "https://www.xiaohongshu.com/explore/33?xsec_token=token"),
             ("https://www.douyin.com/?modal_id=44&noise=x", "https://www.douyin.com?modal_id=44"),
-            ("https://www.youtube.com/watch?v=55&feature=share", "https://www.youtube.com/watch?v=55"),
             ("https://kg.qq.com/node/play?s=66&noise=x", "https://kg.qq.com/node/play?s=66"),
             ("https://izuiyou.com/post/detail?pid=77&noise=x", "https://izuiyou.com/post/detail?pid=77"),
         ]
@@ -32,7 +31,6 @@ class UrlParserTest(unittest.TestCase):
 
     def test_get_video_id_supports_query_path_and_html_suffix(self):
         cases = [
-            ("https://www.youtube.com/watch?v=query-id", "query-id"),
             ("https://www.doubao.com/video-sharing?video_id=video-id", "video-id"),
             ("https://www.bilibili.com/video/BV123", "BV123"),
             ("https://www.pearvideo.com/video_123.html", "video_123"),
@@ -61,7 +59,6 @@ class UrlParserTest(unittest.TestCase):
         for url in unsupported_urls:
             with self.subTest(url=url):
                 self.assertIsNone(UrlParser.get_platform(url))
-
 
 class WebFetcherTest(unittest.TestCase):
     @staticmethod
