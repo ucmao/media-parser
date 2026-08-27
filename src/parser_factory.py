@@ -26,6 +26,7 @@ from src.parsers.qsmusic_parser import QSMusicParser
 from src.parsers.tencent_channel_parser import TencentChannelParser
 from src.parsers.jianying_parser import JianyingParser
 from src.parsers.qianwen_parser import QianwenParser
+from src.parsers.xianyu_parser import XianyuParser
 
 class ParserFactory:
     platform_to_parser = {
@@ -57,6 +58,7 @@ class ParserFactory:
         "腾讯频道": TencentChannelParser,
         "剪映": JianyingParser,
         "通义千问": QianwenParser,
+        "闲鱼": XianyuParser,
     }
 
     @staticmethod
