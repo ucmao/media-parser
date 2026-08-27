@@ -27,6 +27,7 @@ class QSMusicParser(BaseParser):
         self.video_url = None
         self.audio_url = None
         self.author = {"nickname": "", "author_id": "", "avatar": ""}
+        self.subtitles = None
         self.track_id = self._extract_track_id(real_url)
         self._parse_page()
 
@@ -67,6 +68,7 @@ class QSMusicParser(BaseParser):
                             self.video_url = self.video_url or stream_url
                         else:
                             self.audio_url = self.audio_url or stream_url
+                    self.subtitles = self.subtitles or self._extract_subtitles_from_dict(options)
 
                 track = page_data.get("trackOptions") or page_data.get("track") or page_data.get("seo_track") or {}
                 track = track.get("track") if isinstance(track.get("track"), dict) else track
@@ -81,6 +83,9 @@ class QSMusicParser(BaseParser):
                 album = track.get("album") or {}
                 self.cover_url = self.cover_url or self._first_url(album.get("cover_url")) or self._first_url(track.get("cover_url"))
                 self.audio_url = self.audio_url or track.get("audio_url") or track.get("play_url") or track.get("main_url")
+
+                lyrics_opt = page_data.get("audioWithLyricsOption") or track
+                self.subtitles = self.subtitles or self._extract_subtitles_from_dict(lyrics_opt)
         except (json.JSONDecodeError, TypeError) as exc:
             logger.warning("Error parsing QSMusic router data: %s", exc)
 
@@ -96,6 +101,8 @@ class QSMusicParser(BaseParser):
             )
             response.raise_for_status()
             payload = response.json()
+            if not isinstance(payload, dict):
+                return
         except Exception as exc:
             logger.warning("Failed to fetch QSMusic SEO payload: %s", exc)
             return
@@ -140,6 +147,70 @@ class QSMusicParser(BaseParser):
             return next((value.get(key) for key in ("url", "origin_url", "large_url") if value.get(key)), None)
         return None
 
+    def _extract_subtitles_from_dict(self, data):
+        """从字典数据中提炼字幕/歌词列表。"""
+        if not isinstance(data, dict):
+            return None
+
+        sentences = (
+            data.get("songMakerTeamSentences")
+            or data.get("sentences")
+            or data.get("lyrics")
+            or data.get("subtitles")
+        )
+        if isinstance(sentences, list) and sentences:
+            items = []
+            for line in sentences:
+                if isinstance(line, str) and line.strip():
+                    items.append({"text": line.strip()})
+                elif isinstance(line, dict):
+                    text = (
+                        line.get("text")
+                        or line.get("content")
+                        or line.get("sentence")
+                        or line.get("lyric")
+                    )
+                    if text:
+                        item = {"text": str(text).strip()}
+                        if "start_time" in line or "startTime" in line:
+                            item["start"] = line.get("start_time") or line.get("startTime")
+                        if "end_time" in line or "endTime" in line:
+                            item["end"] = line.get("end_time") or line.get("endTime")
+                        items.append(item)
+            if items:
+                return items
+
+        lrc_content = (
+            data.get("lrc")
+            or data.get("lyric")
+            or data.get("lyrics_text")
+            or data.get("lyric_string")
+        )
+        if isinstance(lrc_content, str) and lrc_content.strip():
+            return self._parse_lrc_text(lrc_content)
+
+        return None
+
+    @staticmethod
+    def _parse_lrc_text(lrc_text):
+        lines = lrc_text.splitlines()
+        subtitles = []
+        pattern = re.compile(r"\[(\d+):(\d+(?:\.\d+)?)\](.*)")
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            match = pattern.match(line)
+            if match:
+                minutes, seconds, text = match.groups()
+                text = text.strip()
+                if text:
+                    total_seconds = int(minutes) * 60 + float(seconds)
+                    subtitles.append({"start": round(total_seconds, 3), "text": text})
+            elif not line.startswith("["):
+                subtitles.append({"text": line})
+        return subtitles if subtitles else None
+
     def get_real_video_url(self):
         return self.video_url
 
@@ -154,6 +225,9 @@ class QSMusicParser(BaseParser):
 
     def get_author_info(self):
         return self.author
+
+    def get_subtitles(self):
+        return self.subtitles
 
     def get_video_list(self):
         return [self.video_url] if self.video_url else []

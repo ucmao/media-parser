@@ -45,7 +45,7 @@ class XiaoyunqueParserTest(unittest.TestCase):
 
     def test_url_parser_recognizes_xiaoyunque(self):
         url = "https://xiaoyunque.jianying.com/s/z_7nWGLGruM/"
-        self.assertEqual(UrlParser.get_platform(url), "小云雀 AI")
+        self.assertEqual(UrlParser.get_platform(url), "小云雀AI")
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-"""小云雀 AI (xiaoyunque.jianying.com) 分享解析器。"""
+"""小云雀AI (xiaoyunque.jianying.com) 分享解析器。"""
 
 from urllib.parse import parse_qs, urlparse
 
@@ -79,7 +79,7 @@ class XiaoyunqueParser(BaseParser):
         user_info = generate_page.get("user_info") or {}
         item_info = generate_page.get("item_info") or {}
 
-        title = item_info.get("desc") or item_info.get("title") or "小云雀 AI 作品"
+        title = item_info.get("desc") or item_info.get("title") or "小云雀AI 作品"
 
         # 图片列表
         image_info = item_info.get("image_info") or []

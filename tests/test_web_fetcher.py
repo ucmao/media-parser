@@ -88,16 +88,16 @@ class UrlParserTest(unittest.TestCase):
                 self.assertIsNone(UrlParser.get_platform(url))
 
     def test_recognizes_wechat_channels_domains(self):
-        self.assertEqual(UrlParser.get_platform("https://weixin.qq.com/sph/AzGrUgqzFv"), "微信视频号")
+        self.assertEqual(UrlParser.get_platform("https://weixin.qq.com/sph/AzGrUgqzFv"), "视频号")
         self.assertEqual(
             UrlParser.get_platform("https://channels.weixin.qq.com/finder-preview/pages/sph?id=abc"),
-            "微信视频号",
+            "视频号",
         )
 
     def test_recognizes_kling_share_domain(self):
         self.assertEqual(
             UrlParser.get_platform("https://klingai-share.kuaishou.com/h5-app/share?creative_id=123"),
-            "可灵 AI",
+            "可灵AI",
         )
 
     def test_recognizes_soul_share_domain(self):

@@ -1,4 +1,4 @@
-"""可灵 AI 分享作品解析器。"""
+"""可灵AI 分享作品解析器。"""
 
 import re
 from urllib.parse import parse_qs, urlparse
@@ -77,7 +77,7 @@ class KlingParser(BaseParser):
         return self._resource_url(self.detail.get("resource"))
 
     def get_title_content(self):
-        return self.detail.get("introduction") or "可灵 AI 作品"
+        return self.detail.get("introduction") or "可灵AI 作品"
 
     def get_cover_photo_url(self):
         return self._resource_url(self.detail.get("cover")) or self._resource_url(

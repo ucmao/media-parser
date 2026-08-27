@@ -89,6 +89,8 @@ def parse():
         }
         if len(processed_video_list) > 1:
             data_dict['video_list'] = processed_video_list
+        if content_data.get('subtitles'):
+            data_dict['subtitles'] = content_data['subtitles']
         
         logger.debug(f'Parse Success for platform {platform}')
         return make_response(200, '成功', data_dict, True), 200
@@ -110,7 +112,8 @@ def _fetch_with_retry(parser, platform):
             'cover_url': parser.get_cover_photo_url(),
             'author': safe_execute(parser.get_author_info),
             'image_list': safe_execute(parser.get_image_list, default=[]),
-            'audio_url': safe_execute(parser.get_audio_url)
+            'audio_url': safe_execute(parser.get_audio_url),
+            'subtitles': safe_execute(parser.get_subtitles)
         }
         if not res['video_url'] and res['video_list']:
             res['video_url'] = res['video_list'][0]

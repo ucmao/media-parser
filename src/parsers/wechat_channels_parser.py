@@ -140,7 +140,7 @@ class WeChatChannelsParser(BaseParser):
         response.raise_for_status()
         result = response.json()
         if result.get("errCode") not in (0, None):
-            raise RuntimeError(result.get("errMsg") or "微信视频号接口返回错误")
+            raise RuntimeError(result.get("errMsg") or "视频号接口返回错误")
         return result
 
     @staticmethod
@@ -154,7 +154,7 @@ class WeChatChannelsParser(BaseParser):
             or (feed.get("h265VideoInfo") or {}).get("videoUrl")
         )
         return {
-            "title": feed.get("description") or "微信视频号",
+            "title": feed.get("description") or "视频号",
             "video_url": video_url,
             "video_list": [video_url] if video_url else [],
             "cover_url": feed.get("coverUrl"),

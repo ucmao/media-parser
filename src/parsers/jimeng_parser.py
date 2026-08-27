@@ -14,7 +14,7 @@ logger = get_logger(__name__)
 
 
 class JimengParser(BaseParser):
-    """解析即梦 AI 视频分享。
+    """解析即梦AI 视频分享。
 
     """
 
@@ -105,7 +105,7 @@ class JimengParser(BaseParser):
 
         author_id = author.get("uid") or author.get("sec_uid") or ""
         return {
-            "title": common.get("description") or "即梦 AI 视频",
+            "title": common.get("description") or "即梦AI 视频",
             "video_url": primary_video,
             "video_list": [primary_video] if primary_video else [],
             "cover_url": cover_url,

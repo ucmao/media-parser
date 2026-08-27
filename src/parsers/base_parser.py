@@ -34,6 +34,10 @@ class BaseParser:
         """获取音频解析链接"""
         return None
 
+    def get_subtitles(self):
+        """获取平台原生字幕或歌词；不支持时返回 None。"""
+        return None
+
     def get_image_list(self):
         """获取图文列表"""
         return []
