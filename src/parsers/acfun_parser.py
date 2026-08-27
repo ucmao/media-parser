@@ -27,7 +27,6 @@ class AcfunParser(BaseParser):
             return match.group(1)
             
         return None
-
     def _fetch_post_data(self):
         try:
             resp = self.session.get(self.real_url, headers=self.headers, timeout=10)
@@ -84,14 +83,3 @@ class AcfunParser(BaseParser):
         except:
              pass
         return None
-
-
-if __name__ == '__main__':
-    real_url = 'https://www.acfun.cn/v/ac43445963'
-    dl = AcfunParser(real_url)
-    print("-" * 30)
-    print(f"作者信息：{dl.get_author_info()}")
-    print(f"标题内容：{dl.get_title_content()[:50]}...")
-    print(f"封面图片：{dl.get_cover_photo_url()}")
-    print(f"视频链接：{dl.get_real_video_url()}")
-    print("-" * 30)

@@ -272,16 +272,3 @@ class DouyinParser(BaseParser):
             logger.warning(f"Failed to parse image list: {e}")
             return []
 
-
-if __name__ == '__main__':
-    real_url = 'https://www.douyin.com/note/7616399587141737704'
-    dl = DouyinParser(real_url)
-    print("-" * 30)
-    print(f"作者信息：{dl.get_author_info()}")
-    print(f"标题内容：{dl.get_title_content()[:30]}...")  # 仅打印前30字
-    print(f"封面图片：{dl.get_cover_photo_url()}")
-    print(f"视频链接：{dl.get_real_video_url()}")
-    print(f"图片列表：{dl.get_image_list()}")
-    print(f"音频链接：{dl.get_audio_url()}")
-    print("-" * 30)
-

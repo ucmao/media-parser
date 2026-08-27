@@ -16,6 +16,9 @@ class WebFetcher:
     def fetch_redirect_url(url, max_redirects=5):
         if not isinstance(url, str) or not url.strip() or max_redirects < 1:
             return None
+        # 知乎公开 API 可直接通过内容 ID 解析，访问网页常触发 403 风控。
+        if UrlParser.get_platform(url) == "知乎":
+            return UrlParser.extract_video_address(url)
         try:
             current_url = url
             for _ in range(max_redirects):
@@ -80,6 +83,9 @@ class UrlParser:
     def get_platform(url):
         """识别链接所属平台，并兼容快手生成的随机移动端子域名。"""
         domain = UrlParser.get_domain(url)
+        path = urlparse(url).path
+        if domain in {"www.iesdouyin.com", "iesdouyin.com"} and path.startswith("/xg/"):
+            return "西瓜视频"
         platform = DOMAIN_TO_NAME.get(domain)
         if platform:
             return platform
@@ -158,6 +164,10 @@ class UrlParser:
                     preserved_params.append((key, value))
             if preserved_params:
                 address = f"{address}?{urlencode(preserved_params)}"
+        elif platform == "微博":
+            query_params = parse_qs(parsed_url.query)
+            if value := query_params.get("fid", [None])[0]:
+                address = f"{address}?{urlencode({'fid': value})}"
         elif platform == "Soul":
             fragment = parsed_url.fragment
             if "?" in fragment:

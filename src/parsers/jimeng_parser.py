@@ -163,15 +163,3 @@ class JimengParser(BaseParser):
 
     def get_image_list(self):
         return self.data.get("image_list") or []
-
-
-if __name__ == "__main__":
-    test_url = "https://jimeng.jianying.com/s/rdloCrYi2wc/?t=8011"
-    parser = JimengParser(test_url)
-    print("-" * 30)
-    print(f"标题内容：{parser.get_title_content()}")
-    print(f"作者信息：{parser.get_author_info()}")
-    print(f"封面图片：{parser.get_cover_photo_url()}")
-    print(f"视频链接：{parser.get_real_video_url()}")
-    print(f"视频列表：{parser.get_video_list()}")
-    print(f"图片列表：{parser.get_image_list()}")

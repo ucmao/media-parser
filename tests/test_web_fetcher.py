@@ -38,6 +38,7 @@ class UrlParserTest(unittest.TestCase):
                 "https://music.douyin.com/qishui/share/ugc_video?ugc_video_id=123",
             ),
             ("https://pd.qq.com/s/code?b=2&noise=x", "https://pd.qq.com/s/code?b=2"),
+            ("https://video.weibo.com/show?fid=1034:123&noise=x", "https://video.weibo.com/show?fid=1034%3A123"),
             (
                 "https://lv.ulikecam.com/activity/lv/sharevideo?template_id=123&item_type=0&noise=x",
                 "https://lv.ulikecam.com/activity/lv/sharevideo?template_id=123&item_type=0",
@@ -106,8 +107,17 @@ class UrlParserTest(unittest.TestCase):
         self.assertEqual(UrlParser.get_platform("https://qishui.douyin.com/s/code/"), "汽水音乐")
         self.assertEqual(UrlParser.get_platform("https://music.douyin.com/track/123"), "汽水音乐")
 
+    def test_recognizes_xigua_video_on_iesdouyin_domain(self):
+        self.assertEqual(
+            UrlParser.get_platform("https://www.iesdouyin.com/xg/video/7676450021063735414/"),
+            "西瓜视频",
+        )
+
     def test_recognizes_tencent_channel_domain(self):
         self.assertEqual(UrlParser.get_platform("https://pd.qq.com/s/code?b=2"), "腾讯频道")
+
+    def test_recognizes_weibo_video_domain(self):
+        self.assertEqual(UrlParser.get_platform("https://video.weibo.com/show?fid=1034:5336275486703690"), "微博")
 
     def test_recognizes_jianying_share_domain(self):
         self.assertEqual(UrlParser.get_platform("https://lv.ulikecam.com/activity/lv/sharevideo"), "剪映")
@@ -124,6 +134,13 @@ class WebFetcherTest(unittest.TestCase):
         with patch("utils.web_fetcher.requests.get", return_value=self.response()):
             result = WebFetcher.fetch_redirect_url("https://www.douyin.com/video/123?noise=x")
         self.assertEqual(result, "https://www.douyin.com/video/123")
+
+    def test_passes_zhihu_url_through_without_fetching_page(self):
+        url = "https://www.zhihu.com/pin/2066168388699807826?native=1"
+        with patch("utils.web_fetcher.requests.get") as get:
+            result = WebFetcher.fetch_redirect_url(url)
+        get.assert_not_called()
+        self.assertEqual(result, "https://www.zhihu.com/pin/2066168388699807826")
 
     def test_follows_relative_redirect(self):
         responses = [

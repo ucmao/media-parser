@@ -499,16 +499,3 @@ class KuaishouParser(BaseParser):
         except Exception as e:
             logger.warning(f"Failed to parse image list: {e}")
             return []
-
-
-if __name__ == '__main__':
-    real_url = 'https://v.m.chenzhongtech.com/fw/photo/3xbr5pi8hxi4e6s'
-    dl = KuaishouParser(real_url)
-    print("-" * 30)
-    print(f"作者信息：{dl.get_author_info()}")
-    print(f"标题内容：{dl.get_title_content()[:30]}...")
-    print(f"封面图片：{dl.get_cover_photo_url()}")
-    print(f"图片列表：{dl.get_image_list()}")
-    print(f"视频链接：{dl.get_real_video_url()}")
-    print(f"音频链接：{dl.get_audio_url()}")
-    print("-" * 30)

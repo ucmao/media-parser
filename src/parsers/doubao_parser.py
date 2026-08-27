@@ -341,26 +341,3 @@ class DoubaoParser(BaseParser):
 
     def get_image_list(self):
         return self.data.get("image_list") or []
-
-
-if __name__ == "__main__":
-    test_urls = {
-        "独立 AI 视频": (
-            "https://www.doubao.com/video-sharing?"
-            "share_id=41356597786354690&source_type=mobile&"
-            "video_id=v0d69cg10004d6978e2ljht0i4fdpp00&"
-            "share_scene=video_viewer"
-        ),
-        "对话图片": "https://www.doubao.com/thread/a7c085916a92a",
-    }
-
-    for test_name, test_url in test_urls.items():
-        parser = DoubaoParser(test_url)
-        print("-" * 30)
-        print(f"测试类型：{test_name}")
-        print(f"标题内容：{parser.get_title_content()}")
-        print(f"作者信息：{parser.get_author_info()}")
-        print(f"封面图片：{parser.get_cover_photo_url()}")
-        print(f"视频链接：{parser.get_real_video_url()}")
-        print(f"视频列表：{parser.get_video_list()}")
-        print(f"图片列表：{parser.get_image_list()}")

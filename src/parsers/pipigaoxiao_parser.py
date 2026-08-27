@@ -101,14 +101,3 @@ class PipigaoxiaoParser(BaseParser):
         except Exception as e:
             logger.warning(f"Failed to parse author info: {e}")
             return {}
-
-
-if __name__ == '__main__':
-    real_url = 'https://h5.pipigx.com/pp/post/815491325984?pid=815491325984&type=post'
-    dl = PipigaoxiaoParser(real_url)
-    print("-" * 30)
-    print(f"作者信息：{dl.get_author_info()}")
-    print(f"标题内容：{dl.get_title_content()[:30]}...")  # 仅打印前30字
-    print(f"封面图片：{dl.get_cover_photo_url()}")
-    print(f"视频链接：{dl.get_real_video_url()}")
-    print("-" * 30)
