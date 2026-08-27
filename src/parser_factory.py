@@ -23,6 +23,7 @@ from src.parsers.zuiyou_parser import ZuiyouParser
 from src.parsers.doubao_parser import DoubaoParser
 from src.parsers.jimeng_parser import JimengParser
 from src.parsers.wechat_channels_parser import WeChatChannelsParser
+from src.parsers.kling_parser import KlingParser
 
 class ParserFactory:
     platform_to_parser = {
@@ -51,6 +52,7 @@ class ParserFactory:
         "豆包": DoubaoParser,
         "即梦 AI": JimengParser,
         "微信视频号": WeChatChannelsParser,
+        "可灵 AI": KlingParser,
     }
 
     @staticmethod

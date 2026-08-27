@@ -26,6 +26,10 @@ class UrlParserTest(unittest.TestCase):
             ("https://izuiyou.com/post/detail?pid=77&noise=x", "https://izuiyou.com/post/detail?pid=77"),
             ("https://weixin.qq.com/sph/AzGrUgqzFv?noise=x", "https://weixin.qq.com/sph/AzGrUgqzFv"),
             (
+                "https://klingai-share.kuaishou.com/h5-app/share?creative_id=123&work_id=123&creative_type=WORK&noise=x",
+                "https://klingai-share.kuaishou.com/h5-app/share?creative_id=123&work_id=123&creative_type=WORK",
+            ),
+            (
                 "https://channels.weixin.qq.com/finder-preview/pages/sph?id=AzGrUgqzFv&noise=x",
                 "https://channels.weixin.qq.com/finder-preview/pages/sph?id=AzGrUgqzFv",
             ),
@@ -37,6 +41,7 @@ class UrlParserTest(unittest.TestCase):
     def test_get_video_id_supports_query_path_and_html_suffix(self):
         cases = [
             ("https://www.doubao.com/video-sharing?video_id=video-id", "video-id"),
+            ("https://klingai-share.kuaishou.com/h5-app/share?creative_id=123", "123"),
             ("https://www.bilibili.com/video/BV123", "BV123"),
             ("https://www.pearvideo.com/video_123.html", "video_123"),
         ]
@@ -70,6 +75,12 @@ class UrlParserTest(unittest.TestCase):
         self.assertEqual(
             UrlParser.get_platform("https://channels.weixin.qq.com/finder-preview/pages/sph?id=abc"),
             "微信视频号",
+        )
+
+    def test_recognizes_kling_share_domain(self):
+        self.assertEqual(
+            UrlParser.get_platform("https://klingai-share.kuaishou.com/h5-app/share?creative_id=123"),
+            "可灵 AI",
         )
 
 class WebFetcherTest(unittest.TestCase):
