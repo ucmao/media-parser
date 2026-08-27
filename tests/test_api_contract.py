@@ -15,6 +15,11 @@ class ApiContractTest(unittest.TestCase):
     def setUp(self):
         self.client = app.test_client()
 
+    def test_health_check(self):
+        response = self.client.get("/api/health")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json(), {"status": "ok"})
+
     @staticmethod
     def parser(**overrides):
         values = {
@@ -42,48 +47,54 @@ class ApiContractTest(unittest.TestCase):
             with patch("src.api.parse.ParserFactory.create_parser", return_value=parser):
                 return self.client.post("/api/parse", json={"text": "https://example.com/share"})
 
-    def assert_bad_request(self, response, message):
+    def assert_bad_request(self, response, message, error_code):
         self.assertEqual(response.status_code, 400)
         payload = response.get_json()
         self.assertFalse(payload["succ"])
         self.assertEqual(payload["retcode"], 400)
         self.assertEqual(payload["retdesc"], message)
+        self.assertEqual(payload["error_code"], error_code)
 
     def test_rejects_non_json_body(self):
         response = self.client.post("/api/parse", data="text")
-        self.assert_bad_request(response, "请求体必须是 JSON 对象")
+        self.assert_bad_request(response, "请求体必须是 JSON 对象", "INVALID_REQUEST")
 
     def test_rejects_missing_or_blank_text(self):
         for body in ({}, {"text": "  "}, {"text": 123}):
             with self.subTest(body=body):
                 response = self.client.post("/api/parse", json=body)
-                self.assert_bad_request(response, "请提供包含分享链接的文本")
+                self.assert_bad_request(response, "请提供包含分享链接的文本", "INVALID_TEXT")
+
+    def test_rejects_overlong_text(self):
+        response = self.client.post("/api/parse", json={"text": "a" * 2001})
+        self.assert_bad_request(response, "分享文本不能超过 2000 个字符", "TEXT_TOO_LONG")
 
     def test_rejects_text_without_url(self):
         response = self.client.post("/api/parse", json={"text": "没有链接"})
-        self.assert_bad_request(response, "未找到有效的分享链接")
+        self.assert_bad_request(response, "未找到有效的分享链接", "URL_NOT_FOUND")
 
     def test_rejects_unresolvable_redirect(self):
         with patch("src.api.parse.WebFetcher.fetch_redirect_url", return_value=None):
             response = self.client.post("/api/parse", json={"text": "https://example.com"})
-        self.assert_bad_request(response, "无法访问或识别该分享链接")
+        self.assert_bad_request(response, "无法访问或识别该分享链接", "REDIRECT_FAILED")
 
     def test_rejects_unsupported_domain(self):
         response = self.post_with_parser(self.parser(), "https://unsupported.example/video/1")
-        self.assert_bad_request(response, "该链接尚未支持提取")
+        self.assert_bad_request(response, "该链接尚未支持提取", "PLATFORM_NOT_SUPPORTED")
 
     def test_rejects_empty_media_with_platform_specific_message(self):
         empty_parser = self.parser(video_url=None, video_list=[], image_list=[])
         cases = [
-            ("https://www.douyin.com/video/1", "提取媒体内容失败，请检查链接或稍后重试"),
+            ("https://www.douyin.com/video/1", "提取媒体内容失败，请检查链接或稍后重试", "MEDIA_NOT_FOUND"),
             (
                 "https://www.xiaohongshu.com/explore/1",
                 "解析失败：该链接需要小红书登录 Cookie 校验，请在配置中提供有效 Cookie 后重试",
+                "XIAOHONGSHU_COOKIE_REQUIRED",
             ),
         ]
-        for url, message in cases:
+        for url, message, error_code in cases:
             with self.subTest(url=url):
-                self.assert_bad_request(self.post_with_parser(empty_parser, url), message)
+                self.assert_bad_request(self.post_with_parser(empty_parser, url), message, error_code)
 
     def test_normalizes_and_deduplicates_media_urls(self):
         parser = self.parser(
@@ -130,7 +141,9 @@ class ApiContractTest(unittest.TestCase):
         with patch("src.api.parse.WebFetcher.fetch_redirect_url", side_effect=RuntimeError("boom")):
             response = self.client.post("/api/parse", json={"text": "https://example.com"})
         self.assertEqual(response.status_code, 500)
-        self.assertEqual(response.get_json()["retdesc"], "功能太火爆啦，请稍后再试")
+        payload = response.get_json()
+        self.assertEqual(payload["retdesc"], "功能太火爆啦，请稍后再试")
+        self.assertEqual(payload["error_code"], "INTERNAL_ERROR")
 
     def test_xiaohongshu_retries_three_times(self):
         parser = self.parser(video_url=None, video_list=[], image_list=[])

@@ -1,4 +1,4 @@
-from flask import Flask, session, render_template
+from flask import Flask, jsonify, render_template
 import os
 from src.api import parse
 from configs.logging_config import logger
@@ -8,6 +8,12 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default_secret_key')
 
 # 注册API蓝图
 app.register_blueprint(parse.bp, url_prefix='/api')
+
+
+@app.route('/api/health')
+def health():
+    """供容器编排、反向代理和监控系统检查服务状态。"""
+    return jsonify({'status': 'ok'}), 200
 
 @app.route('/')
 def index():

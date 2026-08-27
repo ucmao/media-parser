@@ -15,3 +15,7 @@ static/videos/
 *.mp4
 *.mp3
 *.m4s
+.DS_Store
+.pytest_cache/
+.coverage
+htmlcov/

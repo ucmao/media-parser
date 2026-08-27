@@ -120,8 +120,9 @@ python app.py
 cp .env.example .env
 ```
 
+然后编辑 `.env`，按需填写以下变量（未遇到平台校验时，无需配置 Cookie）：
+
 ```env
-# 按需填写；请勿提交真实 Cookie。
 # 小红书推荐流（如 xsec_source=pc_feed）遇校验时配置。
 XIAOHONGSHU_COOKIE="a1=xxx;webId=xxx"
 

@@ -5,6 +5,7 @@ from src.parser_factory import ParserFactory
 from utils.common_utils import make_response
 
 bp = Blueprint('parse', __name__)
+MAX_TEXT_LENGTH = 2000
 
 
 @bp.route('/parse', methods=['POST'])
@@ -12,20 +13,22 @@ def parse():
     try:
         data = request.get_json(silent=True)
         if not isinstance(data, dict):
-            return make_response(400, '请求体必须是 JSON 对象', None, False), 400
+            return make_response(400, '请求体必须是 JSON 对象', None, False, 'INVALID_REQUEST'), 400
 
         text = data.get('text')
         if not isinstance(text, str) or not text.strip():
-            return make_response(400, '请提供包含分享链接的文本', None, False), 400
+            return make_response(400, '请提供包含分享链接的文本', None, False, 'INVALID_TEXT'), 400
+        if len(text) > MAX_TEXT_LENGTH:
+            return make_response(400, f'分享文本不能超过 {MAX_TEXT_LENGTH} 个字符', None, False, 'TEXT_TOO_LONG'), 400
 
         share_url = UrlParser.get_url(text)
         if not share_url:
-            return make_response(400, '未找到有效的分享链接', None, False), 400
+            return make_response(400, '未找到有效的分享链接', None, False, 'URL_NOT_FOUND'), 400
         
         # 1. 解析基础信息
         redirect_url = WebFetcher.fetch_redirect_url(share_url)
         if not redirect_url:
-            return make_response(400, '无法访问或识别该分享链接', None, False), 400
+            return make_response(400, '无法访问或识别该分享链接', None, False, 'REDIRECT_FAILED'), 400
 
         platform = UrlParser.get_platform(redirect_url)
         real_url = UrlParser.extract_video_address(redirect_url)
@@ -33,7 +36,7 @@ def parse():
 
         if not platform:
             logger.error(f'This link is not supported for extraction: {real_url}')
-            return make_response(400, '该链接尚未支持提取', None, False), 400
+            return make_response(400, '该链接尚未支持提取', None, False, 'PLATFORM_NOT_SUPPORTED'), 400
 
         # 2. 获取解析器
         parser = ParserFactory.create_parser(platform, real_url)
@@ -48,8 +51,8 @@ def parse():
         ):
             logger.error(f"Failed to retrieve media content for {platform}")
             if platform == '小红书':
-                return make_response(400, '解析失败：该链接需要小红书登录 Cookie 校验，请在配置中提供有效 Cookie 后重试', None, False), 400
-            return make_response(400, '提取媒体内容失败，请检查链接或稍后重试', None, False), 400
+                return make_response(400, '解析失败：该链接需要小红书登录 Cookie 校验，请在配置中提供有效 Cookie 后重试', None, False, 'XIAOHONGSHU_COOKIE_REQUIRED'), 400
+            return make_response(400, '提取媒体内容失败，请检查链接或稍后重试', None, False, 'MEDIA_NOT_FOUND'), 400
 
         processed_image_list = []
         if content_data.get('image_list'):
@@ -92,7 +95,7 @@ def parse():
 
     except Exception as e:
         logger.exception("Parse Error") # 使用 exception 会带上堆栈信息
-        return make_response(500, '功能太火爆啦，请稍后再试', None, False), 500
+        return make_response(500, '功能太火爆啦，请稍后再试', None, False, 'INTERNAL_ERROR'), 500
 
 
 def _fetch_with_retry(parser, platform):
