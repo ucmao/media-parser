@@ -26,6 +26,7 @@ from src.parsers.qsmusic_parser import QSMusicParser
 from src.parsers.tencent_channel_parser import TencentChannelParser
 from src.parsers.jianying_parser import JianyingParser
 from src.parsers.qianwen_parser import QianwenParser
+from src.parsers.quark_ai_parser import QuarkAIParser
 from src.parsers.xianyu_parser import XianyuParser
 from src.parsers.xiaoyunque_parser import XiaoyunqueParser
 
@@ -60,6 +61,7 @@ class ParserFactory:
         "腾讯频道": TencentChannelParser,
         "剪映": JianyingParser,
         "通义千问": QianwenParser,
+        "夸克AI": QuarkAIParser,
         "闲鱼": XianyuParser,
     }
 

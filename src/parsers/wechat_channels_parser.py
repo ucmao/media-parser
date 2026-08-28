@@ -1,4 +1,3 @@
-import os
 import random
 import re
 from urllib.parse import parse_qs, quote, urlencode, urlparse
@@ -46,7 +45,7 @@ class WeChatChannelsParser(BaseParser):
 
     def _parse_once(self):
         try:
-            cookie = os.getenv("YUANBAO_COOKIE", "").strip() or self.DEFAULT_YUANBAO_COOKIE
+            cookie = self.DEFAULT_YUANBAO_COOKIE
             if cookie:
                 try:
                     self.data.update(self._parse_with_yuanbao(cookie))

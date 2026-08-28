@@ -47,6 +47,10 @@ class UrlParserTest(unittest.TestCase):
                 "https://channels.weixin.qq.com/finder-preview/pages/sph?id=AzGrUgqzFv&noise=x",
                 "https://channels.weixin.qq.com/finder-preview/pages/sph?id=AzGrUgqzFv",
             ),
+            (
+                "https://pages.quark.cn/r/ai-studio-mobile/external-share?shareId=abc&authorId=author&channel_from=ucpro&noise=x",
+                "https://pages.quark.cn/r/ai-studio-mobile/external-share?shareId=abc&authorId=author&channel_from=ucpro",
+            ),
         ]
         for original, expected in cases:
             with self.subTest(original=original):
@@ -121,6 +125,16 @@ class UrlParserTest(unittest.TestCase):
 
     def test_recognizes_jianying_share_domain(self):
         self.assertEqual(UrlParser.get_platform("https://lv.ulikecam.com/activity/lv/sharevideo"), "剪映")
+
+    def test_recognizes_quark_ai_share_domain(self):
+        self.assertEqual(
+            UrlParser.get_platform("https://pages.quark.cn/r/ai-studio-mobile/external-share?shareId=abc"),
+            "夸克AI",
+        )
+        self.assertEqual(
+            UrlParser.get_platform("https://act.quark.cn/apps/sharepages/routes/share?share_id=abc"),
+            "夸克AI",
+        )
 
 class WebFetcherTest(unittest.TestCase):
     @staticmethod

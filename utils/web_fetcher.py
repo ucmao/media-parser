@@ -18,7 +18,7 @@ class WebFetcher:
             return None
         # 知乎公开 API 可直接通过内容 ID 解析，访问网页常触发 403 风控。
         # 绿洲分享页会对通用桌面请求头返回 500，由解析器使用移动端请求头抓取。
-        if UrlParser.get_platform(url) in {"知乎", "绿洲", "新片场"}:
+        if UrlParser.get_platform(url) in {"知乎", "绿洲", "新片场", "夸克AI", "通义千问"}:
             return UrlParser.extract_video_address(url)
         try:
             current_url = url
@@ -156,9 +156,15 @@ class UrlParser:
                     preserved_params.append((key, value))
             if preserved_params:
                 address = f"{address}?{urlencode(preserved_params)}"
-        elif platform == "小云雀AI":
-            if parsed_url.query:
-                address = f"{address}?{parsed_url.query}"
+        elif platform == "夸克AI":
+            query_params = parse_qs(parsed_url.query)
+            preserved_params = []
+            for key in ("shareId", "share_id", "authorId", "author_id", "channel_from", "biz_id", "qwcontainer", "url", "env"):
+                value = query_params.get(key, [None])[0]
+                if value is not None:
+                    preserved_params.append((key, value))
+            if preserved_params:
+                address = f"{address}?{urlencode(preserved_params)}"
         elif platform == "可灵AI":
             query_params = parse_qs(parsed_url.query)
             preserved_params = []
@@ -215,7 +221,7 @@ class UrlParser:
             query_params = parse_qs(parsed_url.query)
             if value := query_params.get("sid", [None])[0]:
                 address = f"{address}?{urlencode({'sid': value})}"
-        elif platform == "通义千问":
+        elif platform in {"通义千问", "夸克AI"}:
             query_params = parse_qs(parsed_url.query)
             preserved_params = []
             for key in ("shareId", "authorId", "enter_from", "fp_from", "channel_from", "image_index"):

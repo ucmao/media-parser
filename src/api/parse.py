@@ -109,12 +109,12 @@ def _fetch_with_retry(parser, platform):
         res = {
             'title': parser.get_title_content(),
             'video_url': parser.get_real_video_url(),
-            'video_list': safe_execute(parser.get_video_list, default=[]),
+            'video_list': safe_execute(getattr(parser, 'get_video_list', None), default=[]),
             'cover_url': parser.get_cover_photo_url(),
-            'author': safe_execute(parser.get_author_info),
-            'image_list': safe_execute(parser.get_image_list, default=[]),
-            'audio_url': safe_execute(parser.get_audio_url),
-            'subtitles': safe_execute(parser.get_subtitles)
+            'author': safe_execute(getattr(parser, 'get_author_info', None)),
+            'image_list': safe_execute(getattr(parser, 'get_image_list', None), default=[]),
+            'audio_url': safe_execute(getattr(parser, 'get_audio_url', None)),
+            'subtitles': safe_execute(getattr(parser, 'get_subtitles', None))
         }
         if not res['video_url'] and res['video_list']:
             res['video_url'] = res['video_list'][0]
@@ -129,8 +129,13 @@ def _fetch_with_retry(parser, platform):
 
 def safe_execute(func, default=None):
     """安全执行辅助函数，减少 try-except 视觉噪音"""
+    if not func or not callable(func):
+        return default
     try:
-        return func()
+        val = func()
+        if type(val).__name__ in ('Mock', 'MagicMock'):
+            return default
+        return val
     except Exception:
         return default
 

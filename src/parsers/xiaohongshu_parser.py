@@ -1,6 +1,5 @@
 import re
 import json
-import os
 from src.parsers.base_parser import BaseParser
 from configs.logging_config import get_logger
 import requests
@@ -15,10 +14,6 @@ class XiaohongshuParser(BaseParser):
             'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
             'referer': 'https://www.xiaohongshu.com/'
         }
-        # 从环境变量中读取 Cookie 维持登录态（部分受防刷/权限限制的笔记需登录 Cookie 校验）
-        cookie = os.getenv("XIAOHONGSHU_COOKIE", "").strip()
-        if cookie:
-            self.headers['Cookie'] = cookie
 
         # 获取 HTML 并解析 JSON 状态
         html_content = self.fetch_html_content()
@@ -41,7 +36,7 @@ class XiaohongshuParser(BaseParser):
             resp = self.session.get(self.real_url, headers=self.headers, timeout=5)
             resp.raise_for_status()
             if "xiaohongshu.com/login" in resp.url:
-                logger.error("小红书解析提示: 未配置有效 Cookie，请求被重定向到了登录页面。请在环境变量或配置中设置 XIAOHONGSHU_COOKIE。")
+                logger.error("小红书解析提示: 请求被重定向到了登录页面。")
             elif "xiaohongshu.com/404" in resp.url:
                 logger.error("小红书解析提示: 遭遇安全拦截或页面未找到（404）。")
             self.html_content = resp.text

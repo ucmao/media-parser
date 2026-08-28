@@ -46,9 +46,8 @@ class WeChatChannelsParserTest(unittest.TestCase):
         payload = post.call_args.kwargs["json"]
         self.assertEqual(payload, {"baseReq": {"generalToken": ""}, "shortUri": "AzGrUgqzFv"})
 
-    @patch.dict(os.environ, {"YUANBAO_COOKIE": "hy_user=user; hy_token=token"}, clear=True)
     @patch("src.parsers.base_parser.requests.Session.post")
-    def test_uses_yuanbao_cookie_when_configured(self, post):
+    def test_uses_default_yuanbao_cookie(self, post):
         post.side_effect = [
             self.response({
                 "data": {
@@ -62,13 +61,12 @@ class WeChatChannelsParserTest(unittest.TestCase):
 
         self.assertEqual(parser.get_real_video_url(), "https://finder.video.qq.com/video.mp4")
         self.assertEqual(post.call_count, 2)
-        self.assertEqual(post.call_args_list[0].kwargs["headers"]["Cookie"], "hy_user=user; hy_token=token")
+        self.assertEqual(post.call_args_list[0].kwargs["headers"]["Cookie"], WeChatChannelsParser.DEFAULT_YUANBAO_COOKIE)
         self.assertEqual(
             post.call_args_list[1].kwargs["json"],
             {"baseReq": {"generalToken": "temp-token"}, "exportId": "export-id"},
         )
 
-    @patch.dict(os.environ, {"YUANBAO_COOKIE": "hy_user=user; hy_token=expired"}, clear=True)
     @patch("src.parsers.base_parser.requests.Session.post")
     def test_falls_back_to_public_api_when_cookie_is_invalid(self, post):
         post.side_effect = [
