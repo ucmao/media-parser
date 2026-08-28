@@ -73,105 +73,62 @@
 
 ---
 
-## 🚀 快速开始
+## 🚀 部署指南
 
-> 当前版本主打“原生本地解析”。只要目标平台仍可通过现有脚本抓取，就不需要额外依赖第三方解析服务。
+### Docker 部署（推荐）
 
-### 1. 获取源码
+开箱即用，无需配置任何 Cookie 或环境变量。通过 Docker Compose 快捷构建启动服务：
 
 ```bash
+# 1. 获取源码
 git clone https://github.com/ucmao/media-parser.git
 cd media-parser
 
-```
-
-### 2. Docker 快速启动（推荐）
-
-项目自带 Dockerfile 和 Compose 配置。安装 Docker 与 Docker Compose 后，执行：
-
-```bash
-# 构建并后台启动容器
+# 2. 构建并启动服务
 docker-compose up -d --build
-```
 
-服务默认监听 `8051` 端口。启动完成后访问 [http://localhost:8051](http://localhost:8051)。
-
-### 3. 本地开发运行（不使用 Docker）
-
-适用于本地调试或二次开发。
-
-#### 环境要求
-
-* **Python**: 3.8 及以上版本
-
-#### 安装依赖并启动
-
-```bash
-pip install -r requirements.txt
-python app.py
-```
-
-启动后访问 [http://localhost:8051](http://localhost:8051)。
-
-## 🖥️ 服务器部署
-
-服务器环境推荐使用 Docker Compose。它会以 Gunicorn 启动服务，并在容器重启后自动恢复运行。
-
-### 1. 配置环境变量（可选）
-
-如需配置平台 Cookie 或应用参数，先复制模板：
-
-```bash
-cp .env.example .env
-```
-
-然后编辑 `.env`，按需填写以下变量（未遇到平台校验时，无需配置 Cookie）：
-
-```env
-# 小红书推荐流（如 xsec_source=pc_feed）遇校验时配置。
-XIAOHONGSHU_COOKIE="a1=xxx;webId=xxx"
-
-# 豆包独立 AI 视频遇校验时配置。
-DOUBAO_COOKIE="your_doubao_cookie"
-
-# 视频号获取视频直链必须配置元宝完整 Cookie（需含 hy_user、hy_token）。
-YUANBAO_COOKIE="hy_user=xxx; hy_token=xxx"
-```
-
-### 2. 启动或更新服务
-
-```bash
-docker-compose up -d --build
-```
-
-### 3. 查看运行状态
-
-```bash
-docker-compose ps
+# 3. 查看日志与运行状态
 docker-compose logs -f web
 ```
 
-服务默认暴露 `8051` 端口。生产环境请在防火墙或反向代理中仅开放需要的访问范围。
+服务默认监听 `8051` 端口，启动后直接访问 [http://localhost:8051](http://localhost:8051)。
+
+---
+
+### Python 环境运行
+
+适用于调试、二次开发或直接在宿主机运行。要求 **Python 3.8+**。
+
+```bash
+# 1. 安装依赖
+pip install -r requirements.txt
+
+# 2. 启动服务
+python app.py
+```
 
 ## 📂 项目结构
 
-
 ```text
 media-parser/
-├── app.py                # 程序入口
-├── configs/              # 核心配置与业务常量
-├── src/
-│   ├── api/             # 路由层：API 接口处理仅保留核心 parse.py
-│   ├── parsers/     # 核心：各平台视频解析实现
-│   └── parser_factory.py # 工厂模式实现
-├── static/              # 静态资源保存位置
-├── utils/               # 通用工具函数 (网络请求等)
-└── tests/               # 自动化测试用例
+├── app.py                # 服务程序入口 (Flask Web 服务)
+├── configs/              # 核心配置与业务常量 (日志配置、域名映射等)
+├── src/                  # 核心解析业务逻辑
+│   ├── api/              # API 接口路由 (/api/parse 核心接口)
+│   ├── parsers/          # 30+ 平台媒体 Parser 解析实现
+│   └── parser_factory.py # 工厂模式解析分发器 (ParserFactory)
+├── static/               # 静态资源保存目录
+├── templates/            # Web 前端 Demo 模板页面
+├── utils/                # 通用网络请求与工具函数 (WebFetcher 等)
+├── tests/                # 自动化测试用例与样例验证
+├── docker-compose.yml    # Docker Compose 容器化部署配置
+├── Dockerfile            # Docker 镜像构建文件
+└── requirements.txt      # Python 依赖清单
 ```
 
-## 🧪 真实链接人工验证
+## 🧪 解析有效性测试
 
-真实样例见 [`tests/live_parser_samples.json`](tests/live_parser_samples.json)，需要时可执行：
+样例测试库见 [`tests/live_parser_samples.json`](tests/live_parser_samples.json)，用于实时验证各平台解析器的有效性：
 
 ```bash
 # 验证所有平台
@@ -207,6 +164,9 @@ python3 tests/manual_verify_parsers.py --platform "小云雀AI"
     "platform": "抖音",
     "title": "视频标题内容",
     "video_url": "https://... (主视频地址)",
+    "video_list": [
+      "https://... (仅多视频内容额外返回，首项与 video_url 相同)"
+    ],
     "audio_url": "https://... (背景音乐/音频地址)",
     "cover_url": "https://... (高清封面地址)",
     "author": {
@@ -220,7 +180,8 @@ python3 tests/manual_verify_parsers.py --platform "小云雀AI"
         "url": "https://... (实况图封面地址)",
         "live_photo_url": "https://... (实况图视频原件地址)"
       }
-    ]
+    ],
+    "subtitles": [ { "text": "字幕/歌词文本" } ]
   },
   "succ": true
 }
@@ -235,20 +196,6 @@ python3 tests/manual_verify_parsers.py --platform "小云雀AI"
   "succ": false
 }
 ```
-
-`video_url` 始终表示主视频。为了保持旧客户端兼容，单视频内容不会返回 `video_list`；只有豆包对话等确实包含多段视频的内容才会额外返回：
-
-```json
-{
-  "video_url": "https://.../video-1.mp4",
-  "video_list": [
-    "https://.../video-1.mp4",
-    "https://.../video-2.mp4"
-  ]
-}
-```
-
-多视频响应保证 `video_url` 与 `video_list[0]` 相同。
 
 ---
 

@@ -59,7 +59,7 @@ class DoubaoParserTest(unittest.TestCase):
             "data": {
                 "prompt": "测试独立视频",
                 "play_info": {
-                    "main": "https://video.example.com/main.mp4",
+                    "main": "https://video.example.com/main.mp4?lr=video_gen_watermark_dyn&download=true&token=abc",
                     "backup": "https://video.example.com/backup.mp4",
                     "poster_url": "https://image.example.com/poster.jpg",
                 },
@@ -77,8 +77,8 @@ class DoubaoParserTest(unittest.TestCase):
         with patch("requests.Session.post", return_value=response) as post:
             parser = DoubaoParser(url)
 
-        self.assertEqual(parser.get_real_video_url(), "https://video.example.com/main.mp4")
-        self.assertEqual(parser.get_video_list(), ["https://video.example.com/main.mp4"])
+        self.assertEqual(parser.get_real_video_url(), "https://video.example.com/main.mp4?token=abc")
+        self.assertEqual(parser.get_video_list(), ["https://video.example.com/main.mp4?token=abc"])
         self.assertEqual(parser.get_cover_photo_url(), "https://image.example.com/poster.jpg")
         self.assertEqual(parser.get_author_info()["author_id"], "123")
         self.assertEqual(post.call_args.kwargs["json"]["vid"], "video123")

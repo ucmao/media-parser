@@ -15,11 +15,6 @@ class XiaohongshuParser(BaseParser):
             'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
             'referer': 'https://www.xiaohongshu.com/'
         }
-        # 从环境变量中读取 Cookie 维持登录态，防止 302 重定向至登录页
-        cookie = os.getenv("XIAOHONGSHU_COOKIE")
-        if cookie:
-            self.headers['Cookie'] = cookie
-
         # 获取 HTML 并解析 JSON 状态
         html_content = self.fetch_html_content()
         pattern = re.compile(r'window\.__INITIAL_STATE__\s*=\s*(\{.*\})', re.DOTALL)

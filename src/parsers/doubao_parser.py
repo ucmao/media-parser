@@ -25,6 +25,7 @@ class DoubaoParser(BaseParser):
     """
 
     VIDEO_API = "https://www.doubao.com/creativity/share/get_video_share_info"
+    PLAY_INFO_API = "https://www.doubao.com/samantha/media/get_play_info"
     USER_AGENT = (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
         "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -69,15 +70,17 @@ class DoubaoParser(BaseParser):
 
         roots = self._load_script_payloads(response.text)
         creations = []
-        for root in roots:
-            self._collect_creations(root, creations)
-
         image_urls = []
         video_urls = []
         cover_urls = []
+
+        for root in roots:
+            self._collect_creations(root, creations)
+            self._collect_all_images(root, image_urls)
+
         for creation in creations:
             image = creation.get("image") or {}
-            image_url = self._nested_get(image, "image_ori_raw", "url")
+            image_url = self._extract_image_url_from_dict(image)
             if image_url:
                 image_urls.append(image_url)
                 cover_urls.append(image_url)
@@ -92,6 +95,9 @@ class DoubaoParser(BaseParser):
                 )
                 if poster:
                     cover_urls.append(poster)
+
+        if image_urls:
+            cover_urls.extend(image_urls)
 
         image_urls = self._unique(image_urls)
         video_urls = self._unique(video_urls)
@@ -120,9 +126,6 @@ class DoubaoParser(BaseParser):
             "Origin": "https://www.doubao.com",
             "Referer": self.real_url,
         })
-        cookie = os.getenv("DOUBAO_COOKIE", "").strip()
-        if cookie:
-            headers["Cookie"] = cookie
 
         params = {
             "version_code": "20800",
@@ -134,6 +137,31 @@ class DoubaoParser(BaseParser):
             "samantha_web": "1",
             "use-olympus-account": "1",
         }
+
+        # 优先使用 samantha/media/get_play_info 获取无水印原视频源地址 (original_media_info.main_url)
+        original_video_url = None
+        play_poster_url = None
+        try:
+            play_resp = self.session.post(
+                self.PLAY_INFO_API,
+                params=params,
+                headers=headers,
+                json={"key": video_id},
+                timeout=10,
+            )
+            if play_resp.status_code == 200:
+                play_json = play_resp.json()
+                if play_json.get("code") == 0 and play_json.get("data"):
+                    pdata = play_json["data"]
+                    orig_info = pdata.get("original_media_info") or {}
+                    raw_orig = orig_info.get("main_url")
+                    if raw_orig:
+                        original_video_url = self._sanitize_video_url(raw_orig)
+                    if pdata.get("poster_url"):
+                        play_poster_url = pdata["poster_url"]
+        except Exception as err:
+            logger.debug(f"Doubao samantha get_play_info request failed: {err}")
+
         response = self.session.post(
             self.VIDEO_API,
             params=params,
@@ -147,22 +175,26 @@ class DoubaoParser(BaseParser):
         )
         response.raise_for_status()
         payload = response.json()
-        if payload.get("code") != 0:
+        if payload.get("code") != 0 and not original_video_url:
             raise ValueError(payload.get("msg") or "豆包接口返回解析失败")
 
         detail = payload.get("data") or {}
         play_info = detail.get("play_info") or {}
-        main_url = play_info.get("main") or play_info.get("backup")
+        raw_main = play_info.get("main") or play_info.get("backup")
+        share_url = self._sanitize_video_url(raw_main) if raw_main else None
         user_info = detail.get("user_info") or {}
         nickname = user_info.get("nickname") or user_info.get("user_name") or ""
         author_id = user_info.get("user_id")
 
+        final_video_url = original_video_url or share_url
+        final_cover_url = play_poster_url or play_info.get("poster_url")
+
         return {
             "title": detail.get("prompt") or "豆包 AI 视频",
-            "video_url": main_url,
+            "video_url": final_video_url,
             # main/backup 是同一作品的 CDN 备选，只对外返回主地址。
-            "video_list": [main_url] if main_url else [],
-            "cover_url": play_info.get("poster_url"),
+            "video_list": [final_video_url] if final_video_url else [],
+            "cover_url": final_cover_url,
             "author": {
                 "nickname": nickname,
                 "author_id": str(author_id) if author_id is not None else "",
@@ -220,13 +252,61 @@ class DoubaoParser(BaseParser):
                 cls._collect_creations(value, output)
 
     @classmethod
+    def _extract_image_url_from_dict(cls, img_item):
+        if not isinstance(img_item, dict):
+            return None
+        return (
+            cls._nested_get(img_item, "image_ori_raw", "url")
+            or cls._nested_get(img_item, "image_raw", "url")
+            or cls._nested_get(img_item, "image_ori", "url")
+            or cls._nested_get(img_item, "image_origin", "url")
+            or img_item.get("raw_url")
+            or img_item.get("origin_url")
+            or img_item.get("url")
+        )
+
+    @classmethod
+    def _collect_all_images(cls, node, output):
+        if isinstance(node, dict):
+            ref_images = node.get("ref_images")
+            if isinstance(ref_images, list):
+                for item in ref_images:
+                    url = cls._extract_image_url_from_dict(item)
+                    if url:
+                        output.append(url)
+
+            ref_resources = node.get("ref_resources")
+            if isinstance(ref_resources, list):
+                for item in ref_resources:
+                    if isinstance(item, dict):
+                        url = cls._extract_image_url_from_dict(item.get("image"))
+                        if url:
+                            output.append(url)
+
+            image = node.get("image")
+            if isinstance(image, dict):
+                url = cls._extract_image_url_from_dict(image)
+                if url:
+                    output.append(url)
+
+            for value in node.values():
+                cls._collect_all_images(value, output)
+        elif isinstance(node, list):
+            for value in node:
+                cls._collect_all_images(value, output)
+
+    @classmethod
     def _extract_thread_video_urls(cls, video):
         urls = []
+        fallback_urls = []
         direct_url = video.get("download_url")
         if direct_url:
             sanitized = cls._sanitize_video_url(direct_url)
-            if not cls._is_watermarked_video_url(sanitized):
-                urls.append(sanitized)
+            if sanitized:
+                if not cls._is_watermarked_video_url(sanitized):
+                    urls.append(sanitized)
+                else:
+                    fallback_urls.append(sanitized)
 
         model = video.get("video_model")
         if isinstance(model, str):
@@ -245,10 +325,16 @@ class DoubaoParser(BaseParser):
                 except (ValueError, UnicodeDecodeError):
                     continue
                 sanitized = cls._sanitize_video_url(decoded)
-                if sanitized and not cls._is_watermarked_video_url(sanitized):
-                    urls.append(sanitized)
+                if sanitized:
+                    if not cls._is_watermarked_video_url(sanitized):
+                        urls.append(sanitized)
+                    else:
+                        fallback_urls.append(sanitized)
 
-        return cls._unique(urls)
+        final_urls = cls._unique(urls)
+        if not final_urls and fallback_urls:
+            final_urls = cls._unique(fallback_urls)
+        return final_urls
 
     @staticmethod
     def _sanitize_video_url(url):

@@ -18,10 +18,7 @@ services:
       - ./logs:/app/logs
     # 设置容器内的时区为本地时区
     environment:
+      - MAX_CACHE_SIZE_MB=${MAX_CACHE_SIZE_MB:-15}
       - TZ=Asia/Shanghai
       - SECRET_KEY=${SECRET_KEY:-default_secret_key}
       - DOMAIN=${DOMAIN:-}
-      - MAX_CACHE_SIZE_MB=${MAX_CACHE_SIZE_MB:-15}
-      - XIAOHONGSHU_COOKIE=${XIAOHONGSHU_COOKIE:-}
-      - DOUBAO_COOKIE=${DOUBAO_COOKIE:-}
-      - YUANBAO_COOKIE=${YUANBAO_COOKIE:-}
