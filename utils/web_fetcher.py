@@ -2,8 +2,10 @@ import re
 import requests
 import random
 from urllib.parse import urljoin, urlparse, parse_qs, urlencode
-from configs.logging_config import logger
+from configs.logging_config import get_logger
 from configs.general_constants import USER_AGENT_PC, DOMAIN_TO_NAME
+
+logger = get_logger(__name__)
 
 
 class WebFetcher:

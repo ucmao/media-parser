@@ -11,7 +11,6 @@ venv/
 .git/
 .gitignore
 *.log
-static/videos/
 *.mp4
 *.mp3
 *.m4s

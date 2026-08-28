@@ -1,3 +1,4 @@
+import os
 import random
 import re
 from urllib.parse import parse_qs, quote, urlencode, urlparse
@@ -20,12 +21,6 @@ class WeChatChannelsParser(BaseParser):
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
         "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36"
     )
-    # 默认内置元宝 Cookie（开箱即用）。若需更换凭证，可通过 F12 复制完整元宝 Cookie，或至少需包含 hy_user 与 hy_token 字段。
-    DEFAULT_YUANBAO_COOKIE = (
-        "hy_user=4ced9b3fff5f4ae5a0eadb6fc9f1fb81; "
-        "hy_token=8tE8bq6InCxff5mUqQZfc9aGHP6NPD80Cr/k258SiLJ9CYW8HiMzU5pREYyvnbvjyFA8Iz7YeO7apiEgoJewYlpo+O8l5x9Bt8WscIqLq8DSmfN1vBw284MXIM24E60n2aqtHNwIxTBtczMeCKFbW1MpefSRxNw0hvD4t5FH1HVbSCTiAEG+ffDpYU7/5Cspta1BvblSoG0W2O1i6Rq9oghq3tcWPrCQsRLSHOpUrbNdJu0ss2AaFk4rJiDSJCJZ4JULS9d6oXf/G1VbZ2/3hvU39MIludfWdOOWNE4t5SnJbFjCoc5B+MH0kBFDGgms+TcMjOEm3ith4A1I7HXO+NpK3k1z1gU3cpuQtFGkDOw5gRVKghWYuuiM5CCsX/hxLVnbdydv7sQX+IIk83LXjkPGWcNwFnw/upqF0rEbMeKWTfXo0I6tLUXDaZ8lr6sROnN7jaML21JvmvVLgLg8eaibgUSjB4TvGgAJ8rOZvgzSl0Q4LhDoe7Ml2lI7o5l8wgOM3xu0c0I7ZPZSVZAKrD2BwO0/9x6G4KE0x5n2B/T12WivkYHpRkUvngbNzLpFq9CWQz64+jvY9bWpeTC4xQ=="
-    )
-
     def __init__(self, real_url):
         super().__init__(real_url)
         self.headers = {"User-Agent": self.USER_AGENT}
@@ -45,7 +40,7 @@ class WeChatChannelsParser(BaseParser):
 
     def _parse_once(self):
         try:
-            cookie = self.DEFAULT_YUANBAO_COOKIE
+            cookie = os.getenv("YUANBAO_COOKIE", "").strip()
             if cookie:
                 try:
                     self.data.update(self._parse_with_yuanbao(cookie))

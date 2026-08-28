@@ -1,12 +1,12 @@
-from flask import Blueprint, request, Response, stream_with_context
-import requests
-from configs.logging_config import logger
+from flask import Blueprint, request
+from configs.logging_config import get_logger
 from utils.web_fetcher import WebFetcher, UrlParser
 from src.parser_factory import ParserFactory
 from utils.common_utils import make_response
 
 bp = Blueprint('parse', __name__)
 MAX_TEXT_LENGTH = 2000
+logger = get_logger(__name__)
 
 
 @bp.route('/parse', methods=['POST'])
@@ -138,63 +138,4 @@ def safe_execute(func, default=None):
         return val
     except Exception:
         return default
-
-
-@bp.route('/proxy', methods=['GET'])
-def proxy():
-    """资源代理与下载接口：补充对应平台的 Referer 请求头，防止直接请求或下载时触发 403 盗链阻断。"""
-    url = request.args.get('url')
-    platform = request.args.get('platform', '')
-    download = request.args.get('download', '0')
-
-    if not url:
-        return make_response(400, '缺少 url 参数', None, False, 'INVALID_URL'), 400
-
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    }
-
-    # 设置对应平台的 Referer 请求头防盗链
-    if platform == "哔哩哔哩":
-        headers["Referer"] = "https://www.bilibili.com/"
-    elif platform == "抖音":
-        headers["Referer"] = "https://www.douyin.com/"
-    elif platform == "小红书":
-        headers["Referer"] = "https://www.xiaohongshu.com/"
-    elif platform == "快手":
-        headers["Referer"] = "https://www.kuaishou.com/"
-    elif platform == "微博":
-        headers["Referer"] = "https://weibo.com/"
-    elif platform == "西瓜视频":
-        headers["Referer"] = "https://www.ixigua.com/"
-    elif platform == "知乎":
-        headers["Referer"] = "https://www.zhihu.com/"
-    elif platform in ("微信视频号", "视频号"):
-        headers["Referer"] = "https://channels.weixin.qq.com/"
-    elif platform == "剪映":
-        headers["Referer"] = "https://lv.ulikecam.com/"
-
-    try:
-        resp = requests.get(url, headers=headers, stream=True, timeout=20)
-        resp.raise_for_status()
-
-        content_type = resp.headers.get('Content-Type', 'video/mp4')
-        res = Response(
-            stream_with_context(resp.iter_content(chunk_size=64 * 1024)),
-            content_type=content_type,
-            status=resp.status_code
-        )
-
-        if download == '1':
-            ext = 'mp4'
-            if 'image' in content_type:
-                ext = 'jpg'
-            elif 'audio' in content_type:
-                ext = 'mp3'
-            res.headers['Content-Disposition'] = f'attachment; filename="media_{platform or "file"}.{ext}"'
-
-        return res
-    except Exception as e:
-        logger.error(f"Proxy request error for platform '{platform}' and URL '{url}': {e}")
-        return make_response(500, f'媒体资源代理失败: {str(e)}', None, False, 'PROXY_ERROR'), 500
 

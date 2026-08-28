@@ -23,9 +23,6 @@ RUN addgroup --system app && adduser --system --ingroup app app
 # 复制项目所有代码
 COPY --chown=app:app . /app/
 
-# 如果 static/videos 目录用于存放缓存拼接视频，确保应用用户可以写入。
-RUN mkdir -p /app/static/videos && chown -R app:app /app/static
-
 USER app
 
 # 开放 8051 端口（在 app.py 中设定）

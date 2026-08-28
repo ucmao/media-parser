@@ -3,7 +3,9 @@ import json
 import random
 from src.parsers.base_parser import BaseParser
 from configs.general_constants import USER_AGENT_PC
-from configs.logging_config import logger
+from configs.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 class WeishiParser(BaseParser):

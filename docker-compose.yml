@@ -13,12 +13,10 @@ services:
       retries: 3
       start_period: 10s
     volumes:
-      # 将宿主机上的日志、静态视频目录映射，以便容器删除和重建时不丢失数据或便于排查问题
-      - ./static/videos:/app/static/videos
+      # 将宿主机上的日志映射，便于容器重建后保留日志和排查问题
       - ./logs:/app/logs
     # 设置容器内的时区为本地时区
     environment:
-      - MAX_CACHE_SIZE_MB=${MAX_CACHE_SIZE_MB:-15}
       - TZ=Asia/Shanghai
-      - SECRET_KEY=${SECRET_KEY:-default_secret_key}
-      - DOMAIN=${DOMAIN:-}
+      - DOUBAO_COOKIE=${DOUBAO_COOKIE:-}
+      - YUANBAO_COOKIE=${YUANBAO_COOKIE:-}

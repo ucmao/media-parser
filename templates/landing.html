@@ -664,15 +664,12 @@
                     document.getElementById('resultCover').src = res.data.cover_url || "{{ url_for('static', filename='images/default-cover.png') }}";
                     document.getElementById('resultTitle').innerText = res.data.title || '无标题素材';
 
-                    // Video Links & Anti-Hotlinking Proxy
-                    const platformName = res.data.platform || '';
+                    // Video Links
                     const videoDlBtn = document.getElementById('resultVideoDl');
                     const videoPlayBtn = document.getElementById('resultVideoPlay');
                     if (res.data.video_url) {
-                        const proxyDlUrl = `/api/proxy?platform=${encodeURIComponent(platformName)}&download=1&url=${encodeURIComponent(res.data.video_url)}`;
-                        const proxyStreamUrl = `/api/proxy?platform=${encodeURIComponent(platformName)}&url=${encodeURIComponent(res.data.video_url)}`;
-                        videoDlBtn.href = proxyDlUrl;
-                        videoPlayBtn.href = proxyStreamUrl;
+                        videoDlBtn.href = res.data.video_url;
+                        videoPlayBtn.href = res.data.video_url;
                         videoPlayBtn.parentElement.classList.remove('hidden');
                         videoDlBtn.style.display = 'flex';
                     } else {
@@ -687,7 +684,7 @@
                     if (res.data.video_list && res.data.video_list.length > 1) {
                         res.data.video_list.forEach((videoUrl, index) => {
                             const link = document.createElement('a');
-                            link.href = `/api/proxy?platform=${encodeURIComponent(platformName)}&download=1&url=${encodeURIComponent(videoUrl)}`;
+                            link.href = videoUrl;
                             link.target = '_blank';
                             link.rel = 'noopener noreferrer';
                             link.className = 'inline-flex items-center space-x-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-bold border border-indigo-100 hover:bg-indigo-100 transition-colors';
@@ -703,7 +700,7 @@
                     const audioContainer = document.getElementById('audioContainer');
                     const resultAudio = document.getElementById('resultAudio');
                     if (res.data.audio_url) {
-                        resultAudio.src = `/api/proxy?platform=${encodeURIComponent(platformName)}&url=${encodeURIComponent(res.data.audio_url)}`;
+                        resultAudio.src = res.data.audio_url;
                         audioContainer.classList.remove('hidden');
                         audioContainer.classList.add('block');
                     } else {
@@ -740,8 +737,7 @@
                             </a>`;
 
                             if (livePhotoUrl) {
-                                const proxyLiveUrl = `/api/proxy?platform=${encodeURIComponent(platformName)}&download=1&url=${encodeURIComponent(livePhotoUrl)}`;
-                                innerHtml += `<a href="${proxyLiveUrl}" target="_blank" rel="noopener noreferrer" class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-indigo-600/90 hover:bg-indigo-600 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-lg backdrop-blur-md flex items-center space-x-1.5 transition-transform hover:scale-105 z-10 w-max border border-white/20">
+                                innerHtml += `<a href="${livePhotoUrl}" target="_blank" rel="noopener noreferrer" class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-indigo-600/90 hover:bg-indigo-600 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-lg backdrop-blur-md flex items-center space-x-1.5 transition-transform hover:scale-105 z-10 w-max border border-white/20">
                                     <i class="fas fa-video text-xs"></i>
                                     <span>获取 Live Photo 动图</span>
                                 </a>`;
@@ -763,7 +759,7 @@
                         albumContainer.classList.remove('flex');
                     }
 
-                    document.getElementById('resultCoverDl').href = res.data.cover_url ? `/api/proxy?platform=${encodeURIComponent(platformName)}&download=1&url=${encodeURIComponent(res.data.cover_url)}` : '#';
+                    document.getElementById('resultCoverDl').href = res.data.cover_url || '#';
 
                     resultState.classList.remove('hidden');
                     resultState.scrollIntoView({ behavior: 'smooth', block: 'nearest' });

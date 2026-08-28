@@ -1,6 +1,7 @@
 import base64
 import html
 import json
+import os
 import unittest
 from unittest.mock import Mock, patch
 
@@ -9,6 +10,35 @@ from utils.web_fetcher import UrlParser
 
 
 class DoubaoParserTest(unittest.TestCase):
+    @patch.dict(os.environ, {"DOUBAO_COOKIE": "sessionid_ss=test-cookie"}, clear=False)
+    def test_thread_reads_router_payload_and_sends_cookie(self):
+        video_url = "https://video.example.com/source.mp4?token=abc"
+        video_model = json.dumps({
+            "video_list": [{"main_url": base64.b64encode(video_url.encode()).decode()}]
+        })
+        router_payload = [
+            "thread_(token)/page",
+            "shareInfo",
+            {"data": {"message_snapshot": {"message_list": [{
+                "content": json.dumps([{
+                    "creation_block": {"creations": [{"video": {"video_model": video_model}}]}
+                }], ensure_ascii=False)
+            }]}}},
+        ]
+        page = (
+            '<script async="" data-fn-name="r" data-script-src="modern-run-router-data-fn" '
+            f'data-fn-args="{html.escape(json.dumps(router_payload, ensure_ascii=False), quote=True)}" '
+            'nonce="test"></script>'
+        )
+        response = Mock(text=page)
+        response.raise_for_status.return_value = None
+
+        with patch("requests.Session.get", return_value=response) as get:
+            parser = DoubaoParser("https://www.doubao.com/thread/example")
+
+        self.assertEqual(parser.get_real_video_url(), video_url)
+        self.assertEqual(get.call_args.kwargs["headers"]["Cookie"], "sessionid_ss=test-cookie")
+
     def test_thread_parses_images_and_videos_from_nested_json(self):
         video_url = "https://video.example.com/source.mp4?token=abc"
         video_model = json.dumps({

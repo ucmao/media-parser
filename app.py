@@ -1,7 +1,9 @@
 from flask import Flask, jsonify, render_template
 import os
 from src.api import parse
-from configs.logging_config import logger
+from configs.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default_secret_key')
