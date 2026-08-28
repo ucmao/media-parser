@@ -1,341 +1,597 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="scroll-smooth">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>媒体解析去水印 - 高效短视频解析工具</title>
+    <title>Media Parser - 简约高效的多平台短视频与图文无水印解析工具</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #FAFAFC;
         }
 
-        .gradient-bg {
-            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+        /* Ambient Glow Backgrounds */
+        .ambient-glow-1 {
+            background: radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.08) 0%, rgba(255, 255, 255, 0) 70%);
         }
 
-        .animate-float {
-            animation: float 6s ease-in-out infinite;
+        .ambient-glow-2 {
+            background: radial-gradient(circle at 100% 50%, rgba(168, 85, 247, 0.06) 0%, rgba(255, 255, 255, 0) 60%);
         }
 
-        @keyframes float {
-            0% {
-                transform: translateY(0px);
-            }
-
-            50% {
-                transform: translateY(-20px);
-            }
-
-            100% {
-                transform: translateY(0px);
-            }
-        }
-
-        /* Custom Scrollbar for Album */
+        /* Custom Modern Scrollbars */
         .custom-scrollbar::-webkit-scrollbar {
             height: 6px;
+            width: 6px;
         }
 
         .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 4px;
+            background: #F1F5F9;
+            border-radius: 6px;
         }
 
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
+            background: #CBD5E1;
+            border-radius: 6px;
         }
 
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
+            background: #94A3B8;
+        }
+
+        /* Glassmorphism card effects */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        @keyframes pulseSlow {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(1.02); }
+        }
+
+        .animate-pulse-slow {
+            animation: pulseSlow 4s ease-in-out infinite;
         }
     </style>
 </head>
 
-<body class="bg-slate-50 overflow-x-hidden">
-    <!-- Navbar -->
-    <nav class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <img src="{{ url_for('static', filename='images/logo.png') }}" class="w-10 h-10 rounded-xl shadow-sm">
-                <span class="text-xl font-bold tracking-tight text-slate-800">Media <span
-                        class="text-indigo-600">Parse</span></span>
-            </div>
+<body class="text-slate-800 antialiased selection:bg-indigo-500 selection:text-white min-h-screen flex flex-col justify-between">
 
-        </div>
-    </nav>
+    <!-- Ambient Lighting Background -->
+    <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] ambient-glow-1"></div>
+        <div class="absolute top-1/3 -right-40 w-[600px] h-[600px] ambient-glow-2"></div>
+    </div>
 
-    <!-- Hero Section -->
-    <section class="pt-32 pb-20 px-6 relative overflow-hidden">
-        <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
-            <div class="relative z-10">
-                <span
-                    class="px-4 py-1.5 bg-indigo-50 text-indigo-600 rounded-full text-sm font-bold tracking-wide uppercase mb-6 inline-block">v2.0
-                    现已发布</span>
-                <h1 class="text-5xl lg:text-7xl font-extrabold text-slate-900 leading-[1.1] mb-8">
-                    高效解析，<br>
-                    <span class="text-indigo-600">赋能短视频创作。</span>
-                </h1>
-                <p class="text-xl text-slate-500 mb-10 leading-relaxed max-w-xl">
-                    我们是一款专为创作者打造的自动化视频解析工具。一键提取多平台无水印高清视频素材，让创作更简单，让灵感随手可得。
-                </p>
-                <div class="flex flex-col sm:flex-row gap-4">
-                    <button onclick="scrollToQr()"
-                        class="px-10 py-4 bg-indigo-600 text-white rounded-2xl font-bold text-lg hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200 flex items-center justify-center space-x-3">
-                        <i class="fas fa-mobile-alt"></i>
-                        <span>立即扫码体验</span>
-                    </button>
-                    <a href="https://github.com/ucmao/media-parser" target="_blank"
-                        class="px-10 py-4 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold text-lg hover:bg-slate-50 transition-all flex items-center justify-center space-x-3">
-                        <i class="fab fa-github"></i>
-                        <span>查看源码</span>
-                    </a>
+    <!-- Navigation Header -->
+    <header class="fixed top-0 left-0 right-0 z-50 glass-nav border-b border-slate-200/60 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <a href="#" class="flex items-center space-x-3 group">
+                <div class="w-9 h-9 rounded-xl overflow-hidden bg-slate-100 border border-slate-200/80 shadow-xs flex items-center justify-center p-1 group-hover:scale-105 transition-transform duration-200">
+                    <img src="{{ url_for('static', filename='images/logo-web.png') }}" alt="Media Parser Logo" class="w-full h-full object-contain">
                 </div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-lg font-extrabold tracking-tight text-slate-900">Media <span class="text-indigo-600">Parser</span></span>
+                </div>
+            </a>
+
+            <!-- Nav Links -->
+            <nav class="hidden md:flex items-center space-x-8 text-sm font-medium text-slate-600">
+                <a href="#parse-section" class="hover:text-indigo-600 transition-colors">在线解析</a>
+                <a href="#platforms-section" class="hover:text-indigo-600 transition-colors">支持平台</a>
+                <a href="#features-section" class="hover:text-indigo-600 transition-colors">核心优势</a>
+                <a href="#qr-section" class="hover:text-indigo-600 transition-colors">小程序体验</a>
+            </nav>
+
+            <!-- Actions -->
+            <div class="flex items-center space-x-3">
+                <a href="https://github.com/ucmao/media-parser" target="_blank" rel="noopener noreferrer"
+                    class="hidden sm:inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900 transition-all border border-slate-200/80">
+                    <i class="fab fa-github text-sm"></i>
+                    <span>GitHub</span>
+                </a>
+                <button onclick="scrollToQr()"
+                    class="inline-flex items-center space-x-2 px-4 py-2 rounded-full text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 transition-all shadow-sm hover:shadow-md active:scale-95">
+                    <i class="fas fa-qrcode"></i>
+                    <span>扫码体验</span>
+                </button>
             </div>
-            <div class="relative lg:ml-auto">
-                <div
-                    class="w-[320px] h-[580px] bg-slate-900 rounded-[3rem] p-4 shadow-2xl relative z-20 animate-float border-[8px] border-slate-800">
-                    <div
-                        class="bg-white w-full h-full rounded-[2rem] overflow-hidden flex flex-col items-center justify-center p-8 text-center">
-                        <img src="{{ url_for('static', filename='images/logo.png') }}"
-                            class="w-20 h-20 mb-6 rounded-2xl">
-                        <h3 class="text-2xl font-black text-slate-800 mb-2">小程序正式版</h3>
-                        <p class="text-slate-400 text-sm mb-8">扫描下方二维码<br>开启高清解析之旅</p>
-                        <div class="bg-slate-50 p-4 rounded-3xl border border-slate-100 mb-6">
-                            <img src="{{ url_for('static', filename='images/qr_code.jpg') }}" class="w-40 h-40">
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="relative z-10 flex-grow pt-24">
+
+        <!-- Hero Section -->
+        <section class="py-12 lg:py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+            <div class="grid lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+                <!-- Left Text Column -->
+                <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+                    <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-indigo-50/80 border border-indigo-100/80 text-indigo-700 text-xs font-semibold backdrop-blur-sm">
+                        <span class="w-2 h-2 rounded-full bg-indigo-600 animate-ping"></span>
+                        <span>v2.5 全新引擎发布 · 覆盖全网 30+ 平台</span>
+                    </div>
+
+                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
+                        极简高清解析，<br class="hidden sm:inline">
+                        <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-indigo-600 to-violet-600">
+                            赋能短视频与图文创作。
+                        </span>
+                    </h1>
+
+                    <p class="text-base sm:text-lg text-slate-500 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal">
+                        专为内容创作者打造的高性能自动化解析工具。一键提取抖音、快手、小红书、B站等多平台无水印高清视频、图文集、背景音乐及 Live Photo 实况照片。
+                    </p>
+
+                    <!-- Hero CTA Buttons -->
+                    <div class="pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+                        <a href="#parse-section"
+                            class="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm transition-all shadow-lg shadow-indigo-600/25 hover:shadow-indigo-600/35 flex items-center justify-center space-x-2 group">
+                            <span>立即使用在线解析</span>
+                            <i class="fas fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
+                        </a>
+                        <button onclick="scrollToQr()"
+                            class="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-white hover:bg-slate-50 text-slate-700 font-semibold text-sm transition-all border border-slate-200/90 shadow-sm flex items-center justify-center space-x-2">
+                            <i class="fab fa-weixin text-emerald-500 text-base"></i>
+                            <span>微信小程序</span>
+                        </button>
+                    </div>
+
+                    <!-- Quick Stats Badges -->
+                    <div class="pt-6 border-t border-slate-200/60 flex items-center justify-center lg:justify-start space-x-8 text-slate-400 text-xs font-medium">
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-check-circle text-emerald-500"></i>
+                            <span>无水印原画质</span>
                         </div>
-                        <div class="flex items-center space-x-2 text-indigo-600 font-bold animate-pulse">
-                            <i class="fas fa-arrow-down"></i>
-                            <span>长按或扫码进入</span>
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-bolt text-amber-500"></i>
+                            <span>毫秒级异步提取</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-shield-alt text-indigo-500"></i>
+                            <span>免费开源无广告</span>
                         </div>
                     </div>
                 </div>
-                <!-- Background Decoration -->
-                <div
-                    class="absolute -top-20 -right-20 w-[400px] h-[400px] bg-indigo-400/20 rounded-full blur-[100px] -z-10">
-                </div>
-                <div
-                    class="absolute -bottom-20 -left-20 w-[300px] h-[300px] bg-purple-400/20 rounded-full blur-[80px] -z-10">
+
+                <!-- Right Device Mockup -->
+                <div class="lg:col-span-5 flex justify-center">
+                    <div class="relative w-[270px] sm:w-[285px] h-[540px] sm:h-[560px]">
+                        <!-- Background Glow behind mockup -->
+                        <div class="absolute inset-0 bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 rounded-[2.6rem] blur-2xl transform rotate-6 scale-95"></div>
+
+                        <!-- Phone Outer Frame (Ultra-thin Bezel) -->
+                        <div class="relative w-full h-full bg-slate-900 p-2 rounded-[2.6rem] shadow-2xl shadow-slate-900/25 border-2 border-slate-800/90 animate-pulse-slow">
+                            <!-- Phone Screen Inner -->
+                            <div class="bg-white w-full h-full rounded-[2.1rem] overflow-hidden p-4 text-center flex flex-col items-center justify-between border border-slate-100/80 shadow-inner">
+                                <!-- Phone Header / Dynamic Island Notch -->
+                                <div class="w-16 h-3.5 bg-slate-950 rounded-full mb-2 shrink-0 mx-auto shadow-inner flex items-center justify-end px-1.5">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-indigo-900/60"></div>
+                                </div>
+
+                                <!-- Logo Badge -->
+                                <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center p-1.5 shadow-xs border border-slate-200/70 shrink-0">
+                                    <img src="{{ url_for('static', filename='images/logo-web.png') }}" class="w-full h-full object-contain">
+                                </div>
+
+                                <!-- Title & Description -->
+                                <div class="shrink-0">
+                                    <h3 class="text-sm font-extrabold text-slate-900">媒体解析</h3>
+                                    <p class="text-[10px] text-slate-400 mt-0.5">微信小程序 · 长按或扫码进入</p>
+                                </div>
+
+                                <!-- QR Card Container -->
+                                <div class="p-2 bg-slate-50 rounded-2xl border border-slate-200/80 shadow-xs relative group shrink-0">
+                                    <img src="{{ url_for('static', filename='images/qr_code.jpg') }}" alt="WeChat Mini Program QR" class="w-34 h-34 rounded-xl object-cover mx-auto">
+                                </div>
+
+                                <!-- Dynamic Tag Badge -->
+                                <div class="inline-flex items-center space-x-1 text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full text-[10px] font-bold border border-indigo-100 shrink-0">
+                                    <i class="fas fa-mobile-alt text-[10px]"></i>
+                                    <span>随时随地 便捷解析</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Online Parse Section -->
-    <section id="parse-section" class="py-20 px-6 relative overflow-hidden bg-white">
-        <div class="max-w-4xl mx-auto">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl font-black text-slate-800 mb-4">在线体验去水印</h2>
-                <p class="text-slate-500">支持抖音、快手、小红书、B站、微博、知乎、西瓜视频、AcFun、微视、好看视频、皮皮搞笑、梨视频等主流平台视频或图文链接
-                </p>
+        <!-- Online Parse Interactive Section -->
+        <section id="parse-section" class="py-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto scroll-mt-20">
+            <!-- Section Header -->
+            <div class="text-center mb-8">
+                <span class="text-xs font-extrabold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">Live Parser</span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-3 tracking-tight">在线无水印解析</h2>
+                <p class="text-sm text-slate-500 mt-2 max-w-lg mx-auto">支持粘贴抖音、快手、小红书、B站、微博、知乎、微信视频号、剪映等短视频或图文分享链接</p>
             </div>
 
-            <div
-                class="bg-slate-50 rounded-3xl p-6 md:p-10 shadow-xl shadow-slate-200/50 border border-slate-100 relative z-10">
-                <div class="flex flex-col md:flex-row gap-4 mb-8">
-                    <input type="text" id="parseUrl" placeholder="请粘贴视频链接，例如：https://v.douyin.com/..."
-                        class="flex-1 px-6 py-4 rounded-2xl bg-white border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-slate-700 text-lg">
-                    <button id="parseBtn" onclick="handleParse()"
-                        class="px-10 py-4 bg-indigo-600 text-white rounded-2xl font-bold text-lg hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 flex items-center justify-center space-x-2 whitespace-nowrap">
-                        <i class="fas fa-magic"></i>
-                        <span>一键解析</span>
-                    </button>
+            <!-- Main Input Card -->
+            <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xl shadow-slate-200/50 relative overflow-hidden transition-all">
+                <!-- Top Decorative Line -->
+                <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+
+                <!-- Clean Textarea & Action Buttons -->
+                <div class="space-y-4">
+                    <textarea id="parseUrl" rows="3"
+                        placeholder="粘贴带链接的文本"
+                        class="w-full p-4 bg-white border border-slate-200 rounded-2xl text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all leading-relaxed custom-scrollbar shadow-xs resize-none"></textarea>
+
+                    <!-- 3 Action Buttons Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <!-- Start Parse Button (Primary Indigo) -->
+                        <button id="parseBtn" onclick="handleParse()"
+                            class="w-full py-3.5 px-6 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-sm rounded-2xl transition-all shadow-md shadow-indigo-600/20 flex items-center justify-center space-x-2">
+                            <i class="fas fa-wand-magic-sparkles text-xs"></i>
+                            <span>开始解析</span>
+                        </button>
+
+                        <!-- Paste Link Button (Soft Indigo Accent) -->
+                        <button type="button" onclick="pasteFromClipboard()"
+                            class="w-full py-3.5 px-6 bg-indigo-50 hover:bg-indigo-100 active:scale-95 text-indigo-700 font-bold text-sm rounded-2xl transition-all border border-indigo-100/80 flex items-center justify-center space-x-2">
+                            <i class="far fa-clipboard text-indigo-500"></i>
+                            <span>粘贴链接</span>
+                        </button>
+
+                        <!-- Clear Content Button (Neutral Slate) -->
+                        <button type="button" onclick="clearInput()"
+                            class="w-full py-3.5 px-6 bg-slate-100 hover:bg-slate-200/80 active:scale-95 text-slate-600 font-semibold text-sm rounded-2xl transition-all border border-slate-200/70 flex items-center justify-center space-x-2">
+                            <i class="fas fa-trash-alt text-slate-400 text-xs"></i>
+                            <span>清除内容</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Loading State -->
-                <div id="loadingState" class="hidden flex-col items-center justify-center py-12 text-slate-400">
-                    <i class="fas fa-circle-notch fa-spin text-4xl text-indigo-500 mb-4"></i>
-                    <p>正在全力解析中，请稍候...</p>
+                <div id="loadingState" class="hidden flex-col items-center justify-center py-12 text-slate-500">
+                    <div class="relative w-12 h-12 mb-4">
+                        <div class="absolute inset-0 rounded-full border-4 border-indigo-100"></div>
+                        <div class="absolute inset-0 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin"></div>
+                    </div>
+                    <p class="text-sm font-semibold text-slate-700">正在全力提取高清素材中...</p>
+                    <p class="text-xs text-slate-400 mt-1">异步解析多端数据，请稍候</p>
                 </div>
 
-                <!-- Result State -->
-                <div id="resultState" class="hidden">
-                    <div
-                        class="bg-white rounded-2xl p-6 border border-slate-100 flex flex-col md:flex-row gap-8 shadow-sm">
-                        <div class="w-full md:w-1/3 shrink-0">
-                            <div id="coverBlock"
-                                class="relative rounded-xl overflow-hidden shadow-md aspect-[3/4] bg-slate-100 group">
-                                <img id="resultCover" src="" class="w-full h-full object-cover">
-                                <div
-                                    class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <a id="resultVideoPlay" href="" target="_blank"
-                                        class="w-14 h-14 bg-white/90 rounded-full flex items-center justify-center text-indigo-600 hover:scale-110 transition-transform shadow-lg">
+                <!-- Result Display Area -->
+                <div id="resultState" class="hidden mt-8 pt-8 border-t border-slate-100">
+                    <div class="bg-slate-50/80 rounded-2xl p-6 border border-slate-200/70 flex flex-col md:flex-row gap-8 shadow-sm">
+                        <!-- Left Media Preview Block -->
+                        <div class="w-full md:w-5/12 shrink-0">
+                            <!-- Video/Single Cover Block -->
+                            <div id="coverBlock" class="relative rounded-2xl overflow-hidden shadow-md aspect-[3/4] bg-slate-900 group">
+                                <img id="resultCover" src="" alt="Cover Image" class="w-full h-full object-cover">
+                                <div class="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                                    <a id="resultVideoPlay" href="" target="_blank" rel="noopener noreferrer"
+                                        class="w-14 h-14 bg-white/90 text-indigo-600 rounded-full flex items-center justify-center hover:scale-110 transition-transform shadow-xl">
                                         <i class="fas fa-play text-xl ml-1"></i>
                                     </a>
                                 </div>
                             </div>
 
-                            <!-- Image Album Container (Left Side) -->
-                            <div id="resultAlbum"
-                                class="hidden relative rounded-xl overflow-hidden shadow-md aspect-[3/4] bg-slate-100 group">
-                                <div
-                                    class="absolute top-3 right-3 bg-black/50 text-white text-xs px-2 py-1 rounded-lg backdrop-blur-sm z-10 flex items-center space-x-1 shadow-sm">
-                                    <i class="fas fa-images"></i> <span id="albumCount">0</span>
+                            <!-- Image Album Container (For Xiaohongshu / Douyin Note Albums) -->
+                            <div id="resultAlbum" class="hidden relative rounded-2xl overflow-hidden shadow-md aspect-[3/4] bg-slate-900 group">
+                                <div class="absolute top-3 right-3 bg-slate-900/80 text-white text-xs font-semibold px-2.5 py-1 rounded-full backdrop-blur-md z-10 flex items-center space-x-1.5 border border-white/10">
+                                    <i class="fas fa-images"></i>
+                                    <span><span id="albumCount">0</span> 张图文</span>
                                 </div>
-                                <div class="flex overflow-x-auto h-full w-full snap-x snap-mandatory scroll-smooth custom-scrollbar"
-                                    id="albumGrid">
-                                    <!-- JS will inject images here. Each image will be full width and height of container -->
+                                <div class="flex overflow-x-auto h-full w-full snap-x snap-mandatory scroll-smooth custom-scrollbar" id="albumGrid">
+                                    <!-- Dynamic album image cards injected via JS -->
                                 </div>
                             </div>
                         </div>
-                        <div class="flex-1 flex flex-col">
-                            <div class="flex flex-wrap items-center gap-2 mb-4">
-                                <span id="resultPlatform"
-                                    class="hidden px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-xs font-bold border border-indigo-100 shadow-sm"></span>
-                                <div
-                                    class="inline-flex items-center space-x-1 bg-green-50 text-green-600 px-3 py-1 rounded-full text-xs font-bold border border-green-100 shadow-sm">
-                                    <i class="fas fa-check-circle"></i>
-                                    <span>解析成功</span>
+
+                        <!-- Right Details & Download Block -->
+                        <div class="flex-1 flex flex-col justify-between">
+                            <div class="space-y-4">
+                                <!-- Status & Platform Tags -->
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span id="resultPlatform" class="hidden px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-bold border border-indigo-100"></span>
+                                    <div class="inline-flex items-center space-x-1.5 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-100">
+                                        <i class="fas fa-check-circle text-emerald-500"></i>
+                                        <span>解析成功</span>
+                                    </div>
+                                </div>
+
+                                <!-- Author Info -->
+                                <div id="authorInfo" class="hidden items-center space-x-3 bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-xs w-max max-w-full">
+                                    <img id="authorAvatar" src="" alt="Author Avatar" class="w-9 h-9 rounded-full object-cover border border-slate-200 shrink-0">
+                                    <div class="flex flex-col min-w-0 pr-2">
+                                        <span id="authorName" class="text-xs font-bold text-slate-800 truncate"></span>
+                                        <span id="authorId" class="text-[10px] text-slate-400 truncate"></span>
+                                    </div>
+                                </div>
+
+                                <!-- Result Title -->
+                                <div class="relative group">
+                                    <h3 id="resultTitle" class="text-base font-bold text-slate-900 leading-snug line-clamp-3"></h3>
+                                </div>
+
+                                <!-- Audio Container -->
+                                <div id="audioContainer" class="hidden space-y-2 p-3 bg-white rounded-xl border border-slate-200/80">
+                                    <h4 class="text-xs font-bold text-slate-700 flex items-center space-x-2">
+                                        <i class="fas fa-music text-indigo-500"></i>
+                                        <span>背景音乐 / 原声提取</span>
+                                    </h4>
+                                    <audio id="resultAudio" controls class="w-full h-10 outline-none rounded-lg"></audio>
+                                </div>
+
+                                <!-- Video List Container (For Multi-video posts) -->
+                                <div id="videoListContainer" class="hidden space-y-2">
+                                    <h4 class="text-xs font-bold text-slate-700 flex items-center space-x-2">
+                                        <i class="fas fa-film text-indigo-500"></i>
+                                        <span>多视频列表</span>
+                                    </h4>
+                                    <div id="videoList" class="flex flex-wrap gap-2"></div>
                                 </div>
                             </div>
 
-                            <div id="authorInfo"
-                                class="hidden items-center space-x-3 mb-4 bg-slate-50 w-max px-3 py-2 rounded-xl border border-slate-100">
-                                <img id="authorAvatar" src=""
-                                    class="w-8 h-8 rounded-full shadow-sm object-cover border border-slate-200">
-                                <div class="flex flex-col">
-                                    <span id="authorName" class="text-sm font-bold text-slate-700"></span>
-                                    <span id="authorId" class="text-[10px] text-slate-400"></span>
-                                </div>
-                            </div>
-
-                            <h3 id="resultTitle"
-                                class="text-lg font-bold text-slate-800 mb-6 line-clamp-2 leading-relaxed"></h3>
-
-                            <!-- Audio Player Container -->
-                            <div id="audioContainer" class="hidden mb-6 w-full">
-                                <h4 class="text-sm font-bold text-slate-700 mb-2"><i
-                                        class="fas fa-music mr-2 text-indigo-500"></i>音频分享</h4>
-                                <audio id="resultAudio" controls
-                                    class="w-full h-12 rounded-lg bg-slate-50 outline-none"></audio>
-                            </div>
-
-                            <div id="videoListContainer" class="hidden mb-6 w-full">
-                                <h4 class="text-sm font-bold text-slate-700 mb-2"><i
-                                        class="fas fa-film mr-2 text-indigo-500"></i>视频列表</h4>
-                                <div id="videoList" class="flex flex-wrap gap-2"></div>
-                            </div>
-
-                            <div class="mt-auto grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <a id="resultVideoDl" href="" target="_blank"
-                                    class="flex items-center justify-center space-x-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors shadow-sm">
+                            <!-- Action Buttons Group -->
+                            <div class="pt-6 mt-6 border-t border-slate-200/60 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <a id="resultVideoDl" href="" target="_blank" rel="noopener noreferrer"
+                                    class="flex items-center justify-center space-x-2 px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm">
                                     <i class="fas fa-video"></i>
-                                    <span>查看无水印视频</span>
+                                    <span>查看/下载无水印视频</span>
                                 </a>
-                                <a id="resultCoverDl" href="" target="_blank"
-                                    class="flex items-center justify-center space-x-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-medium hover:bg-slate-50 transition-colors shadow-sm">
+                                <a id="resultCoverDl" href="" target="_blank" rel="noopener noreferrer"
+                                    class="flex items-center justify-center space-x-2 px-5 py-3 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300/80 rounded-xl text-xs font-bold transition-all shadow-xs">
                                     <i class="fas fa-image"></i>
-                                    <span>查看高清封面</span>
+                                    <span>查看/下载高清封面</span>
                                 </a>
                             </div>
-
-
                         </div>
                     </div>
+                </div>
 
-                    <!-- Error State -->
-                    <div id="errorState"
-                        class="hidden flex-col items-center justify-center py-10 bg-red-50 rounded-2xl border border-red-100 text-red-500">
-                        <i class="fas fa-exclamation-circle text-4xl mb-3"></i>
-                        <p id="errorMsg">解析失败，请检查链接是否正确或稍后重试</p>
+                <!-- Error Display Area -->
+                <div id="errorState" class="hidden mt-8 p-6 bg-rose-50/80 rounded-2xl border border-rose-100 text-rose-600 flex-col items-center justify-center text-center space-y-2">
+                    <i class="fas fa-exclamation-circle text-2xl text-rose-500"></i>
+                    <p id="errorMsg" class="text-sm font-semibold">解析失败，请检查链接格式或稍后重试</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Supported Platforms Section -->
+        <section id="platforms-section" class="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-slate-200/60">
+            <div class="text-center mb-12">
+                <span class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Supported Platforms</span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">全网主流媒体平台覆盖</h2>
+                <p class="text-sm text-slate-500 mt-2">持续跟进平台算法更新，提供高可用、稳定的解析能力</p>
+            </div>
+
+            <!-- Grid of platform badges -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                <div class="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs flex items-center space-x-3 hover:border-indigo-300 transition-colors">
+                    <div class="w-8 h-8 rounded-lg bg-black text-white flex items-center justify-center text-xs font-black">抖</div>
+                    <div>
+                        <div class="text-xs font-bold text-slate-800">抖音</div>
+                        <div class="text-[10px] text-slate-400">视频/图文/Live</div>
                     </div>
                 </div>
 
-                <!-- Background Decoration -->
-                <div
-                    class="absolute top-1/2 left-0 w-[500px] h-[500px] bg-indigo-400/10 rounded-full blur-[120px] -z-10 -translate-y-1/2 -translate-x-1/2">
+                <div class="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs flex items-center space-x-3 hover:border-indigo-300 transition-colors">
+                    <div class="w-8 h-8 rounded-lg bg-red-500 text-white flex items-center justify-center text-xs font-black">小</div>
+                    <div>
+                        <div class="text-xs font-bold text-slate-800">小红书</div>
+                        <div class="text-[10px] text-slate-400">图文/视频/实况</div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs flex items-center space-x-3 hover:border-indigo-300 transition-colors">
+                    <div class="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs font-black">快</div>
+                    <div>
+                        <div class="text-xs font-bold text-slate-800">快手</div>
+                        <div class="text-[10px] text-slate-400">高清无水印</div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs flex items-center space-x-3 hover:border-indigo-300 transition-colors">
+                    <div class="w-8 h-8 rounded-lg bg-pink-400 text-white flex items-center justify-center text-xs font-black">B</div>
+                    <div>
+                        <div class="text-xs font-bold text-slate-800">哔哩哔哩</div>
+                        <div class="text-[10px] text-slate-400">视频/音频提取</div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs flex items-center space-x-3 hover:border-indigo-300 transition-colors">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-xs font-black">微</div>
+                    <div>
+                        <div class="text-xs font-bold text-slate-800">微信视频号</div>
+                        <div class="text-[10px] text-slate-400">无水印解析</div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs flex items-center space-x-3 hover:border-indigo-300 transition-colors">
+                    <div class="w-8 h-8 rounded-lg bg-red-600 text-white flex items-center justify-center text-xs font-black">博</div>
+                    <div>
+                        <div class="text-xs font-bold text-slate-800">微博</div>
+                        <div class="text-[10px] text-slate-400">视频/图文素材</div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs flex items-center space-x-3 hover:border-indigo-300 transition-colors">
+                    <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs font-black">知</div>
+                    <div>
+                        <div class="text-xs font-bold text-slate-800">知乎</div>
+                        <div class="text-[10px] text-slate-400">回答/视频解析</div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs flex items-center space-x-3 hover:border-indigo-300 transition-colors">
+                    <div class="w-8 h-8 rounded-lg bg-red-500 text-white flex items-center justify-center text-xs font-black">西</div>
+                    <div>
+                        <div class="text-xs font-bold text-slate-800">西瓜视频</div>
+                        <div class="text-[10px] text-slate-400">横屏高清内容</div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs flex items-center space-x-3 hover:border-indigo-300 transition-colors">
+                    <div class="w-8 h-8 rounded-lg bg-cyan-500 text-white flex items-center justify-center text-xs font-black">剪</div>
+                    <div>
+                        <div class="text-xs font-bold text-slate-800">剪映</div>
+                        <div class="text-[10px] text-slate-400">草稿/视频分析</div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs flex items-center space-x-3 hover:border-indigo-300 transition-colors">
+                    <div class="w-8 h-8 rounded-lg bg-purple-600 text-white flex items-center justify-center text-xs font-black">梦</div>
+                    <div>
+                        <div class="text-xs font-bold text-slate-800">即梦 AI</div>
+                        <div class="text-[10px] text-slate-400">AI 生成视频提取</div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs flex items-center space-x-3 hover:border-indigo-300 transition-colors">
+                    <div class="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center text-xs font-black">豆</div>
+                    <div>
+                        <div class="text-xs font-bold text-slate-800">豆包</div>
+                        <div class="text-[10px] text-slate-400">AI 多媒体链接</div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs flex items-center space-x-3 hover:border-indigo-300 transition-colors">
+                    <div class="w-8 h-8 rounded-lg bg-slate-800 text-white flex items-center justify-center text-xs font-black">+</div>
+                    <div>
+                        <div class="text-xs font-bold text-slate-800">更多平台</div>
+                        <div class="text-[10px] text-slate-400">皮皮虾/好看/可灵等</div>
+                    </div>
                 </div>
             </div>
-    </section>
+        </section>
 
-    <!-- Features Section -->
-    <section class="py-20 bg-white border-y border-slate-100 px-6">
-        <div class="max-w-7xl mx-auto">
-            <div class="text-center mb-16">
-                <h2 class="text-4xl font-black text-slate-800 mb-4">为什么选择我们？</h2>
-                <p class="text-slate-400 max-w-2xl mx-auto">我们不仅仅是一个解析工具，更是您创作路上的得力助手。</p>
+        <!-- Features Section -->
+        <section id="features-section" class="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-slate-200/60">
+            <div class="text-center mb-12">
+                <span class="text-xs font-extrabold uppercase tracking-wider text-indigo-600">Why Choose Us</span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">专为内容创作者打造</h2>
+                <p class="text-sm text-slate-500 mt-2">拒绝繁琐与广告，提供纯粹、流畅的素材解析体验</p>
             </div>
-            <div class="grid md:grid-cols-3 gap-8">
-                <div
-                    class="p-8 bg-slate-50 rounded-3xl border border-slate-100 hover:border-indigo-200 transition-all group">
-                    <div
-                        class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-indigo-600 text-2xl mb-6 shadow-sm group-hover:bg-indigo-600 group-hover:text-white transition-all">
+
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- Feature 1 -->
+                <div class="p-8 bg-white rounded-3xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all space-y-4 group">
+                    <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                         <i class="fas fa-bolt"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-slate-800 mb-3">极速解析</h3>
-                    <p class="text-slate-500 leading-relaxed">基于高性能异步抓取技术，秒级获取视频真实地址，告别漫长等待。</p>
+                    <h3 class="text-lg font-bold text-slate-900">极速无感提取</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        基于高并发异步架构与全网智能调度策略，短视频及图文链接秒级解析，无等待阻碍。
+                    </p>
                 </div>
-                <div
-                    class="p-8 bg-slate-50 rounded-3xl border border-slate-100 hover:border-indigo-200 transition-all group">
-                    <div
-                        class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-indigo-600 text-2xl mb-6 shadow-sm group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                        <i class="fas fa-layer-group"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-slate-800 mb-3">多平台支持</h3>
-                    <p class="text-slate-500 leading-relaxed">
-                        全面兼容抖音、快手、小红书、B站、微博、知乎、西瓜视频、豆包、即梦AI、AcFun、微视、好看视频、皮皮搞笑、梨视频等主流媒体平台，覆盖全网素材。</p>
-                </div>
-                <div
-                    class="p-8 bg-slate-50 rounded-3xl border border-slate-100 hover:border-indigo-200 transition-all group">
-                    <div
-                        class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-indigo-600 text-2xl mb-6 shadow-sm group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-slate-800 mb-3">安全稳定</h3>
-                    <p class="text-slate-500 leading-relaxed">采用微信小程序官方登录，无需注册，数据加密传输，保护您的隐私。</p>
-                </div>
-            </div>
-        </div>
-    </section>
 
-    <!-- QR Section -->
-    <section id="qr-section" class="py-32 px-6">
-        <div
-            class="max-w-4xl mx-auto gradient-bg rounded-[3rem] p-12 lg:p-20 text-center text-white relative overflow-hidden shadow-2xl shadow-indigo-300">
-            <div class="relative z-10">
-                <h2 class="text-4xl lg:text-5xl font-black mb-6">准备好开始了么？</h2>
-                <p class="text-indigo-100 text-xl mb-12 max-w-2xl mx-auto opacity-90">
-                    拿起手机，打开微信扫一扫。只需几秒钟，您就可以开始使用最流畅的解析服务。</p>
-                <div
-                    class="inline-block bg-white p-6 rounded-[2.5rem] shadow-2xl mb-8 transform hover:scale-105 transition-transform">
-                    <img src="{{ url_for('static', filename='images/qr_code.jpg') }}" class="w-56 h-56">
+                <!-- Feature 2 -->
+                <div class="p-8 bg-white rounded-3xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all space-y-4 group">
+                    <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                        <i class="fas fa-photo-film"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-900">全能素材解析</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        不仅支持无水印 MP4 视频，更支持 4K 原图集、Live Photo 实况动画及背景 BGM 原音提取。
+                    </p>
                 </div>
-                <div class="text-indigo-200 font-medium">媒体解析去水印 · 赋能每一位创作者</div>
-            </div>
-            <!-- Circles -->
-            <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
-            <div class="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full -ml-32 -mb-32 blur-3xl"></div>
-        </div>
-    </section>
 
-    <!-- Footer -->
-    <footer class="py-12 border-t border-slate-100 px-6 bg-white">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-            <div class="flex items-center space-x-3 opacity-60">
-                <img src="{{ url_for('static', filename='images/logo.png') }}" class="w-6 h-6 rounded-md grayscale">
-                <span class="text-slate-800 font-bold">Media Parse</span>
+                <!-- Feature 3 -->
+                <div class="p-8 bg-white rounded-3xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all space-y-4 group">
+                    <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                        <i class="fas fa-shield-halved"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-900">安全开源无界</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        核心代码全面开源，无隐私收集与恶意广告。提供 Restful API 与微信小程序端多端协同。
+                    </p>
+                </div>
             </div>
-            <div class="text-slate-400 text-sm font-medium">
-                © 2026 媒体解析去水印. All rights reserved. 专为创作者而生。
+        </section>
+
+        <!-- Mini Program QR Section -->
+        <section id="qr-section" class="py-16 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto scroll-mt-20">
+            <div class="bg-slate-900 text-white rounded-3xl p-8 sm:p-14 relative overflow-hidden shadow-2xl">
+                <!-- Ambient circles -->
+                <div class="absolute -top-24 -right-24 w-72 h-72 bg-indigo-500/20 rounded-full blur-3xl"></div>
+                <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl"></div>
+
+                <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-left">
+                    <div class="space-y-4 max-w-md">
+                        <span class="inline-block px-3 py-1 bg-white/10 text-indigo-300 rounded-full text-xs font-bold tracking-wide">微信小程序支持</span>
+                        <h2 class="text-3xl font-extrabold tracking-tight">手机端随时随地一键解析</h2>
+                        <p class="text-sm text-slate-300 leading-relaxed">
+                            打开微信扫描二维码即可开始使用。支持一键复制解析结果、便捷保存图片到相册及实况动图导出。
+                        </p>
+                        <div class="pt-2 text-xs text-slate-400 flex items-center justify-center md:justify-start space-x-4">
+                            <span><i class="fas fa-check text-emerald-400 mr-1"></i> 免注册登录</span>
+                            <span><i class="fas fa-check text-emerald-400 mr-1"></i> 高清原画输出</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-2xl shadow-xl shrink-0">
+                        <img src="{{ url_for('static', filename='images/qr_code.jpg') }}" alt="WeChat Mini Program QR Code" class="w-44 h-44 rounded-xl object-cover">
+                        <p class="text-[11px] text-slate-500 font-bold text-center mt-2">微信扫码立即使用</p>
+                    </div>
+                </div>
             </div>
-            <div class="flex space-x-6">
-                <a href="#" class="text-slate-400 hover:text-indigo-600 transition-colors"><i
-                        class="fab fa-weixin text-xl"></i></a>
-                <a href="https://github.com/ucmao/media-parser" target="_blank"
-                    class="text-slate-400 hover:text-indigo-600 transition-colors"><i
-                        class="fab fa-github text-xl"></i></a>
+        </section>
+
+    </main>
+
+    <!-- Modern Minimalist Footer -->
+    <footer class="bg-white border-t border-slate-200/60 py-8 px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+            <div class="flex items-center space-x-3">
+                <img src="{{ url_for('static', filename='images/logo-web.png') }}" class="w-5 h-5 rounded-md grayscale">
+                <span class="font-bold text-slate-700">Media Parser</span>
+                <span>© 2026 媒体解析去水印</span>
+            </div>
+
+            <div class="flex items-center space-x-6">
+                <a href="https://github.com/ucmao/media-parser" target="_blank" rel="noopener noreferrer" class="hover:text-indigo-600 transition-colors">GitHub 仓库</a>
+                <a href="/api/health" target="_blank" class="hover:text-indigo-600 transition-colors flex items-center space-x-1">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+                    <span>API 状态</span>
+                </a>
             </div>
         </div>
     </footer>
 
+    <!-- Interactive Script -->
     <script>
         function scrollToQr() {
             document.getElementById('qr-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function setExampleUrl(url) {
+            const input = document.getElementById('parseUrl');
+            input.value = url;
+            input.focus();
+        }
+
+        function clearInput() {
+            const input = document.getElementById('parseUrl');
+            input.value = '';
+            input.focus();
+        }
+
+        async function pasteFromClipboard() {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (text) {
+                    document.getElementById('parseUrl').value = text;
+                }
+            } catch (err) {
+                alert('请允许剪贴板读取权限或直接手动粘贴');
+            }
         }
 
         async function handleParse() {
@@ -346,7 +602,7 @@
             const parseBtn = document.getElementById('parseBtn');
 
             if (!urlInput) {
-                alert('请输入视频链接！');
+                alert('请输入或粘贴视频/图文链接！');
                 return;
             }
 
@@ -356,7 +612,7 @@
             loadingState.classList.remove('hidden');
             loadingState.classList.add('flex');
             parseBtn.disabled = true;
-            parseBtn.classList.add('opacity-70');
+            parseBtn.classList.add('opacity-70', 'cursor-not-allowed');
 
             try {
                 const response = await fetch('/api/parse', {
@@ -373,7 +629,7 @@
                 loadingState.classList.remove('flex');
 
                 if (response.ok && res.succ) {
-                    // Update UI with results
+                    // Update Platform tag
                     const platformEl = document.getElementById('resultPlatform');
                     if (res.data.platform) {
                         platformEl.innerText = res.data.platform;
@@ -384,6 +640,7 @@
                         platformEl.classList.remove('inline-flex');
                     }
 
+                    // Update Author Info
                     const authorInfo = document.getElementById('authorInfo');
                     if (res.data.author && res.data.author.nickname) {
                         document.getElementById('authorName').innerText = res.data.author.nickname;
@@ -395,7 +652,7 @@
                             authorIdEl.classList.add('hidden');
                         }
 
-                        document.getElementById('authorAvatar').src = res.data.author.avatar || "{{ url_for('static', filename='images/logo.png') }}";
+                        document.getElementById('authorAvatar').src = res.data.author.avatar || "{{ url_for('static', filename='images/logo-web.png') }}";
                         authorInfo.classList.remove('hidden');
                         authorInfo.classList.add('flex');
                     } else {
@@ -403,33 +660,38 @@
                         authorInfo.classList.remove('flex');
                     }
 
-                    document.getElementById('resultCover').src = res.data.cover_url;
-                    document.getElementById('resultTitle').innerText = res.data.title || '无标题';
+                    // Cover & Title
+                    document.getElementById('resultCover').src = res.data.cover_url || "{{ url_for('static', filename='images/default-cover.png') }}";
+                    document.getElementById('resultTitle').innerText = res.data.title || '无标题素材';
 
+                    // Video Links & Anti-Hotlinking Proxy
+                    const platformName = res.data.platform || '';
                     const videoDlBtn = document.getElementById('resultVideoDl');
                     const videoPlayBtn = document.getElementById('resultVideoPlay');
                     if (res.data.video_url) {
-                        videoDlBtn.href = res.data.video_url;
-                        videoPlayBtn.href = res.data.video_url;
+                        const proxyDlUrl = `/api/proxy?platform=${encodeURIComponent(platformName)}&download=1&url=${encodeURIComponent(res.data.video_url)}`;
+                        const proxyStreamUrl = `/api/proxy?platform=${encodeURIComponent(platformName)}&url=${encodeURIComponent(res.data.video_url)}`;
+                        videoDlBtn.href = proxyDlUrl;
+                        videoPlayBtn.href = proxyStreamUrl;
                         videoPlayBtn.parentElement.classList.remove('hidden');
                         videoDlBtn.style.display = 'flex';
                     } else {
-                        // In case of image-only platforms like Xiaohongshu without video
                         videoPlayBtn.parentElement.classList.add('hidden');
                         videoDlBtn.style.display = 'none';
                     }
 
+                    // Multi-video List
                     const videoListContainer = document.getElementById('videoListContainer');
                     const videoList = document.getElementById('videoList');
                     videoList.innerHTML = '';
                     if (res.data.video_list && res.data.video_list.length > 1) {
                         res.data.video_list.forEach((videoUrl, index) => {
                             const link = document.createElement('a');
-                            link.href = videoUrl;
+                            link.href = `/api/proxy?platform=${encodeURIComponent(platformName)}&download=1&url=${encodeURIComponent(videoUrl)}`;
                             link.target = '_blank';
                             link.rel = 'noopener noreferrer';
-                            link.className = 'inline-flex items-center space-x-2 px-3 py-2 bg-indigo-50 text-indigo-600 rounded-lg text-sm font-bold border border-indigo-100 hover:bg-indigo-100 transition-colors';
-                            link.innerHTML = `<i class="fas fa-play-circle"></i><span>视频 ${index + 1}</span>`;
+                            link.className = 'inline-flex items-center space-x-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-bold border border-indigo-100 hover:bg-indigo-100 transition-colors';
+                            link.innerHTML = `<i class="fas fa-play-circle text-indigo-500"></i><span>视频 ${index + 1}</span>`;
                             videoList.appendChild(link);
                         });
                         videoListContainer.classList.remove('hidden');
@@ -437,11 +699,11 @@
                         videoListContainer.classList.add('hidden');
                     }
 
-                    // Parse Audio
+                    // Audio Container
                     const audioContainer = document.getElementById('audioContainer');
                     const resultAudio = document.getElementById('resultAudio');
                     if (res.data.audio_url) {
-                        resultAudio.src = res.data.audio_url;
+                        resultAudio.src = `/api/proxy?platform=${encodeURIComponent(platformName)}&url=${encodeURIComponent(res.data.audio_url)}`;
                         audioContainer.classList.remove('hidden');
                         audioContainer.classList.add('block');
                     } else {
@@ -450,7 +712,7 @@
                         audioContainer.classList.remove('block');
                     }
 
-                    // Parse Album Images
+                    // Album Images Container
                     const albumContainer = document.getElementById('resultAlbum');
                     const albumGrid = document.getElementById('albumGrid');
                     const coverBlock = document.getElementById('coverBlock');
@@ -458,7 +720,7 @@
                     albumGrid.innerHTML = '';
                     if (res.data.image_list && res.data.image_list.length > 0) {
                         document.getElementById('albumCount').innerText = res.data.image_list.length;
-                        res.data.image_list.forEach(item => {
+                        res.data.image_list.forEach((item, idx) => {
                             let imgUrl = item;
                             let livePhotoUrl = null;
                             if (typeof item === 'object' && item !== null) {
@@ -469,22 +731,23 @@
                             const imgContainer = document.createElement('div');
                             imgContainer.className = 'w-full h-full shrink-0 flex-none snap-center relative';
 
-                            let innerHtml = `<a href="${imgUrl}" target="_blank" class="block w-full h-full relative group">
+                            let innerHtml = `<a href="${imgUrl}" target="_blank" rel="noopener noreferrer" class="block w-full h-full relative group">
                                 <img src="${imgUrl}" class="w-full h-full object-cover">
-                                <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white backdrop-blur-sm space-y-2">
-                                    <i class="fas fa-expand text-4xl drop-shadow-md"></i>
-                                    <span class="text-sm font-bold bg-black/50 px-3 py-1 rounded-full">查看高清大图</span>
+                                <div class="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white backdrop-blur-[2px] space-y-2">
+                                    <i class="fas fa-expand text-2xl drop-shadow-md"></i>
+                                    <span class="text-xs font-bold bg-black/60 px-3 py-1 rounded-full border border-white/20">查看原图 (${idx + 1}/${res.data.image_list.length})</span>
                                 </div>
                             </a>`;
 
                             if (livePhotoUrl) {
-                                innerHtml += `<a href="${livePhotoUrl}" target="_blank" class="absolute bottom-6 left-1/2 -translate-x-1/2 bg-indigo-600/90 hover:bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg backdrop-blur-md flex items-center space-x-2 transition-transform hover:scale-105 z-10 w-max">
-                                    <i class="fas fa-video"></i>
-                                    <span>获取实况/动图</span>
+                                const proxyLiveUrl = `/api/proxy?platform=${encodeURIComponent(platformName)}&download=1&url=${encodeURIComponent(livePhotoUrl)}`;
+                                innerHtml += `<a href="${proxyLiveUrl}" target="_blank" rel="noopener noreferrer" class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-indigo-600/90 hover:bg-indigo-600 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-lg backdrop-blur-md flex items-center space-x-1.5 transition-transform hover:scale-105 z-10 w-max border border-white/20">
+                                    <i class="fas fa-video text-xs"></i>
+                                    <span>获取 Live Photo 动图</span>
                                 </a>`;
-                                innerHtml += `<div class="absolute top-12 left-4 bg-black/60 backdrop-blur-md text-white px-3 py-1 rounded-full text-xs font-bold border border-white/20 shadow-sm flex items-center space-x-1 z-10 pointer-events-none">
-                                    <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-                                    <span>Live</span>
+                                innerHtml += `<div class="absolute top-4 left-4 bg-slate-950/70 backdrop-blur-md text-white px-2.5 py-1 rounded-full text-[10px] font-bold border border-white/20 shadow-sm flex items-center space-x-1 z-10 pointer-events-none">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                    <span>Live Photo</span>
                                 </div>`;
                             }
 
@@ -500,23 +763,24 @@
                         albumContainer.classList.remove('flex');
                     }
 
-                    document.getElementById('resultCoverDl').href = res.data.cover_url;
+                    document.getElementById('resultCoverDl').href = res.data.cover_url ? `/api/proxy?platform=${encodeURIComponent(platformName)}&download=1&url=${encodeURIComponent(res.data.cover_url)}` : '#';
 
                     resultState.classList.remove('hidden');
+                    resultState.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 } else {
-                    document.getElementById('errorMsg').innerText = res.retdesc || '解析失败，请检查链接是否正确或稍后重试';
+                    document.getElementById('errorMsg').innerText = res.retdesc || '解析失败，请检查链接格式是否正确或稍后重试';
                     errorState.classList.remove('hidden');
                     errorState.classList.add('flex');
                 }
             } catch (err) {
                 loadingState.classList.add('hidden');
                 loadingState.classList.remove('flex');
-                document.getElementById('errorMsg').innerText = '网络错误，请稍后重试';
+                document.getElementById('errorMsg').innerText = '网络异常，请检查网络连接或稍后重试';
                 errorState.classList.remove('hidden');
                 errorState.classList.add('flex');
             } finally {
                 parseBtn.disabled = false;
-                parseBtn.classList.remove('opacity-70');
+                parseBtn.classList.remove('opacity-70', 'cursor-not-allowed');
             }
         }
     </script>
