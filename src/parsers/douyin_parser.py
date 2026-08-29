@@ -16,7 +16,7 @@ import urllib3
 import warnings
 import copy
 from utils.web_fetcher import UrlParser
-from utils.douyin_utils.bogus_sign_utils import CommonUtils
+from utils.signer.bytedance.bogus_signer import BogusSigner
 from configs.logging_config import get_logger
 logger = get_logger(__name__)
 from src.parsers.base_parser import BaseParser
@@ -27,19 +27,19 @@ warnings.filterwarnings("ignore", category=urllib3.exceptions.InsecureRequestWar
 class DouyinParser(BaseParser):
     def __init__(self, real_url):
         super().__init__(real_url)
-        self.common_utils = CommonUtils()
+        self.signer = BogusSigner()
         self.headers = {
             'sec-ch-ua': '"Google Chrome";v="123", "Not:A-Brand";v="8", "Chromium";v="123"',
             'Accept': 'application/json, text/plain, */*',
             'sec-ch-ua-mobile': '?0',
-            'User-Agent': self.common_utils.user_agent,
+            'User-Agent': self.signer.user_agent,
             'sec-ch-ua-platform': '"Windows"',
             'Sec-Fetch-Site': 'same-origin',
             'Sec-Fetch-Mode': 'cors',
             'Sec-Fetch-Dest': 'empty',
             'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
         }
-        self.ms_token = self.common_utils.get_ms_token()
+        self.ms_token = self.signer.get_ms_token()
         self.ttwid = '1%7CvDWCB8tYdKPbdOlqwNTkDPhizBaV9i91KjYLKJbqurg%7C1723536402%7C314e63000decb79f46b8ff255560b29f4d8c57352dad465b41977db4830b4c7e'
         self.webid = '7307457174287205926'
         self.fetch_html_content()
@@ -90,7 +90,7 @@ class DouyinParser(BaseParser):
             new_headers['Referer'] = referer_url
             new_headers['Cookie'] = f"ttwid={ttwid}"
             
-            abogus = self.common_utils.get_abogus(play_url, self.common_utils.user_agent)
+            abogus = self.signer.get_abogus(play_url, self.signer.user_agent)
             url = f"{play_url}&a_bogus={abogus}"
             
             try:

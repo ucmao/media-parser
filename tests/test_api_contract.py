@@ -14,6 +14,11 @@ class ApiContractTest(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get_json(), {"status": "ok"})
 
+    def test_index_page(self):
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Media Parser", response.get_data(as_text=True))
+
     @staticmethod
     def parser(**overrides):
         values = {

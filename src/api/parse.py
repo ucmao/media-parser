@@ -1,12 +1,18 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
 from configs.logging_config import get_logger
 from utils.web_fetcher import WebFetcher, UrlParser
 from src.parser_factory import ParserFactory
-from utils.common_utils import make_response
+from src.api.response import make_response
 
 bp = Blueprint('parse', __name__)
 MAX_TEXT_LENGTH = 2000
 logger = get_logger(__name__)
+
+
+@bp.route('/health', methods=['GET'])
+def health():
+    """供容器编排、反向代理和监控系统检查服务状态。"""
+    return jsonify({'status': 'ok'}), 200
 
 
 @bp.route('/parse', methods=['POST'])

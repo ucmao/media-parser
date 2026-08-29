@@ -51,6 +51,10 @@ class UrlParserTest(unittest.TestCase):
                 "https://pages.quark.cn/r/ai-studio-mobile/external-share?shareId=abc&authorId=author&channel_from=ucpro&noise=x",
                 "https://pages.quark.cn/r/ai-studio-mobile/external-share?shareId=abc&authorId=author&channel_from=ucpro",
             ),
+            (
+                "https://activity.qianwen.com/r/ai-studio-mobile/qwen-external-share?shareId=abc&authorId=author&channel_from=qwen&noise=x",
+                "https://activity.qianwen.com/r/ai-studio-mobile/qwen-external-share?shareId=abc&authorId=author&channel_from=qwen",
+            ),
         ]
         for original, expected in cases:
             with self.subTest(original=original):

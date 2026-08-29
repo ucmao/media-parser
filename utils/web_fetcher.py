@@ -21,7 +21,7 @@ class WebFetcher:
         # 知乎公开 API 可直接通过内容 ID 解析，访问网页常触发 403 风控。
         # 绿洲分享页会对通用桌面请求头返回 500，由解析器使用移动端请求头抓取。
         # 微博博文可通过 API 直接根据 ID 解析，直接访问网页端常触发访客系统重定向。
-        if UrlParser.get_platform(url) in {"知乎", "绿洲", "新片场", "夸克AI", "通义千问", "微博"}:
+        if UrlParser.get_platform(url) in {"知乎", "绿洲", "新片场", "夸克AI", "通义千问", "微博", "小云雀AI", "哔哩哔哩"}:
             return UrlParser.extract_video_address(url)
         try:
             current_url = url
@@ -224,7 +224,7 @@ class UrlParser:
             query_params = parse_qs(parsed_url.query)
             if value := query_params.get("sid", [None])[0]:
                 address = f"{address}?{urlencode({'sid': value})}"
-        elif platform in {"通义千问", "夸克AI"}:
+        elif platform == "通义千问":
             query_params = parse_qs(parsed_url.query)
             preserved_params = []
             for key in ("shareId", "authorId", "enter_from", "fp_from", "channel_from", "image_index"):
@@ -242,6 +242,9 @@ class UrlParser:
                     preserved_params.append((key, value))
             if preserved_params:
                 address = f"{address}?{urlencode(preserved_params)}"
+        elif platform == "小云雀AI":
+            if parsed_url.query:
+                address = f"{address}?{parsed_url.query}"
         return address
 
     @staticmethod
@@ -306,46 +309,3 @@ class UrlParser:
             logger.error(f"An error occurred while extracting video ID: {e}")
             return None
 
-    @staticmethod
-    def generate_video_url(platform, video_id):
-        # 定义映射表
-        url_map = {
-            '皮皮搞笑': 'https://h5.pipigx.com/pp/post/',
-            '好看视频': 'https://haokan.hao123.com/v?vid=',
-            '哔哩哔哩': 'https://www.bilibili.com/video/',
-            '抖音': 'https://www.iesdouyin.com/share/video/',
-            '快手': 'https://www.kuaishou.com/short-video/',
-            '梨视频': 'https://www.pearvideo.com/',
-            'AcFun': 'https://www.acfun.cn/v/',
-            '微博': 'https://m.weibo.cn/status/',
-            '西瓜视频': 'https://www.ixigua.com/',
-            '知乎': 'https://www.zhihu.com/question/',
-            '逗拍': 'https://v2.doupai.cc/topic/',
-            '虎牙': 'https://v.huya.com/play/',
-            '绿洲': 'https://oasis.weibo.cn/v1/h5/share?sid=',
-            '美拍': 'https://www.meipai.com/media/',
-            '皮皮虾': 'https://h5.pipix.com/item/',
-            '全民小视频': 'https://quanmin.baidu.com/v/',
-            '全民K歌': 'https://kg.qq.com/node/play?s=',
-            '六间房': 'https://v.6.cn/video/',
-            '新片场': 'https://www.xinpianchang.com/a',
-            '最右': 'https://izuiyou.com/post/'
-        }
-        # 检查platform是否在映射表中
-        if platform not in url_map:
-            return "Error: 不支持的平台"
-        # 拼接URL
-        base_url = url_map[platform]
-        full_url = base_url + video_id
-        return full_url
-
-
-if __name__ == '__main__':
-    # share_url = UrlParser.get_url('0.74 复制打开抖音，看看【珊珊的甜甜圈之小圈的作品】虽然桌拍我已经没问题了，这个月也可以保级了，我也不... https://v.douyin.com/ir94AJyD/ l@c.At qEh:/ 01/19 ')
-    # redirect_url = WebFetcher.fetch_redirect_url(share_url)
-    # if redirect_url:
-    #     print(f'重定向后的链接：{redirect_url}')
-    # else:
-    #     print('未能获取重定向后的链接')
-    video_id1 = UrlParser.get_video_id('https://haokan.hao123.com/v?vid=1770898033348505648')
-    print(video_id1)
