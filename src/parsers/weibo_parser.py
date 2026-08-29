@@ -65,15 +65,17 @@ class WeiboParser(BaseParser):
         if match := re.search(r"/(?:tv/)?show/\d+:(\d+)", urlparse(self.real_url).path):
             return match.group(1)
             
-        # PC URL, like: weibo.com/123456789/O8yqz0I8Q
+        # PC URL, like: weibo.com/123456789/O8yqz0I8Q or weibo.com/7928442102/5331959570240710
         match = re.search(r'weibo\.com/\d+/([a-zA-Z0-9]+)', self.real_url)
         if match:
-            return mid_to_id(match.group(1))
+            segment = match.group(1)
+            return segment if segment.isdigit() else mid_to_id(segment)
             
-        # Mobile URL, like: m.weibo.cn/status/4921612...
-        match = re.search(r'weibo\.cn/(?:status/|detail/|statuses/show\?id=)(\d+)', self.real_url)
+        # Mobile / PC status or detail URL, like: m.weibo.cn/status/4921612... or weibo.com/detail/5331959570240710
+        match = re.search(r'weibo\.(?:cn|com)/(?:status/|detail/|statuses/show\?id=)([a-zA-Z0-9]+)', self.real_url)
         if match:
-            return match.group(1)
+            segment = match.group(1)
+            return segment if segment.isdigit() else mid_to_id(segment)
             
         # Query parameter fallback
         match = re.search(r'id=(\d+)', self.real_url)
@@ -83,12 +85,14 @@ class WeiboParser(BaseParser):
         # Base62 Query parameter fallback
         match = re.search(r'id=([a-zA-Z0-9]+)', self.real_url)
         if match:
-            return mid_to_id(match.group(1))
+            segment = match.group(1)
+            return segment if segment.isdigit() else mid_to_id(segment)
 
         # Check for /O8yqz0I8Q in general
         match = re.search(r'/([a-zA-Z0-9]{9})\b', self.real_url)
         if match:
-            return mid_to_id(match.group(1))
+            segment = match.group(1)
+            return segment if segment.isdigit() else mid_to_id(segment)
 
         return None
 

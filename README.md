@@ -1,21 +1,24 @@
 <div align="center">
-<img src="static/images/logo.png" width="360" height="auto" alt="媒体解析去水印 Logo">
+<img src="static/images/logo.png" width="360" height="auto" alt="Media-Parser Logo">
 
 **基于 Python 的多平台媒体原生本地解析系统**
 
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Python Version](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/) [![Support](https://img.shields.io/badge/support-30+%20Platforms-brightgreen.svg)](#💾-支持的平台矩阵)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Python Version](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/) [![Flask](https://img.shields.io/badge/Framework-Flask-000000?logo=flask&logoColor=white)](https://flask.palletsprojects.com/) [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](#-部署指南) [![Support](https://img.shields.io/badge/support-30+%20Platforms-brightgreen.svg)](#-支持的平台矩阵)
 
 <p align="center">
 <a href="#-核心解析逻辑">解析逻辑</a> •
-<a href="#-快速开始">部署指南</a> •
+<a href="#-支持的平台矩阵">支持平台</a> •
+<a href="#-部署指南">部署指南</a> •
+<a href="#-项目结构">项目结构</a> •
+<a href="#-api-核心接口说明">接口文档</a> •
 <a href="#-联系作者">联系作者</a>
 </p>
 
-媒体解析去水印是一款专为短视频创作者打造的**原生本地解析工具**。
+媒体解析去水印是一款专为短视频创作者与开发者打造的**原生本地解析工具**。
 
 通过“智能识别 -> 本地抓取 -> 提取地址 -> 快捷下载”的闭环，助你高效获取无水印素材。
 
-**不依赖第三方解析服务，不中转用户链接，核心解析逻辑全部在本地代码中完成。**
+**100%本地原生实现，不依赖外部解析API，不套壳第三方解析库，核心逻辑纯逆向开源。**
 
 </div>
 
@@ -25,14 +28,14 @@
 
 * **多平台智能适配**：内置 `ParserFactory` 工厂模式，自动识别链接来源并分配对应解析器。
 * **原生本地解析**：解析逻辑直接内置在项目代码中，由各平台 Parser 本地发起请求并提取真实媒体地址。
-* **不依赖第三方解析服务**：不接入外部“代解析 API”或 SaaS 中转服务，部署后即可独立运行。
-* **纯粹解析 API**：极简版只保留最核心的 JSON 解析服务，无数据库依赖，无鉴权门槛，适合开发者快速提取原型直接使用。
+* **零外部API依赖**：无需对接任何第三方代解析接口或 SaaS 中转服务，部署后即可独立稳定运行。
+* **开箱即用API**：提供标准化的 JSON 数据接口，无冗余数据库依赖，适合快速对接业务或二次开发。
 
 ## ✨ 项目特点
 
-* **本地可控**：解析链路和请求逻辑都在仓库内，方便审计、调试和二次开发。
-* **部署简单**：安装 Python 依赖后即可运行，不需要额外申请第三方解析平台账号或密钥。
-* **便于扩展**：每个平台对应独立 Parser，新增平台时可沿用现有工厂模式和统一返回结构。
+* **本地可控**：所有请求链路与解析规则均在本地代码中，方便调试、维护与定制。
+* **部署简单**：安装依赖或使用 Docker 即可一键运行，不需要额外申请第三方 API 账号或密钥。
+* **便于扩展**：各平台对应独立 Parser，遵循统一的返回数据结构，新增平台轻松快捷。
 
 ---
 

@@ -20,7 +20,8 @@ class WebFetcher:
             return None
         # 知乎公开 API 可直接通过内容 ID 解析，访问网页常触发 403 风控。
         # 绿洲分享页会对通用桌面请求头返回 500，由解析器使用移动端请求头抓取。
-        if UrlParser.get_platform(url) in {"知乎", "绿洲", "新片场", "夸克AI", "通义千问"}:
+        # 微博博文可通过 API 直接根据 ID 解析，直接访问网页端常触发访客系统重定向。
+        if UrlParser.get_platform(url) in {"知乎", "绿洲", "新片场", "夸克AI", "通义千问", "微博"}:
             return UrlParser.extract_video_address(url)
         try:
             current_url = url
@@ -32,7 +33,7 @@ class WebFetcher:
                 if redirect_url:
                     redirect_url = urljoin(current_url, redirect_url)
                     # 如果重定向到了登录页、404拦截页、验证码校验页或错误页，不要更新 url，直接中断以保留原始有效 URL
-                    if any(path in redirect_url for path in ["/login", "/404", "/captcha", "/verify", "/error"]):
+                    if any(path in redirect_url for path in ["/login", "/404", "/captcha", "/verify", "/error", "/visitor"]):
                         break
                     current_url = redirect_url
                     if UrlParser.get_platform(current_url):
