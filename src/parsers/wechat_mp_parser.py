@@ -40,7 +40,7 @@ class WechatMpParser(BaseParser):
 
             # 1. 标题提取 (优先 JS 变量，其次 meta，再次 h1)
             title = ""
-            m_title = re.search(r"var msg_title = ['\"](.*?)['\"]", html)
+            m_title = re.search(r"(?:var msg_title\s*=\s*|msg_title\s*:\s*|title\s*:\s*(?:xml\s*\?\s*getXmlValue\([^)]*\)\s*:\s*)?)['\"](.*?)['\"]", html)
             if m_title:
                 title = unescape(m_title.group(1).replace("\\x26amp;", "&").replace("&amp;", "&"))
             if not title:
@@ -50,9 +50,9 @@ class WechatMpParser(BaseParser):
                 h1 = soup.find("h1", id="activity-name")
                 title = h1.text.strip() if h1 else "微信公众号文章"
 
-            # 2. 公众号作者与 ID 提取
+            # 2. 公众号作者、ID 与 头像提取
             author_name = ""
-            m_author = re.search(r"var nickname = ['\"](.*?)['\"]", html)
+            m_author = re.search(r"(?:var nickname\s*=\s*|nick_name\s*:\s*)['\"](.*?)['\"]", html)
             if m_author:
                 author_name = unescape(m_author.group(1))
             if not author_name:
@@ -63,15 +63,20 @@ class WechatMpParser(BaseParser):
                 author_name = js_name.text.strip() if js_name else ""
 
             author_id = ""
-            m_user = re.search(r"var user_name = ['\"](.*?)['\"]", html)
+            m_user = re.search(r"(?:var user_name\s*=\s*|user_name\s*:\s*)['\"](.*?)['\"]", html)
             if m_user:
                 author_id = m_user.group(1)
 
+            author_avatar = ""
+            m_avatar = re.search(r"(?:round_head_img|ori_head_img_url)\s*:\s*['\"](.*?)['\"]", html)
+            if m_avatar:
+                author_avatar = m_avatar.group(1).replace(r"\x26amp;", "&").replace("&amp;", "&")
+
             # 3. 封面图提取
             cover_url = ""
-            m_cover = re.search(r"var msg_cdn_url = ['\"](.*?)['\"]", html)
+            m_cover = re.search(r"(?:var msg_cdn_url\s*=\s*|cdn_url\s*:\s*)['\"](.*?)['\"]", html)
             if m_cover:
-                cover_url = m_cover.group(1)
+                cover_url = m_cover.group(1).replace(r"\x26amp;", "&").replace("&amp;", "&")
             if not cover_url:
                 meta_c = soup.find("meta", property="og:image")
                 cover_url = meta_c["content"] if meta_c else ""
@@ -96,17 +101,65 @@ class WechatMpParser(BaseParser):
             if voice_tag and voice_tag.get("voice_encode_fileid"):
                 audio_url = f"https://res.wx.qq.com/voice/getvoice?mediaid={voice_tag.get('voice_encode_fileid')}"
 
+            # 6. 视频提取 (mpvideo / 视频消息 / 嵌入式视频)
+            video_url = None
+            video_list = []
+            video_items = []
+            for block in re.finditer(
+                r"\{[^{}]*?url\s*:\s*['\"`](https?://mpvideo\.qpic\.cn/[^'\"`]+)['\"`][^{}]*?\}",
+                html,
+                re.DOTALL,
+            ):
+                b_text = block.group(0)
+                raw_vurl = block.group(1).replace(r"\x26amp;", "&").replace("&amp;", "&")
+                width_m = re.search(r"width\s*:\s*['\"`]?(\d+)", b_text)
+                height_m = re.search(r"height\s*:\s*['\"`]?(\d+)", b_text)
+                filesize_m = re.search(r"filesize\s*:\s*['\"`]?(\d+)", b_text)
+                quality_m = re.search(r"video_quality_level\s*:\s*['\"`]?(\d+)", b_text)
+
+                width = int(width_m.group(1)) if width_m else 0
+                height = int(height_m.group(1)) if height_m else 0
+                filesize = int(filesize_m.group(1)) if filesize_m else 0
+                quality = int(quality_m.group(1)) if quality_m else 0
+
+                video_items.append({
+                    "url": raw_vurl,
+                    "width": width,
+                    "height": height,
+                    "filesize": filesize,
+                    "quality": quality,
+                })
+
+            if video_items:
+                best_video = max(
+                    video_items,
+                    key=lambda v: (v["quality"], v["width"] * v["height"], v["filesize"]),
+                )
+                video_url = best_video["url"]
+                video_list = [best_video["url"]]
+            else:
+                # 备选匹配任意 mpvideo.qpic.cn 链接
+                direct_matches = re.findall(
+                    r"https?://mpvideo\.qpic\.cn/[^\s'\"`]+",
+                    html,
+                )
+                if direct_matches:
+                    clean_vurl = direct_matches[0].replace(r"\x26amp;", "&").replace("&amp;", "&")
+                    video_url = clean_vurl
+                    video_list = [clean_vurl]
+
             return {
                 "title": title,
                 "author": {
                     "nickname": author_name,
                     "author_id": author_id,
-                    "avatar": "",
+                    "avatar": author_avatar,
                 },
                 "cover_url": cover_url,
                 "image_list": image_list,
                 "audio_url": audio_url,
-                "video_url": None,
+                "video_url": video_url,
+                "video_list": video_list,
             }
         except Exception as exc:
             logger.warning("Failed to fetch WeChat MP article: %s", exc)

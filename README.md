@@ -47,7 +47,7 @@
 | **抖音** | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | | ✓ |
 | **小红书** | ✓ | ✓ | ✓ | ✓ | ✓ | | | ✓ |
 | **视频号** | ✓ | ✓ | ✓ | ✓ | | | | |
-| **微信公众号** | ✓ | ✓ | ✓ | | ✓ | ✓ | | |
+| **微信公众号** | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | | |
 | **快手** | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | | |
 | **哔哩哔哩** | ✓ | ✓ | ✓ | ✓ | | ✓ | | |
 | **豆包** | ✓ | ✓ | ✓ | ✓ | ✓ | | | |
@@ -131,44 +131,37 @@ python app.py
 
 ```text
 media-parser/
-├── app.py                # 服务程序入口 (Flask Web 服务)
-├── configs/              # 核心配置与业务常量 (日志配置、域名映射等)
-├── docs/                 # 开发者文档与逆向百科 (架构设计、各平台逆向指南、测试手册)
-│   ├── architecture.md   # 系统分层架构与生命周期文档
-│   ├── index.md          # 逆向百科导航与平台支持矩阵
-│   ├── parsers/          # 31 平台专属逆向技术指南 (*.md)
-│   ├── reverse-guide.md  # 通用逆向方法论 (SSR/抓包/JS签名沙箱)
-│   └── testing.md        # 完整测试体系与回归验证指南
-├── src/                  # 核心解析与业务逻辑
-│   ├── api/              # API 接口路由 (/api/parse, /api/health)
-│   ├── parsers/          # 31 平台媒体 Parser 本地解析器实现
-│   ├── web/              # 前台 Web 页面路由蓝图 (Landing Page)
-│   └── parser_factory.py # 工厂模式解析分发器 (ParserFactory 自动发现与注册)
-├── static/               # 前端静态资源 (Logo、图标等)
-├── templates/            # Web 前端 Demo 模板页面 (landing.html)
-├── utils/                # 通用工具库与逆向执行支持
-│   ├── signer/           # JS 签名沙箱引擎 (a_bogus, x_bogus 等)
-│   └── web_fetcher.py    # 网络请求与 URL 智能识别提取工具
-├── tests/                # 自动化测试套件与真实样本回归库
-│   ├── live_parser_samples.json # 31 平台真实线上样例库
-│   ├── manual_verify_parsers.py # 命令行交互式/多形态人工排查脚本
-│   └── test_*_parser.py         # 各解析器与 API 契约单元测试
-├── .env.example          # 环境变量与 Cookie 配置模板
-├── docker-compose.yml    # Docker Compose 容器化部署配置
-├── Dockerfile            # Docker 镜像构建文件 (Python 3.11-slim)
-├── requirements.txt      # Python 依赖清单
-├── SECURITY.md           # 安全策略与漏洞反馈指南
-└── LICENSE               # MIT 开源协议文件
+├── app.py                     # 应用入口 (Flask Web 服务与 API 启动)
+├── configs/                   # 核心配置 (域名平台映射、日志配置等)
+├── docs/                      # 逆向百科与开发文档
+│   ├── architecture.md        # 系统分层架构与生命周期设计
+│   ├── reverse-guide.md       # 通用逆向方法论 (抓包/SSR/JS签名提取)
+│   ├── testing.md             # 完整测试规范与回归手册
+│   └── parsers/               # 33 个平台的独立逆向分析文档
+├── src/                       # 核心业务逻辑
+│   ├── api/                   # RESTful API 路由 (/api/parse, /api/health)
+│   ├── web/                   # Demo 体验页与交互蓝图
+│   ├── parsers/               # 33 个平台解析器实现 (核心解析逻辑)
+│   └── parser_factory.py      # 工厂分发器 (解析器动态发现与自动注册)
+├── utils/                     # 底层工具库与逆向支持
+│   ├── signer/                # JS 签名沙箱引擎 (a_bogus, x_bogus 等算法执行)
+│   └── web_fetcher.py         # 智能 URL 识别、重定向追踪与请求封装
+├── tests/                     # 完备的双层测试体系
+│   ├── live_parser_samples.json # 33 平台真实多形态在线样本库
+│   ├── manual_verify_parsers.py # 命令行交互式冒烟与健康检查工具
+│   └── test_*_parser.py         # 各平台 Mock 自动化单元测试
+├── static/ & templates/       # Web 演示页面前端静态资源
+└── docker-compose.yml         # 容器化一键部署编排
 ```
 
 ## 📖 开发者文档与逆向百科
 
 本项目提供了详尽的技术架构与全平台逆向分析手册，详细内容请查阅 **[`docs/`](docs/)** 目录：
 
-* 🏗️ **[系统架构与生命周期设计 (Architecture)](docs/architecture.md)**：分层设计、302 追踪与 `ParserFactory` 动态发现机制。
-* 🔍 **[通用逆向方法论 (Reverse Guide)](docs/reverse-guide.md)**：SSR 数据提取、H5 接口伪装、JS 签名沙箱及抓包 SOP。
-* 🧪 **[测试体系与回归验证 (Testing Guide)](docs/testing.md)**：Pytest 单元测试、Mock 与线上真实样例回归。
-* 📚 **[平台逆向指南索引 (Docs Index)](docs/index.md)**：包含抖音、快手、小红书、B站等全部 31 个平台的独立技术文档。
+* 🏗️ **[系统架构与生命周期设计](docs/architecture.md)**：分层设计、302 追踪与 `ParserFactory` 动态发现机制。
+* 🔍 **[通用逆向方法论](docs/reverse-guide.md)**：SSR 数据提取、H5 接口伪装、JS 签名沙箱及抓包 SOP。
+* 🧪 **[测试体系与回归验证](docs/testing.md)**：Pytest 单元测试、Mock 与线上真实样例回归。
+* 📚 **[平台逆向指南索引](docs/index.md)**：包含抖音、快手、小红书、B站等全部 33 个平台的独立技术文档。
 
 ---
 
@@ -177,7 +170,7 @@ media-parser/
 本项目拥有完备的测试体系，包括基础单元测试与基于真实样本库的在线回归测试：
 
 ### 1. 真实样本交互式验证
-样例测试库见 [`tests/live_parser_samples.json`](tests/live_parser_samples.json)，用于实时验证 31 个平台解析器的有效性与多形态覆盖：
+样例测试库见 [`tests/live_parser_samples.json`](tests/live_parser_samples.json)，用于实时验证 33 个平台解析器的有效性与多形态覆盖：
 
 ```bash
 # 快速冒烟测试（每个平台测 1 条最具代表性的链接，极速完成健康检查）

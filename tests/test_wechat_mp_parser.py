@@ -50,6 +50,58 @@ class WechatMpParserTest(unittest.TestCase):
         self.assertEqual(parser.get_image_list()[0], "https://mmbiz.qpic.cn/mmbiz_png/test/0?wx_fmt=png")
         self.assertEqual(parser.get_audio_url(), "https://res.wx.qq.com/voice/getvoice?mediaid=voice_file_999")
 
+    def test_maps_video_response(self):
+        html_content = """
+        <!DOCTYPE html>
+        <html>
+        <body>
+            <script>
+                window.cgiData = {
+                    title: '测试视频标题',
+                    user_name: 'gh_video123',
+                    nick_name: '视频号博主',
+                    round_head_img: 'https://mmbiz.qpic.cn/avatar.png',
+                    cdn_url: 'https://mmbiz.qpic.cn/cover.jpg',
+                };
+                video_page_info = {
+                    mp_video_trans_info: [
+                        {
+                            format_id: 10004,
+                            width: 480,
+                            height: 854,
+                            filesize: 1000,
+                            video_quality_level: 1,
+                            url: 'http://mpvideo.qpic.cn/video_low.mp4?k=1'
+                        },
+                        {
+                            format_id: 10002,
+                            width: 1080,
+                            height: 1920,
+                            filesize: 5000,
+                            video_quality_level: 3,
+                            url: 'http://mpvideo.qpic.cn/video_hd.mp4?k=2&amp;p=1'
+                        }
+                    ]
+                };
+            </script>
+        </body>
+        </html>
+        """
+        response = Mock()
+        response.status_code = 200
+        response.raise_for_status.return_value = None
+        response.text = html_content
+
+        with patch("requests.Session.get", return_value=response):
+            parser = WechatMpParser(self.URL)
+
+        self.assertEqual(parser.get_title_content(), "测试视频标题")
+        self.assertEqual(parser.get_author_info()["nickname"], "视频号博主")
+        self.assertEqual(parser.get_author_info()["author_id"], "gh_video123")
+        self.assertEqual(parser.get_author_info()["avatar"], "https://mmbiz.qpic.cn/avatar.png")
+        self.assertEqual(parser.get_real_video_url(), "http://mpvideo.qpic.cn/video_hd.mp4?k=2&p=1")
+        self.assertEqual(parser.get_video_list(), ["http://mpvideo.qpic.cn/video_hd.mp4?k=2&p=1"])
+
     def test_handles_request_failure_gracefully(self):
         response = Mock()
         response.raise_for_status.side_effect = Exception("HTTP 404")
@@ -64,3 +116,4 @@ class WechatMpParserTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

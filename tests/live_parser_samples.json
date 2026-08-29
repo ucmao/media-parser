@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
-  "description": "31 平台多形态全景自动化回归测试用例库 (涵盖短链/长链/图集/单视频/AI生成等)",
-  "total_cases": 266,
+  "description": "33 平台多形态全景自动化回归测试用例库 (涵盖短链/长链/图集/单视频/AI生成等)",
+  "total_cases": 272,
   "cases": [
     {
       "platform": "AcFun",
@@ -3925,6 +3925,21 @@
         "author"
       ],
       "note": "2026-08 真实反馈验证: 《超自然行动组 | 朋友圈背景图》"
+    },
+    {
+      "platform": "微信公众号",
+      "url": "https://mp.weixin.qq.com/s/GQiMB7CC6r7wil54I0TMwQ",
+      "pattern": "mp.weixin.qq.com 视频动态 (s/GQiMB7CC6r7wil54I0TMwQ)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 《销量低的新能源，敢不敢买？》公众号视频"
     }
   ]
 }
