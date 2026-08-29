@@ -44,3 +44,43 @@ class JianyingParserTest(unittest.TestCase):
 
         self.assertEqual(parser.get_author_info()["nickname"], "嵌套作者")
         self.assertEqual(parser.get_author_info()["author_id"], "nested-id")
+
+    def test_maps_capcut_share_response(self):
+        capcut_url = "https://www.capcut.cn/share/7678345113499604249?t=1"
+        cluster_resp = Mock()
+        cluster_resp.status_code = 200
+        cluster_resp.json.return_value = {
+            "ret": "0",
+            "data": {
+                "share_info_list": [{"share_id": "inner_share_999"}]
+            }
+        }
+
+        detail_resp = Mock()
+        detail_resp.status_code = 200
+        detail_resp.raise_for_status.return_value = None
+        detail_resp.json.return_value = {
+            "ret": "0",
+            "data": {
+                "file_name": "CapCut测试项目.mp4",
+                "uploader_name": "CapCut创作者",
+                "uploader_id": "88888",
+                "normal_video": {
+                    "player_720p": {"main_url": "https://video.example.com/clean_720p.mp4"}
+                },
+                "cover_image": {
+                    "preview_1080p_url": "https://image.example.com/capcut_cover.jpg"
+                },
+                "duration": 60000
+            }
+        }
+
+        with patch("requests.Session.post", side_effect=[cluster_resp, detail_resp]):
+            parser = JianyingParser(capcut_url)
+
+        self.assertEqual(parser.get_real_video_url(), "https://video.example.com/clean_720p.mp4")
+        self.assertEqual(parser.get_title_content(), "CapCut测试项目.mp4")
+        self.assertEqual(parser.get_cover_photo_url(), "https://image.example.com/capcut_cover.jpg")
+        self.assertEqual(parser.get_author_info()["nickname"], "CapCut创作者")
+        self.assertEqual(parser.get_author_info()["author_id"], "88888")
+

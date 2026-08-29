@@ -3779,6 +3779,21 @@
       "note": "2026-08 真实反馈验证: 处处风景#旅行 #旅游 #卡点 #日常碎片 #假期"
     },
     {
+      "platform": "剪映",
+      "url": "https://www.capcut.cn/share/7678345113499604249?t=1",
+      "pattern": "capcut.cn 协作审阅分享 (share/:id)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: CapCut Web 协作审阅视频"
+    },
+    {
       "platform": "豆包",
       "url": "https://www.doubao.com/thread/w6e6b4428796fe245",
       "pattern": "豆包其他页面 (thread/w6e6b4428796fe245)",
