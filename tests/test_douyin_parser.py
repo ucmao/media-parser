@@ -130,19 +130,32 @@ class DouyinParserTest(unittest.TestCase):
                 }
             }
         }
+        mock_vtt = (
+            "WEBVTT\n\n"
+            "1\n"
+            "00:00:01.000 --> 00:00:03.500\n"
+            "大家好我是小李\n\n"
+            "2\n"
+            "00:00:03.800 --> 00:00:06.200\n"
+            "今天给大家分享一个好消息\n"
+        )
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.text = mock_vtt
+
         parser = self.make_parser(data)
-        subtitles = parser.get_subtitles()
+        with patch.object(parser.session, "get", return_value=mock_response) as mock_get:
+            subtitles = parser.get_subtitles()
+            mock_get.assert_called_once_with(
+                "https://p3-sign.douyinpic.com/tos-cn-p-0015/zh.vtt",
+                headers=parser.headers,
+                timeout=5
+            )
+
         self.assertIsNotNone(subtitles)
         self.assertEqual(len(subtitles), 2)
-        self.assertEqual(subtitles[0], {
-            "language_code": "zh-Hans",
-            "url": "https://p3-sign.douyinpic.com/tos-cn-p-0015/zh.vtt",
-            "format": "webvtt",
-            "is_auto_generated": True,
-            "sub_id": "12345678"
-        })
-        self.assertEqual(subtitles[1]["language_code"], "en")
-        self.assertEqual(subtitles[1]["url"], "https://p3-sign.douyinpic.com/tos-cn-p-0015/en.vtt")
+        self.assertEqual(subtitles[0], {"start": 1.0, "end": 3.5, "text": "大家好我是小李"})
+        self.assertEqual(subtitles[1], {"start": 3.8, "end": 6.2, "text": "今天给大家分享一个好消息"})
 
     def test_extracts_subtitles_from_subtitle_infos_fallback(self):
         data = {
@@ -160,11 +173,16 @@ class DouyinParserTest(unittest.TestCase):
                 }
             }
         }
+        mock_vtt = "WEBVTT\n\n00:00.500 --> 00:02.300\n单一字幕行\n"
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.text = mock_vtt
+
         parser = self.make_parser(data)
-        subtitles = parser.get_subtitles()
-        self.assertEqual(len(subtitles), 1)
-        self.assertEqual(subtitles[0]["language_code"], "zh-Hans")
-        self.assertEqual(subtitles[0]["format"], "webvtt")
+        with patch.object(parser.session, "get", return_value=mock_response):
+            subtitles = parser.get_subtitles()
+
+        self.assertEqual(subtitles, [{"start": 0.5, "end": 2.3, "text": "单一字幕行"}])
 
     def test_returns_none_subtitles_when_no_captions(self):
         data = {
@@ -177,6 +195,28 @@ class DouyinParserTest(unittest.TestCase):
         }
         parser = self.make_parser(data)
         self.assertIsNone(parser.get_subtitles())
+
+    def test_parse_webvtt_with_cue_tags_and_multi_line(self):
+        vtt_content = (
+            "WEBVTT\n\n"
+            "00:01:05.120 --> 00:01:08.500 line:0% position:50%\n"
+            "<c.yellow>欢迎收看</c><b>今日头条</b>\n"
+            "精彩内容不容错过\n\n"
+            "00:01:09.000 --> 00:01:12.000\n"
+            "感谢大家支持\n"
+        )
+        segments = DouyinParser._parse_webvtt_to_segments(vtt_content)
+        self.assertEqual(len(segments), 2)
+        self.assertEqual(segments[0], {
+            "start": 65.12,
+            "end": 68.5,
+            "text": "欢迎收看今日头条 精彩内容不容错过"
+        })
+        self.assertEqual(segments[1], {
+            "start": 69.0,
+            "end": 72.0,
+            "text": "感谢大家支持"
+        })
 
     def test_image_note_and_live_photo_extraction(self):
         data = {
@@ -351,8 +391,80 @@ class DouyinParserTest(unittest.TestCase):
                     parser.html_content = html
                     parser.data = parser.fetch_html_data()
 
-        self.assertEqual(parser.get_title_content(), "API 优先视频")
-        self.assertEqual(parser.get_real_video_url(), "http://origin.douyin.com/api_video.mp4")
+    def test_music_standalone_link_parsing(self):
+        music_data = {
+            "music_info": {
+                "title": "流行背景音乐",
+                "author": "抖音音乐人",
+                "owner_id": "999888777",
+                "play_url": {"url_list": ["http://origin.douyin.com/music.mp3"]},
+                "cover_large": {"url_list": ["http://origin.douyin.com/music_cover.jpg"]},
+                "user_count": 52000,
+                "duration": 45
+            }
+        }
+        with patch.object(DouyinParser, "fetch_html_content", return_value="<html></html>"):
+            with patch.object(DouyinParser, "fetch_html_data", return_value=music_data):
+                with patch("utils.signer.bytedance.bogus_signer.BogusSigner.get_ms_token", return_value="mock_token"):
+                    parser = DouyinParser("https://www.douyin.com/music/7123456789012345678")
+                    parser.data = music_data
+
+        self.assertTrue(parser.is_music)
+        self.assertEqual(parser.get_title_content(), "流行背景音乐")
+        self.assertEqual(parser.get_audio_url(), "http://origin.douyin.com/music.mp3")
+        self.assertEqual(parser.get_cover_photo_url(), "http://origin.douyin.com/music_cover.jpg")
+        self.assertIsNone(parser.get_real_video_url())
+        self.assertEqual(parser.get_video_list(), [])
+        self.assertEqual(parser.get_image_list(), [])
+        self.assertIsNone(parser.get_subtitles())
+        author = parser.get_author_info()
+        self.assertEqual(author["nickname"], "抖音音乐人")
+        self.assertEqual(author["author_id"], "999888777")
+
+    def test_collection_standalone_link_parsing(self):
+        collection_data = {
+            "mix_info": {
+                "mix_id": "7123456789012345678",
+                "mix_name": "年度爆笑连续剧",
+                "total_episodes": 12,
+                "cover_url": {"url_list": ["http://origin.douyin.com/mix_cover.jpg"]},
+                "author": {
+                    "nickname": "短剧创作者",
+                    "unique_id": "creator_007",
+                    "avatar_thumb": {"url_list": ["http://origin.douyin.com/avatar.jpg"]}
+                }
+            },
+            "aweme_list": [
+                {
+                    "desc": "第1集",
+                    "video": {
+                        "bit_rate": [
+                            {"bit_rate": 1500000, "is_h265": 0, "play_addr": {"url_list": ["http://origin.douyin.com/ep1.mp4"]}}
+                        ]
+                    }
+                },
+                {
+                    "desc": "第2集",
+                    "video": {
+                        "bit_rate": [
+                            {"bit_rate": 1500000, "is_h265": 0, "play_addr": {"url_list": ["http://origin.douyin.com/ep2.mp4"]}}
+                        ]
+                    }
+                }
+            ]
+        }
+        with patch.object(DouyinParser, "fetch_html_content", return_value="<html></html>"):
+            with patch.object(DouyinParser, "fetch_html_data", return_value=collection_data):
+                with patch("utils.signer.bytedance.bogus_signer.BogusSigner.get_ms_token", return_value="mock_token"):
+                    parser = DouyinParser("https://www.douyin.com/collection/7123456789012345678")
+                    parser.data = collection_data
+
+        self.assertTrue(parser.is_collection)
+        self.assertEqual(parser.get_title_content(), "【合集】年度爆笑连续剧")
+        self.assertEqual(parser.get_real_video_url(), "http://origin.douyin.com/ep1.mp4")
+        self.assertEqual(parser.get_video_list(), ["http://origin.douyin.com/ep1.mp4", "http://origin.douyin.com/ep2.mp4"])
+        self.assertEqual(parser.get_cover_photo_url(), "http://origin.douyin.com/mix_cover.jpg")
+        self.assertEqual(parser.get_author_info()["nickname"], "短剧创作者")
 
 
 if __name__ == "__main__":

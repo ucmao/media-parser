@@ -55,6 +55,7 @@ def parse():
             not content_data['video_url']
             and not content_data['video_list']
             and not content_data['image_list']
+            and not content_data.get('audio_url')
         ):
             logger.error(f"Failed to retrieve media content for {platform}")
             if platform == '小红书':
@@ -124,7 +125,7 @@ def _fetch_with_retry(parser, platform):
         }
         if not res['video_url'] and res['video_list']:
             res['video_url'] = res['video_list'][0]
-        if res['video_url'] or res['video_list'] or res['image_list']:
+        if res['video_url'] or res['video_list'] or res['image_list'] or res['audio_url']:
             return res
             
         if i < max_attempts - 1:

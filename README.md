@@ -235,9 +235,9 @@ pytest tests/test_live_parser_samples.py -s
     "title": "视频标题内容",
     "video_url": "https://... (主视频地址)",
     "video_list": [
-      "https://... (仅多视频内容额外返回，首项与 video_url 相同)"
+      "https://... (仅多视频/合集内容额外返回，首项与 video_url 相同)"
     ],
-    "audio_url": "https://... (背景音乐/音频地址)",
+    "audio_url": "https://... (背景音乐/独立音频地址)",
     "cover_url": "https://... (高清封面地址)",
     "author": {
       "nickname": "作者昵称",
@@ -251,7 +251,9 @@ pytest tests/test_live_parser_samples.py -s
         "live_photo_url": "https://... (实况图视频原件地址)"
       }
     ],
-    "subtitles": [ { "text": "字幕/歌词文本" } ]
+    "subtitles": [
+      { "start": 0.64, "end": 2.12, "text": "文案/字幕内容" }
+    ]
   },
   "succ": true
 }

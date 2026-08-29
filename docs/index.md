@@ -29,7 +29,7 @@
 
 | 序号 | 平台名称 | 支持媒体类型 | 无水印直链 | 配置门槛 (Cookie 依赖) | 逆向提取模式 | 对应指南 |
 | :--- | :--- | :--- | :---: | :---: | :--- | :--- |
-| 1 | **抖音** | 视频 / 图文 / LivePhoto / 音频 | ✅ 支持 | 🟢 免配置 | a_bogus 签名 + 动态 ttwid | [查看指南](parsers/douyin.md) |
+| 1 | **抖音** | 视频 / 图文 / LivePhoto / 音频 / 字幕 / 合集 | ✅ 支持 | 🟢 免配置 | a_bogus 签名 + 动态 ttwid + SSR 容灾兜底 | [查看指南](parsers/douyin.md) |
 | 2 | **小红书** | 图文 / LivePhoto / 视频 | ✅ 支持 | ⚠️ 部分需 Cookie | SSR HTML 注入数据提取 | [查看指南](parsers/xiaohongshu.md) |
 | 3 | **快手** | 视频 / 图文 / 音频 | ✅ 支持 | 🟢 免配置 (内置游客凭证) | GraphQL / H5 双端多路由 Fallback | [查看指南](parsers/kuaishou.md) |
 | 4 | **哔哩哔哩** | 视频 (MP4) / 音频分流 | ✅ 支持 | 🟢 免配置 | 官方 View + PlayURL API | [查看指南](parsers/bilibili.md) |

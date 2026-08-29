@@ -1,23 +1,17 @@
-from src.parser_factory import register_parser
 import base64
 import hashlib
 import html
 import json
 import os
-from pathlib import Path
 import re
-import sys
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from bs4 import BeautifulSoup
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import unpad
 
-root_dir = str(Path(__file__).resolve().parents[2])
-if root_dir not in sys.path:
-    sys.path.append(root_dir)
-
 from configs.logging_config import get_logger
+from src.parser_factory import register_parser
 from src.parsers.base_parser import BaseParser
 
 

@@ -1,29 +1,19 @@
-from src.parser_factory import register_parser
-# ======= 环境配置开始：将项目根目录添加到系统路径，当前脚本可测试 =======
-
-from pathlib import Path
-import sys
-# 获取当前文件的绝对路径，并定位至向上推两级的项目根目录
-root_dir = str(Path(__file__).resolve().parents[2])
-# 如果根目录不在系统搜索路径中，则动态添加，以确保跨模块导入（Import）正常工作
-if root_dir not in sys.path:
-    sys.path.append(root_dir)
-
-# ========================= 环境配置结束 =========================
-
-
+import copy
 import json
 import re
 import urllib.parse
 import urllib3
 import warnings
-import copy
+
 from bs4 import BeautifulSoup
-from utils.web_fetcher import UrlParser
-from utils.signer.bytedance.bogus_signer import BogusSigner
+
 from configs.logging_config import get_logger
-logger = get_logger(__name__)
+from src.parser_factory import register_parser
 from src.parsers.base_parser import BaseParser
+from utils.signer.bytedance.bogus_signer import BogusSigner
+from utils.web_fetcher import UrlParser
+
+logger = get_logger(__name__)
 
 warnings.filterwarnings("ignore", category=urllib3.exceptions.InsecureRequestWarning)
 
@@ -47,6 +37,8 @@ class DouyinParser(BaseParser):
         self.ms_token = self.signer.get_ms_token()
         self.ttwid = '1%7CvDWCB8tYdKPbdOlqwNTkDPhizBaV9i91KjYLKJbqurg%7C1723536402%7C314e63000decb79f46b8ff255560b29f4d8c57352dad465b41977db4830b4c7e'
         self.webid = '7307457174287205926'
+        self.is_music = bool(self.real_url and ('/music/' in self.real_url or '/share/music/' in self.real_url))
+        self.is_collection = bool(self.real_url and ('/collection/' in self.real_url or '/mix/' in self.real_url or '/mix/detail/' in self.real_url))
         self.fetch_html_content()
         self.aweme_id = UrlParser.get_video_id(self.real_url)
         self.data = self.fetch_html_data()
@@ -80,6 +72,36 @@ class DouyinParser(BaseParser):
         except Exception as e:
             logger.warning(f"Failed to get dynamic ttwid: {e}")
             return None
+
+    @staticmethod
+    def _find_music_info(data, target_id=None):
+        """
+        递归查找嵌套字典或列表中的 music_info / musicInfo 节点。
+        """
+        if not data:
+            return None
+
+        if isinstance(data, dict):
+            if "music_info" in data and isinstance(data["music_info"], dict):
+                return data["music_info"]
+            if "musicInfo" in data and isinstance(data["musicInfo"], dict):
+                return data["musicInfo"]
+            if "music" in data and isinstance(data["music"], dict) and ("play_url" in data["music"] or "title" in data["music"]):
+                return data["music"]
+            if "play_url" in data and ("author" in data or "owner_nickname" in data or "title" in data):
+                return data
+            for _, v in data.items():
+                if isinstance(v, (dict, list)):
+                    found = DouyinParser._find_music_info(v, target_id)
+                    if found:
+                        return found
+        elif isinstance(data, list):
+            for item in data:
+                if isinstance(item, (dict, list)):
+                    found = DouyinParser._find_music_info(item, target_id)
+                    if found:
+                        return found
+        return None
 
     @staticmethod
     def _find_aweme_detail(data, target_id=None):
@@ -141,6 +163,11 @@ class DouyinParser(BaseParser):
         if universal_script and universal_script.string:
             try:
                 raw_json = json.loads(universal_script.string.strip())
+                if self.is_music:
+                    music_info = self._find_music_info(raw_json, self.aweme_id)
+                    if music_info:
+                        logger.info("Successfully extracted Douyin music detail from __UNIVERSAL_DATA_FOR_REHYDRATION__")
+                        return {"music_info": music_info}
                 detail = self._find_aweme_detail(raw_json, self.aweme_id)
                 if detail:
                     logger.info("Successfully extracted Douyin detail from __UNIVERSAL_DATA_FOR_REHYDRATION__")
@@ -156,6 +183,11 @@ class DouyinParser(BaseParser):
                 if '%' in content:
                     content = urllib.parse.unquote(content)
                 raw_json = json.loads(content)
+                if self.is_music:
+                    music_info = self._find_music_info(raw_json, self.aweme_id)
+                    if music_info:
+                        logger.info("Successfully extracted Douyin music detail from RENDER_DATA")
+                        return {"music_info": music_info}
                 detail = self._find_aweme_detail(raw_json, self.aweme_id)
                 if detail:
                     logger.info("Successfully extracted Douyin detail from RENDER_DATA")
@@ -174,6 +206,11 @@ class DouyinParser(BaseParser):
             if match:
                 try:
                     raw_json = json.loads(match.group(1).strip())
+                    if self.is_music:
+                        music_info = self._find_music_info(raw_json, self.aweme_id)
+                        if music_info:
+                            logger.info("Successfully extracted Douyin music detail from regex SSR script")
+                            return {"music_info": music_info}
                     detail = self._find_aweme_detail(raw_json, self.aweme_id)
                     if detail:
                         logger.info("Successfully extracted Douyin detail from regex SSR script")
@@ -185,9 +222,66 @@ class DouyinParser(BaseParser):
 
     def fetch_html_data(self):
         """
-        获取抖音作品元数据（包含 a_bogus 签名 API 抓取与 SSR HTML 免签名多级容灾兜底）。
+        获取抖音作品元数据（支持单视频、图文、音乐原声、合集与 SSR HTML 免签名多级容灾兜底）。
         """
-        # 1. 尝试使用缓存的 ttwid 调用 API，并在失败时重试一次（刷新 ttwid）
+        # 0. 针对音乐 / 原声独立链接 (/music/)
+        if self.is_music:
+            for attempt in range(2):
+                ttwid = self._get_ttwid() or '1%7CvDWCB8tYdKPbdOlqwNTkDPhizBaV9i91KjYLKJbqurg%7C1723536402%7C314e63000decb79f46b8ff255560b29f4d8c57352dad465b41977db4830b4c7e'
+                music_api = f"https://www.douyin.com/aweme/v1/web/music/detail/?music_id={self.aweme_id}&device_platform=webapp&aid=6383&channel=channel_pc_web&msToken={self.ms_token}"
+                new_headers = copy.deepcopy(self.headers)
+                new_headers['Referer'] = f"https://www.douyin.com/music/{self.aweme_id}"
+                new_headers['Cookie'] = f"ttwid={ttwid}"
+                try:
+                    abogus = self.signer.get_abogus(music_api, self.signer.user_agent)
+                    url = f"{music_api}&a_bogus={abogus}"
+                    response = self.session.get(url, headers=new_headers, verify=False, timeout=5)
+                    if response.status_code == 200 and response.text:
+                        data = response.json()
+                        if data.get('music_info'):
+                            return data
+                except Exception as e:
+                    logger.debug(f"抖音音乐 API 异常: {e}")
+
+            if not self.html_content:
+                self.fetch_html_content()
+            if self.html_content:
+                ssr_data = self._parse_ssr_data(self.html_content)
+                if ssr_data and ssr_data.get('music_info'):
+                    return ssr_data
+            return None
+
+        # 0. 针对合集链接 (/collection/ 或 /mix/)
+        if self.is_collection:
+            for attempt in range(2):
+                ttwid = self._get_ttwid() or '1%7CvDWCB8tYdKPbdOlqwNTkDPhizBaV9i91KjYLKJbqurg%7C1723536402%7C314e63000decb79f46b8ff255560b29f4d8c57352dad465b41977db4830b4c7e'
+                mix_api = f"https://www.douyin.com/aweme/v1/web/mix/aweme/?mix_id={self.aweme_id}&cursor=0&count=20&device_platform=webapp&aid=6383&channel=channel_pc_web&msToken={self.ms_token}"
+                new_headers = copy.deepcopy(self.headers)
+                new_headers['Referer'] = f"https://www.douyin.com/collection/{self.aweme_id}"
+                new_headers['Cookie'] = f"ttwid={ttwid}"
+                try:
+                    abogus = self.signer.get_abogus(mix_api, self.signer.user_agent)
+                    url = f"{mix_api}&a_bogus={abogus}"
+                    response = self.session.get(url, headers=new_headers, verify=False, timeout=5)
+                    if response.status_code == 200 and response.text:
+                        data = response.json()
+                        aweme_list = data.get('aweme_list', [])
+                        if aweme_list or data.get('mix_info'):
+                            if 'aweme_detail' not in data and aweme_list:
+                                data['aweme_detail'] = aweme_list[0]
+                            return data
+                except Exception as e:
+                    logger.debug(f"抖音合集 API 异常: {e}")
+
+            if not self.html_content:
+                self.fetch_html_content()
+            if self.html_content:
+                ssr_data = self._parse_ssr_data(self.html_content)
+                if ssr_data and (ssr_data.get('aweme_detail') or ssr_data.get('mix_info')):
+                    return ssr_data
+            return None
+
+        # 1. 尝试使用缓存的 ttwid 调用普通作品 API，并在失败时重试一次（刷新 ttwid）
         for attempt in range(2):
             ttwid = self._get_ttwid()
             if not ttwid:
@@ -265,12 +359,18 @@ class DouyinParser(BaseParser):
         3. 若无 H.264 则选取 H.265 的最高码率流；
         4. 若 bit_rate 为空或解析失败，无缝兜底到 video.play_addr / video.play_addr_h264 / video.play_addr_265。
         """
+        if self.is_music:
+            return None
+
         try:
             data_dict = self.data
-            if not data_dict or not data_dict.get('aweme_detail'):
+            if not data_dict:
                 return None
 
             detail = data_dict.get('aweme_detail', {}) or {}
+            if not detail and self.is_collection and data_dict.get('aweme_list'):
+                detail = data_dict['aweme_list'][0]
+
             video = detail.get('video', {}) or {}
             bit_rate_list = video.get('bit_rate', []) or []
 
@@ -315,25 +415,128 @@ class DouyinParser(BaseParser):
             return None
 
     def get_video_list(self):
-        """获取视频列表（单视频作品返回包含主视频的列表）"""
+        """获取视频列表（单视频作品返回包含主视频的列表；合集返回所有分集视频列表）"""
+        if self.is_music:
+            return []
+
+        if self.is_collection and self.data and self.data.get('aweme_list'):
+            video_urls = []
+            for item in self.data['aweme_list']:
+                video_item = item.get('video') or {}
+                bit_rate_list = video_item.get('bit_rate') or []
+                url = None
+                if bit_rate_list:
+                    for b in bit_rate_list:
+                        if not b.get('is_h265'):
+                            url = self._extract_best_url_from_play_addr(b.get('play_addr'))
+                            if url:
+                                break
+                    if not url and bit_rate_list:
+                        url = self._extract_best_url_from_play_addr(bit_rate_list[0].get('play_addr'))
+                if not url:
+                    url = self._extract_best_url_from_play_addr(video_item.get('play_addr'))
+                if url:
+                    video_urls.append(url)
+            if video_urls:
+                return video_urls
+
         video_url = self.get_real_video_url()
         return [video_url] if video_url else []
 
+    @staticmethod
+    def _parse_timestamp_to_seconds(ts_str: str) -> float:
+        """将 WebVTT / SRT 时间戳 (如 00:01:23.456 或 01:23.456) 转换为秒数"""
+        try:
+            ts_str = ts_str.strip().replace(',', '.')
+            parts = ts_str.split(':')
+            if len(parts) == 3:
+                hours = float(parts[0])
+                minutes = float(parts[1])
+                seconds = float(parts[2])
+                return round(hours * 3600 + minutes * 60 + seconds, 2)
+            elif len(parts) == 2:
+                minutes = float(parts[0])
+                seconds = float(parts[1])
+                return round(minutes * 60 + seconds, 2)
+            elif len(parts) == 1:
+                return round(float(parts[0]), 2)
+        except (ValueError, TypeError):
+            pass
+        return 0.0
+
+    @staticmethod
+    def _parse_webvtt_to_segments(vtt_text: str):
+        """
+        解析 WebVTT / SRT 文本为统一的结构化字幕片段数组:
+        [
+            {"start": 0.64, "end": 2.12, "text": "第一句文案"},
+            ...
+        ]
+        """
+        if not vtt_text or not isinstance(vtt_text, str):
+            return None
+
+        time_cue_pattern = re.compile(
+            r'((?:\d+:)?\d+:\d+(?:[\.,]\d+)?)\s*-->\s*((?:\d+:)?\d+:\d+(?:[\.,]\d+)?)'
+        )
+
+        lines = vtt_text.splitlines()
+        segments = []
+        current_start = None
+        current_end = None
+        current_text_lines = []
+
+        def flush_segment():
+            nonlocal current_start, current_end, current_text_lines
+            if current_start is not None and current_text_lines:
+                text = " ".join([l.strip() for l in current_text_lines if l.strip()])
+                # 过滤 WebVTT 内置样式标签，如 <c>, <v>, <b>, <i> 等
+                text = re.sub(r'<[^>]+>', '', text).strip()
+                if text:
+                    segments.append({
+                        "start": current_start,
+                        "end": current_end,
+                        "text": text
+                    })
+            current_start = None
+            current_end = None
+            current_text_lines = []
+
+        for line in lines:
+            stripped = line.strip()
+            if not stripped:
+                flush_segment()
+                continue
+
+            if stripped.startswith("WEBVTT") or stripped.startswith("NOTE") or stripped.startswith("STYLE"):
+                continue
+
+            match = time_cue_pattern.search(stripped)
+            if match:
+                flush_segment()
+                start_str, end_str = match.group(1), match.group(2)
+                current_start = DouyinParser._parse_timestamp_to_seconds(start_str)
+                current_end = DouyinParser._parse_timestamp_to_seconds(end_str)
+                current_text_lines = []
+            elif current_start is not None:
+                current_text_lines.append(stripped)
+
+        flush_segment()
+        return segments if segments else None
+
     def get_subtitles(self):
         """
-        提取抖音原生 AI 生成字幕或多语言字幕列表。
+        提取抖音原生字幕并自动下载解析为结构化时间轴文本数组。
         返回格式:
         [
-            {
-                "language_code": "zh-Hans",
-                "url": "https://...",
-                "format": "webvtt",
-                "is_auto_generated": True,
-                "sub_id": "123456"
-            }
+            {"start": 0.64, "end": 2.12, "text": "第一句文案"},
+            {"start": 2.20, "end": 4.50, "text": "第二句文案"}
         ]
         若无字幕则返回 None。
         """
+        if self.is_music:
+            return None
+
         try:
             data_dict = self.data
             if not data_dict or not data_dict.get('aweme_detail'):
@@ -353,33 +556,36 @@ class DouyinParser(BaseParser):
             if not caption_infos or not isinstance(caption_infos, list):
                 return None
 
-            subtitles = []
+            # 3. 优先选择中文字幕 (zh-Hans / zh / zh-CN / cmn-Hans)，兜底选择第一个可用字幕
+            target_cap = None
             for cap in caption_infos:
-                if not isinstance(cap, dict):
-                    continue
+                if isinstance(cap, dict) and cap.get('language_code') in ('zh-Hans', 'zh', 'zh-CN', 'cmn-Hans'):
+                    target_cap = cap
+                    break
+            if not target_cap and caption_infos:
+                for cap in caption_infos:
+                    if isinstance(cap, dict) and (cap.get('url') or cap.get('url_list')):
+                        target_cap = cap
+                        break
 
-                url = cap.get('url')
-                if not url:
-                    url_list = cap.get('url_list') or []
-                    if url_list:
-                        url = url_list[0]
+            if not target_cap:
+                return None
 
-                if not url:
-                    continue
+            url = target_cap.get('url')
+            if not url:
+                url_list = target_cap.get('url_list') or []
+                if url_list:
+                    url = url_list[0]
 
-                sub_item = {
-                    'language_code': cap.get('language_code', ''),
-                    'url': UrlParser.convert_to_https(url),
-                    'format': cap.get('format', 'webvtt'),
-                    'is_auto_generated': bool(cap.get('is_auto_generated', True)),
-                }
-                sub_id = cap.get('sub_id')
-                if sub_id is not None:
-                    sub_item['sub_id'] = str(sub_id)
+            if not url:
+                return None
 
-                subtitles.append(sub_item)
+            sub_url = UrlParser.convert_to_https(url)
+            resp = self.session.get(sub_url, headers=self.headers, timeout=5)
+            if resp.status_code == 200 and resp.text:
+                return self._parse_webvtt_to_segments(resp.text)
 
-            return subtitles if subtitles else None
+            return None
         except Exception as e:
             logger.warning(f"Failed to parse Douyin subtitles: {e}")
             return None
@@ -387,7 +593,20 @@ class DouyinParser(BaseParser):
     def get_title_content(self):
         try:
             data_dict = self.data
-            if not data_dict or not data_dict.get('aweme_detail'):
+            if not data_dict:
+                return None
+
+            if self.is_music:
+                music_info = data_dict.get('music_info') or {}
+                return music_info.get('title', '')
+
+            if self.is_collection:
+                mix_info = data_dict.get('mix_info') or {}
+                mix_name = mix_info.get('mix_name')
+                if mix_name:
+                    return f"【合集】{mix_name}"
+
+            if not data_dict.get('aweme_detail'):
                 return None
             title_content = data_dict['aweme_detail'].get('desc', '')
             return title_content
@@ -400,8 +619,22 @@ class DouyinParser(BaseParser):
             data_dict = self.data
             if not data_dict:
                 return None
+
+            if self.is_music:
+                music_info = data_dict.get('music_info') or {}
+                for k in ('cover_large', 'cover_hd', 'cover_medium', 'cover_thumb'):
+                    url_list = (music_info.get(k) or {}).get('url_list') or []
+                    if url_list:
+                        return url_list[0]
+                return None
+
+            if self.is_collection:
+                mix_info = data_dict.get('mix_info') or {}
+                cover_obj = mix_info.get('cover_url') or {}
+                url_list = cover_obj.get('url_list') or []
+                if url_list:
+                    return url_list[0]
             
-            # 使用 or {} 确保 detail 不是 None
             detail = data_dict.get('aweme_detail') or {}
             
             # 1. 尝试获取视频动态封面
@@ -436,7 +669,18 @@ class DouyinParser(BaseParser):
     def get_audio_url(self):
         try:
             data_dict = self.data
-            if not data_dict or not data_dict.get('aweme_detail'):
+            if not data_dict:
+                return None
+
+            if self.is_music:
+                music_info = data_dict.get('music_info') or {}
+                play_url = music_info.get('play_url') or {}
+                url_list = play_url.get('url_list') or []
+                if url_list:
+                    return url_list[0]
+                return None
+
+            if not data_dict.get('aweme_detail'):
                 return None
             detail = data_dict.get('aweme_detail') or {}
             music = detail.get('music') or {}
@@ -452,7 +696,31 @@ class DouyinParser(BaseParser):
     def get_author_info(self):
         try:
             data_dict = self.data
-            if not data_dict or not data_dict.get('aweme_detail'):
+            if not data_dict:
+                return None
+
+            if self.is_music:
+                music_info = data_dict.get('music_info') or {}
+                avatar_list = (music_info.get('avatar_large') or music_info.get('avatar_medium') or {}).get('url_list') or [None]
+                return {
+                    "nickname": music_info.get('author') or music_info.get('owner_nickname', ''),
+                    "author_id": str(music_info.get('owner_id') or music_info.get('sec_uid') or ''),
+                    "avatar": avatar_list[0]
+                }
+
+            if self.is_collection:
+                mix_info = data_dict.get('mix_info') or {}
+                author = mix_info.get('author') or (data_dict.get('aweme_detail', {}).get('author') or {})
+                if author:
+                    avatar_thumb = author.get('avatar_thumb') or {}
+                    avatar_url_list = avatar_thumb.get('url_list') or [None]
+                    return {
+                        "nickname": author.get('nickname', ''),
+                        "author_id": author.get('unique_id') or author.get('short_id', ''),
+                        "avatar": avatar_url_list[0]
+                    }
+
+            if not data_dict.get('aweme_detail'):
                 return None
                 
             author = (data_dict['aweme_detail'].get('author') or {})
@@ -477,6 +745,9 @@ class DouyinParser(BaseParser):
         """
         针对 aweme_type 68 的图文笔记，提取所有高清图片链接
         """
+        if self.is_music:
+            return []
+
         try:
             data_dict = self.data
             if not data_dict or 'aweme_detail' not in data_dict:
@@ -515,4 +786,5 @@ class DouyinParser(BaseParser):
         except Exception as e:
             logger.warning(f"Failed to parse image list: {e}")
             return []
+
 

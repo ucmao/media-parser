@@ -1,13 +1,7 @@
-from src.parser_factory import register_parser
-from pathlib import Path
-import sys
 from urllib.parse import parse_qs, urlparse
 
-root_dir = str(Path(__file__).resolve().parents[2])
-if root_dir not in sys.path:
-    sys.path.append(root_dir)
-
 from configs.logging_config import get_logger
+from src.parser_factory import register_parser
 from src.parsers.base_parser import BaseParser
 
 
