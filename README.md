@@ -3,13 +3,14 @@
 
 **基于 Python 的多平台媒体原生本地解析系统**
 
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Python Version](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/) [![Flask](https://img.shields.io/badge/Framework-Flask-000000?logo=flask&logoColor=white)](https://flask.palletsprojects.com/) [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](#-部署指南) [![Support](https://img.shields.io/badge/support-30+%20Platforms-brightgreen.svg)](#-支持的平台矩阵)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Python Version](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/) [![Flask](https://img.shields.io/badge/Framework-Flask-000000?logo=flask&logoColor=white)](https://flask.palletsprojects.com/) [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](#-部署指南) [![Support](https://img.shields.io/badge/support-31%20Platforms-brightgreen.svg)](#-支持的平台矩阵)
 
 <p align="center">
 <a href="#-核心解析逻辑">解析逻辑</a> •
 <a href="#-支持的平台矩阵">支持平台</a> •
 <a href="#-部署指南">部署指南</a> •
 <a href="#-项目结构">项目结构</a> •
+<a href="#-开发者文档与逆向百科">开发文档</a> •
 <a href="#-api-核心接口说明">接口文档</a> •
 <a href="#-联系作者">联系作者</a>
 </p>
@@ -114,7 +115,7 @@ docker-compose logs -f web
 
 ### Python 环境运行
 
-适用于调试、二次开发或直接在宿主机运行。要求 **Python 3.8+**；如需解析豆包或视频号视频，请先按上方说明配置 `.env`。
+适用于调试、二次开发或直接在宿主机运行。推荐 **Python 3.10+**（兼容 Python 3.8+）；如需解析豆包或视频号视频，请先按上方说明配置 `.env`。
 
 ```bash
 # 1. 安装依赖
@@ -130,45 +131,102 @@ python app.py
 media-parser/
 ├── app.py                # 服务程序入口 (Flask Web 服务)
 ├── configs/              # 核心配置与业务常量 (日志配置、域名映射等)
-├── src/                  # 核心解析业务逻辑
-│   ├── api/              # API 接口路由 (/api/parse 核心接口)
-│   ├── parsers/          # 30+ 平台媒体 Parser 解析实现
-│   └── parser_factory.py # 工厂模式解析分发器 (ParserFactory)
-├── static/               # 静态资源保存目录
-├── templates/            # Web 前端 Demo 模板页面
-├── utils/                # 通用网络请求与工具函数 (WebFetcher 等)
-├── tests/                # 自动化测试用例与样例验证
+├── docs/                 # 开发者文档与逆向百科 (架构设计、各平台逆向指南、测试手册)
+│   ├── architecture.md   # 系统分层架构与生命周期文档
+│   ├── index.md          # 逆向百科导航与平台支持矩阵
+│   ├── parsers/          # 31 平台专属逆向技术指南 (*.md)
+│   ├── reverse-guide.md  # 通用逆向方法论 (SSR/抓包/JS签名沙箱)
+│   └── testing.md        # 完整测试体系与回归验证指南
+├── src/                  # 核心解析与业务逻辑
+│   ├── api/              # API 接口路由 (/api/parse, /api/health)
+│   ├── parsers/          # 31 平台媒体 Parser 本地解析器实现
+│   ├── web/              # 前台 Web 页面路由蓝图 (Landing Page)
+│   └── parser_factory.py # 工厂模式解析分发器 (ParserFactory 自动发现与注册)
+├── static/               # 前端静态资源 (Logo、图标等)
+├── templates/            # Web 前端 Demo 模板页面 (landing.html)
+├── utils/                # 通用工具库与逆向执行支持
+│   ├── signer/           # JS 签名沙箱引擎 (a_bogus, x_bogus 等)
+│   └── web_fetcher.py    # 网络请求与 URL 智能识别提取工具
+├── tests/                # 自动化测试套件与真实样本回归库
+│   ├── live_parser_samples.json # 31 平台真实线上样例库
+│   ├── manual_verify_parsers.py # 命令行交互式/多形态人工排查脚本
+│   └── test_*_parser.py         # 各解析器与 API 契约单元测试
+├── .env.example          # 环境变量与 Cookie 配置模板
 ├── docker-compose.yml    # Docker Compose 容器化部署配置
-├── Dockerfile            # Docker 镜像构建文件
-└── requirements.txt      # Python 依赖清单
+├── Dockerfile            # Docker 镜像构建文件 (Python 3.11-slim)
+├── requirements.txt      # Python 依赖清单
+├── SECURITY.md           # 安全策略与漏洞反馈指南
+└── LICENSE               # MIT 开源协议文件
 ```
+
+## 📖 开发者文档与逆向百科
+
+本项目提供了详尽的技术架构与全平台逆向分析手册，详细内容请查阅 **[`docs/`](docs/)** 目录：
+
+* 🏗️ **[系统架构与生命周期设计 (Architecture)](docs/architecture.md)**：分层设计、302 追踪与 `ParserFactory` 动态发现机制。
+* 🔍 **[通用逆向方法论 (Reverse Guide)](docs/reverse-guide.md)**：SSR 数据提取、H5 接口伪装、JS 签名沙箱及抓包 SOP。
+* 🧪 **[测试体系与回归验证 (Testing Guide)](docs/testing.md)**：Pytest 单元测试、Mock 与线上真实样例回归。
+* 📚 **[平台逆向指南索引 (Docs Index)](docs/index.md)**：包含抖音、快手、小红书、B站等全部 31 个平台的独立技术文档。
+
+---
 
 ## 🧪 解析有效性测试
 
-样例测试库见 [`tests/live_parser_samples.json`](tests/live_parser_samples.json)，用于实时验证各平台解析器的有效性：
+本项目拥有完备的测试体系，包括基础单元测试与基于真实样本库的在线回归测试：
+
+### 1. 真实样本交互式验证
+样例测试库见 [`tests/live_parser_samples.json`](tests/live_parser_samples.json)，用于实时验证 31 个平台解析器的有效性与多形态覆盖：
 
 ```bash
-# 验证所有平台
+# 快速冒烟测试（每个平台测 1 条最具代表性的链接，极速完成健康检查）
+python3 tests/manual_verify_parsers.py --limit 1
+
+# 全量回归验证（覆盖多形态真实用例）
 python3 tests/manual_verify_parsers.py
 
-# 仅验证单个平台（如：小云雀AI）
+# 仅验证单个或指定平台（如：小云雀AI）
 python3 tests/manual_verify_parsers.py --platform "小云雀AI"
+```
+
+### 2. 自动化单元测试
+```bash
+# 运行全部单元测试
+pytest
+
+# 运行真实线上样例自动化回归
+pytest tests/test_live_parser_samples.py -s
 ```
 
 ---
 
 ## 🔌 API 核心接口说明
 
-**解析接口**：`POST /api/parse`
+### 1. 服务健康检查
 
-### 请求参数 (Request Body)
+* **接口路径**：`GET /api/health`
+* **接口描述**：供容器编排（Docker Compose/K8s）、反向代理或监控系统探针检测服务存活状态。
+* **返回示例**：
+  ```json
+  {
+    "status": "ok"
+  }
+  ```
+
+---
+
+### 2. 媒体解析接口
+
+* **接口路径**：`POST /api/parse`
+* **接口描述**：传入包含分享链接的文本，智能提取多媒体直链与图文信息。
+
+#### 请求参数 (Request Body)
 格式: `application/json`
 
-| 参数名 | 类型 | 必填 | 描述 | 示例值 |
+| 参数名 | 类型 | 必填 | 描述 | 限制与示例 |
 | --- | --- | --- | --- | --- |
-| `text` | `string` | 是 | 视频分享链接或包含链接的文本短语 | `"https://v.douyin.com/..."` |
+| `text` | `string` | 是 | 视频分享链接或包含链接的文本短语 | 最长 2000 字符，如 `"https://v.douyin.com/..."` |
 
-### 返回说明 (Response)
+#### 返回说明 (Response)
 格式: `application/json`
 
 成功响应示例：
@@ -210,6 +268,7 @@ python3 tests/manual_verify_parsers.py --platform "小云雀AI"
   "retcode": 400,
   "retdesc": "该链接尚未支持提取 / 解析失败",
   "data": null,
+  "error_code": "PLATFORM_NOT_SUPPORTED",
   "succ": false
 }
 ```
