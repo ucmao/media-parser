@@ -1,3 +1,4 @@
+from src.parser_factory import register_parser
 import base64
 import json
 import re
@@ -9,6 +10,7 @@ from src.parsers.base_parser import BaseParser
 logger = get_logger(__name__)
 
 
+@register_parser("美拍")
 class MeipaiParser(BaseParser):
     """美拍短视频解析器，通过 H5 页面的 window.PHPDATA 与嵌入式解密算法提取媒体信息。"""
 

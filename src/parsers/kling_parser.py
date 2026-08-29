@@ -1,3 +1,4 @@
+from src.parser_factory import register_parser
 """可灵AI 分享作品解析器。"""
 
 import re
@@ -11,6 +12,7 @@ from src.parsers.base_parser import BaseParser
 logger = get_logger(__name__)
 
 
+@register_parser("可灵AI")
 class KlingParser(BaseParser):
     """通过可灵公开分享接口提取作品媒体信息。"""
 

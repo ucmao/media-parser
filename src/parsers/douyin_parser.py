@@ -1,3 +1,4 @@
+from src.parser_factory import register_parser
 # ======= 环境配置开始：将项目根目录添加到系统路径，当前脚本可测试 =======
 
 from pathlib import Path
@@ -24,6 +25,7 @@ from src.parsers.base_parser import BaseParser
 warnings.filterwarnings("ignore", category=urllib3.exceptions.InsecureRequestWarning)
 
 
+@register_parser("抖音")
 class DouyinParser(BaseParser):
     def __init__(self, real_url):
         super().__init__(real_url)

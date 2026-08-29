@@ -1,3 +1,4 @@
+from src.parser_factory import register_parser
 from pathlib import Path
 import sys
 from urllib.parse import parse_qs, urlparse
@@ -13,6 +14,7 @@ from src.parsers.base_parser import BaseParser
 logger = get_logger(__name__)
 
 
+@register_parser("即梦AI")
 class JimengParser(BaseParser):
     """解析即梦AI 视频分享。
 

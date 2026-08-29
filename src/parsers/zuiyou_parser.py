@@ -1,3 +1,4 @@
+from src.parser_factory import register_parser
 
 import random
 from urllib.parse import parse_qs, urlparse
@@ -5,6 +6,7 @@ from urllib.parse import parse_qs, urlparse
 from src.parsers.base_parser import BaseParser
 from configs.general_constants import USER_AGENT_PC
 
+@register_parser("最右")
 class ZuiyouParser(BaseParser):
     def __init__(self, real_url):
         super().__init__(real_url)

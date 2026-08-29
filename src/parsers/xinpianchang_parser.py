@@ -1,3 +1,4 @@
+from src.parser_factory import register_parser
 import re
 from urllib.parse import urlparse
 
@@ -8,6 +9,7 @@ from src.parsers.base_parser import BaseParser
 logger = get_logger(__name__)
 
 
+@register_parser("新片场")
 class XinpianchangParser(BaseParser):
     """新片场作品解析器，使用移动端 API 提取视频与作者信息。"""
 

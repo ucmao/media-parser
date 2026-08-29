@@ -1,3 +1,4 @@
+from src.parser_factory import register_parser
 """小云雀AI (xiaoyunque.jianying.com) 分享解析器。"""
 
 from urllib.parse import parse_qs, urlparse
@@ -9,6 +10,7 @@ from src.parsers.base_parser import BaseParser
 logger = get_logger(__name__)
 
 
+@register_parser("小云雀AI")
 class XiaoyunqueParser(BaseParser):
     """通过小云雀官方接口解析 xiaoyunque.jianying.com 分享链接。"""
 

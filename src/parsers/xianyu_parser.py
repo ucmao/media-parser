@@ -1,3 +1,4 @@
+from src.parser_factory import register_parser
 import re
 from urllib.parse import parse_qs, urlparse
 
@@ -8,6 +9,7 @@ from src.parsers.base_parser import BaseParser
 logger = get_logger(__name__)
 
 
+@register_parser("闲鱼")
 class XianyuParser(BaseParser):
     """闲鱼/淘宝短链解析器，提取商品 ID、标价与真实目标链接。"""
 

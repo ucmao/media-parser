@@ -1,3 +1,4 @@
+from src.parser_factory import register_parser
 """知乎问答、文章、视频与 Pin 解析器。"""
 
 import re
@@ -13,6 +14,7 @@ from src.parsers.base_parser import BaseParser
 logger = get_logger(__name__)
 
 
+@register_parser("知乎")
 class ZhihuParser(BaseParser):
     """通过知乎公开 API 解析问答、文章、zvideo 与 Pin 内容。"""
 

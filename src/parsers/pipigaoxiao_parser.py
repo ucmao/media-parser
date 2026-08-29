@@ -1,3 +1,4 @@
+from src.parser_factory import register_parser
 import random
 from utils.web_fetcher import UrlParser
 from src.parsers.base_parser import BaseParser
@@ -7,6 +8,7 @@ from configs.logging_config import get_logger
 logger = get_logger(__name__)
 
 
+@register_parser("皮皮搞笑")
 class PipigaoxiaoParser(BaseParser):
     def __init__(self, url):
         super().__init__(url)

@@ -1,3 +1,4 @@
+from src.parser_factory import register_parser
 import base64
 import hashlib
 import html
@@ -23,6 +24,7 @@ from src.parsers.base_parser import BaseParser
 logger = get_logger(__name__)
 
 
+@register_parser("豆包")
 class DoubaoParser(BaseParser):
     """解析豆包对话分享和独立 AI 视频分享。
 

@@ -1,3 +1,4 @@
+from src.parser_factory import register_parser
 import json
 import random
 import requests
@@ -10,6 +11,7 @@ from configs.logging_config import get_logger
 logger = get_logger(__name__)
 
 
+@register_parser("快手")
 class KuaishouParser(BaseParser):
     def __init__(self, real_url):
         super().__init__(real_url)

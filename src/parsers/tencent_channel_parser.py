@@ -1,3 +1,4 @@
+from src.parser_factory import register_parser
 """腾讯频道分享视频解析器。"""
 
 import html
@@ -15,6 +16,7 @@ logger = get_logger(__name__)
 from py_mini_racer._mini_racer import MiniRacer
 
 
+@register_parser("腾讯频道")
 class TencentChannelParser(BaseParser):
     """解析腾讯频道页面，并处理 EdgeOne 的 JavaScript 挑战。"""
 

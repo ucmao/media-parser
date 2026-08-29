@@ -1,3 +1,4 @@
+from src.parser_factory import register_parser
 
 import random
 
@@ -6,6 +7,7 @@ from src.parsers.base_parser import BaseParser
 from utils.web_fetcher import UrlParser
 
 
+@register_parser("虎牙")
 class HuyaParser(BaseParser):
     def __init__(self, real_url):
         super().__init__(real_url)

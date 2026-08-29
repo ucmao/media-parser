@@ -1,3 +1,4 @@
+from src.parser_factory import register_parser
 
 import random
 import re
@@ -9,6 +10,7 @@ from configs.general_constants import USER_AGENT_M
 from src.parsers.base_parser import BaseParser
 
 
+@register_parser("绿洲")
 class LvzhouParser(BaseParser):
     def __init__(self, real_url):
         super().__init__(real_url)

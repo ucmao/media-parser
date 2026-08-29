@@ -1,3 +1,4 @@
+from src.parser_factory import register_parser
 import json
 import re
 import urllib.parse
@@ -9,6 +10,7 @@ from src.parsers.base_parser import BaseParser
 logger = get_logger(__name__)
 
 
+@register_parser("通义千问")
 class QianwenParser(BaseParser):
     """通义千问（Qwen）及夸克 AI 生成作品与对话分享解析器。"""
 

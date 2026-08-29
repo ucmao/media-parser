@@ -1,3 +1,4 @@
+from src.parser_factory import register_parser
 import re
 import json
 import random
@@ -8,6 +9,7 @@ from configs.logging_config import get_logger
 
 logger = get_logger(__name__)
 
+@register_parser("AcFun")
 class AcfunParser(BaseParser):
     def __init__(self, real_url):
         super().__init__(real_url)

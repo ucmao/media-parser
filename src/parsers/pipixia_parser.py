@@ -1,3 +1,4 @@
+from src.parser_factory import register_parser
 
 import random
 import re
@@ -6,6 +7,7 @@ from urllib.parse import urljoin
 from src.parsers.base_parser import BaseParser
 from configs.general_constants import USER_AGENT_PC
 
+@register_parser("皮皮虾")
 class PipixiaParser(BaseParser):
     def __init__(self, real_url):
         super().__init__(real_url)

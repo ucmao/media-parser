@@ -1,3 +1,4 @@
+from src.parser_factory import register_parser
 import random
 import re
 
@@ -10,6 +11,7 @@ from src.parsers.base_parser import BaseParser
 logger = get_logger(__name__)
 
 
+@register_parser("哔哩哔哩")
 class BilibiliParser(BaseParser):
     """通过 B 站官方 API 获取可直接播放的单文件 MP4 地址。"""
 

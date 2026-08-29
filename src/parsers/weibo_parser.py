@@ -1,3 +1,4 @@
+from src.parser_factory import register_parser
 import re
 import json
 import random
@@ -29,6 +30,7 @@ def mid_to_id(mid):
     res.reverse()
     return str(int(''.join(res)))
 
+@register_parser("微博")
 class WeiboParser(BaseParser):
     def __init__(self, real_url):
         super().__init__(real_url)

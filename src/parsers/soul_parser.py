@@ -1,3 +1,4 @@
+from src.parser_factory import register_parser
 """Soul 分享帖解析器。"""
 
 import json
@@ -12,6 +13,7 @@ from src.parsers.base_parser import BaseParser
 logger = get_logger(__name__)
 
 
+@register_parser("Soul")
 class SoulParser(BaseParser):
     """通过 Soul H5 公开接口提取帖子媒体和作者信息。"""
 

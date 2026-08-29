@@ -1,6 +1,8 @@
+from src.parser_factory import register_parser
 from src.parsers.qianwen_parser import QianwenParser
 
 
+@register_parser("夸克AI")
 class QuarkAIParser(QianwenParser):
     """夸克 AI Studio 外部分享作品解析器。
 

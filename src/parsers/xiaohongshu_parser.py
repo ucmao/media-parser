@@ -1,3 +1,4 @@
+from src.parser_factory import register_parser
 import re
 import json
 from src.parsers.base_parser import BaseParser
@@ -6,6 +7,7 @@ import requests
 logger = get_logger(__name__)
 
 
+@register_parser("小红书")
 class XiaohongshuParser(BaseParser):
     def __init__(self, real_url):
         super().__init__(real_url)

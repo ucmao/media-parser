@@ -1,3 +1,4 @@
+from src.parser_factory import register_parser
 """剪映模板分享解析器。"""
 
 import hashlib
@@ -11,6 +12,7 @@ from src.parsers.base_parser import BaseParser
 logger = get_logger(__name__)
 
 
+@register_parser("剪映")
 class JianyingParser(BaseParser):
     """通过剪映公开模板接口解析 lv.ulikecam.com 分享链接。"""
 

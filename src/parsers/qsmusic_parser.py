@@ -1,3 +1,4 @@
+from src.parser_factory import register_parser
 """汽水音乐分享解析器。"""
 
 import json
@@ -11,6 +12,7 @@ from src.parsers.base_parser import BaseParser
 logger = get_logger(__name__)
 
 
+@register_parser("汽水音乐")
 class QSMusicParser(BaseParser):
     """解析汽水音乐歌曲与 UGC 视频分享页。"""
 

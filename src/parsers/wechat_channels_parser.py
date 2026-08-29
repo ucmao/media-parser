@@ -1,3 +1,4 @@
+from src.parser_factory import register_parser
 import os
 import random
 import re
@@ -10,6 +11,7 @@ from src.parsers.base_parser import BaseParser
 logger = get_logger(__name__)
 
 
+@register_parser("视频号")
 class WeChatChannelsParser(BaseParser):
     """解析微信视频号分享链接，优先匿名请求，必要时使用元宝登录态兜底。"""
 

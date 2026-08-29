@@ -1,3 +1,4 @@
+from src.parser_factory import register_parser
 import re
 import random
 from bs4 import BeautifulSoup
@@ -9,6 +10,7 @@ from configs.logging_config import get_logger
 logger = get_logger(__name__)
 
 
+@register_parser("梨视频")
 class LishipinParser(BaseParser):
     def __init__(self, real_url):
         super().__init__(real_url)
