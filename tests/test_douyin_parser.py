@@ -1,4 +1,6 @@
+import json
 import unittest
+import urllib.parse
 from unittest.mock import Mock, patch
 from src.parsers.douyin_parser import DouyinParser
 
@@ -222,6 +224,135 @@ class DouyinParserTest(unittest.TestCase):
         self.assertIsNone(parser.get_cover_photo_url())
         self.assertIsNone(parser.get_title_content())
         self.assertIsNone(parser.get_author_info())
+
+
+    def test_ssr_fallback_universal_data_when_api_fails(self):
+        ssr_payload = {
+            "__DEFAULT_SCOPE__": {
+                "webapp.video-detail": {
+                    "itemInfo": {
+                        "itemStruct": {
+                            "aweme_id": "7341234567890123456",
+                            "desc": "SSR Universal 降级视频",
+                            "video": {
+                                "play_addr": {
+                                    "url_list": ["http://origin.douyin.com/ssr_universal.mp4"]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        html = f'<html><body><script id="__UNIVERSAL_DATA_FOR_REHYDRATION__" type="application/json">{json.dumps(ssr_payload)}</script></body></html>'
+
+        # 模拟 API 失败 (403)，HTML 页面包含 SSR 数据
+        api_response = Mock(status_code=403, text="Forbidden")
+        with patch("requests.Session.get", return_value=api_response):
+            with patch.object(DouyinParser, "fetch_html_content", return_value=html):
+                with patch("utils.signer.bytedance.bogus_signer.BogusSigner.get_ms_token", return_value="mock_token"):
+                    parser = DouyinParser("https://www.douyin.com/video/7341234567890123456")
+                    parser.html_content = html
+                    parser.data = parser.fetch_html_data()
+
+        self.assertEqual(parser.get_title_content(), "SSR Universal 降级视频")
+        self.assertEqual(parser.get_real_video_url(), "http://origin.douyin.com/ssr_universal.mp4")
+
+    def test_ssr_fallback_render_data_when_api_fails(self):
+        import urllib.parse
+        ssr_payload = {
+            "app": {
+                "videoDetail": {
+                    "aweme_id": "7341234567890123456",
+                    "desc": "SSR RENDER_DATA 降级视频",
+                    "video": {
+                        "play_addr": {
+                            "url_list": ["http://origin.douyin.com/ssr_render.mp4"]
+                        }
+                    }
+                }
+            }
+        }
+        encoded_json = urllib.parse.quote(json.dumps(ssr_payload))
+        html = f'<html><body><script id="RENDER_DATA" type="application/json">{encoded_json}</script></body></html>'
+
+        api_response = Mock(status_code=500, text="Internal Error")
+        with patch("requests.Session.get", return_value=api_response):
+            with patch.object(DouyinParser, "fetch_html_content", return_value=html):
+                with patch("utils.signer.bytedance.bogus_signer.BogusSigner.get_ms_token", return_value="mock_token"):
+                    parser = DouyinParser("https://www.douyin.com/video/7341234567890123456")
+                    parser.html_content = html
+                    parser.data = parser.fetch_html_data()
+
+        self.assertEqual(parser.get_title_content(), "SSR RENDER_DATA 降级视频")
+        self.assertEqual(parser.get_real_video_url(), "http://origin.douyin.com/ssr_render.mp4")
+
+    def test_ssr_fallback_router_data_regex_when_api_fails(self):
+        ssr_payload = {
+            "loaderData": {
+                "video": {
+                    "aweme_detail": {
+                        "aweme_id": "7341234567890123456",
+                        "desc": "SSR Router Data 正则降级视频",
+                        "video": {
+                            "play_addr": {
+                                "url_list": ["http://origin.douyin.com/ssr_router.mp4"]
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        html = f'<html><body><script>window._ROUTER_DATA = {json.dumps(ssr_payload)};</script></body></html>'
+
+        api_response = Mock(status_code=200, text=json.dumps({"status_code": 0}))  # 无 aweme_detail
+        api_response.json = Mock(return_value={"status_code": 0})
+        with patch("requests.Session.get", return_value=api_response):
+            with patch.object(DouyinParser, "fetch_html_content", return_value=html):
+                with patch("utils.signer.bytedance.bogus_signer.BogusSigner.get_ms_token", return_value="mock_token"):
+                    parser = DouyinParser("https://www.douyin.com/video/7341234567890123456")
+                    parser.html_content = html
+                    parser.data = parser.fetch_html_data()
+
+        self.assertEqual(parser.get_title_content(), "SSR Router Data 正则降级视频")
+        self.assertEqual(parser.get_real_video_url(), "http://origin.douyin.com/ssr_router.mp4")
+
+    def test_api_success_takes_precedence_over_ssr(self):
+        api_payload = {
+            "aweme_detail": {
+                "aweme_id": "7341234567890123456",
+                "desc": "API 优先视频",
+                "video": {
+                    "play_addr": {"url_list": ["http://origin.douyin.com/api_video.mp4"]}
+                }
+            }
+        }
+        ssr_payload = {
+            "__DEFAULT_SCOPE__": {
+                "webapp.video-detail": {
+                    "itemInfo": {
+                        "itemStruct": {
+                            "aweme_id": "7341234567890123456",
+                            "desc": "SSR 视频",
+                            "video": {"play_addr": {"url_list": ["http://origin.douyin.com/ssr_video.mp4"]}}
+                        }
+                    }
+                }
+            }
+        }
+        html = f'<html><body><script id="__UNIVERSAL_DATA_FOR_REHYDRATION__">{json.dumps(ssr_payload)}</script></body></html>'
+
+        api_response = Mock(status_code=200, text=json.dumps(api_payload))
+        api_response.json = Mock(return_value=api_payload)
+        with patch("requests.Session.get", return_value=api_response):
+            with patch.object(DouyinParser, "fetch_html_content", return_value=html):
+                with patch("utils.signer.bytedance.bogus_signer.BogusSigner.get_ms_token", return_value="mock_token"):
+                    parser = DouyinParser("https://www.douyin.com/video/7341234567890123456")
+                    parser.html_content = html
+                    parser.data = parser.fetch_html_data()
+
+        self.assertEqual(parser.get_title_content(), "API 优先视频")
+        self.assertEqual(parser.get_real_video_url(), "http://origin.douyin.com/api_video.mp4")
 
 
 if __name__ == "__main__":

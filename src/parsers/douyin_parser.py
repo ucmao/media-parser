@@ -13,9 +13,12 @@ if root_dir not in sys.path:
 
 
 import json
+import re
+import urllib.parse
 import urllib3
 import warnings
 import copy
+from bs4 import BeautifulSoup
 from utils.web_fetcher import UrlParser
 from utils.signer.bytedance.bogus_signer import BogusSigner
 from configs.logging_config import get_logger
@@ -78,8 +81,113 @@ class DouyinParser(BaseParser):
             logger.warning(f"Failed to get dynamic ttwid: {e}")
             return None
 
+    @staticmethod
+    def _find_aweme_detail(data, target_id=None):
+        """
+        递归查找嵌套字典或列表中的 aweme_detail 或 itemStruct 节点。
+        """
+        if not data:
+            return None
+
+        if isinstance(data, dict):
+            # 1. 直接包含标准 aweme_detail 键
+            if "aweme_detail" in data and isinstance(data["aweme_detail"], dict):
+                detail = data["aweme_detail"]
+                if target_id is None or str(detail.get("aweme_id", "")) == str(target_id) or str(detail.get("id", "")) == str(target_id):
+                    return detail
+
+            # 2. 直接包含 itemStruct（现代 Web 端常见结构）
+            if "itemStruct" in data and isinstance(data["itemStruct"], dict):
+                detail = data["itemStruct"]
+                if target_id is None or str(detail.get("aweme_id", "")) == str(target_id) or str(detail.get("id", "")) == str(target_id):
+                    return detail
+
+            # 3. 自身就是一个合法的 aweme 对象（包含 video/images/desc 等标志字段）
+            if ("video" in data or "images" in data) and ("desc" in data or "author" in data):
+                if target_id is None or str(data.get("aweme_id", "")) == str(target_id) or str(data.get("id", "")) == str(target_id):
+                    return data
+
+            # 4. 递归遍历字典的所有子项
+            for _, v in data.items():
+                if isinstance(v, (dict, list)):
+                    found = DouyinParser._find_aweme_detail(v, target_id)
+                    if found:
+                        return found
+
+        elif isinstance(data, list):
+            for item in data:
+                if isinstance(item, (dict, list)):
+                    found = DouyinParser._find_aweme_detail(item, target_id)
+                    if found:
+                        return found
+
+        return None
+
+    def _parse_ssr_data(self, html_content):
+        """
+        从抖音 PC 网页端 HTML 提取内嵌的 SSR 数据作为免签名兜底方案。
+        支持结构：
+        1. <script id="__UNIVERSAL_DATA_FOR_REHYDRATION__" ...>
+        2. <script id="RENDER_DATA" ...> (支持 URL 编码解码)
+        3. window._ROUTER_DATA / window._SSR_DATA 正则匹配
+        """
+        if not html_content or not isinstance(html_content, str):
+            return None
+
+        soup = BeautifulSoup(html_content, 'lxml')
+
+        # 策略 1: __UNIVERSAL_DATA_FOR_REHYDRATION__ (现代抖音主流)
+        universal_script = soup.find('script', id='__UNIVERSAL_DATA_FOR_REHYDRATION__')
+        if universal_script and universal_script.string:
+            try:
+                raw_json = json.loads(universal_script.string.strip())
+                detail = self._find_aweme_detail(raw_json, self.aweme_id)
+                if detail:
+                    logger.info("Successfully extracted Douyin detail from __UNIVERSAL_DATA_FOR_REHYDRATION__")
+                    return {"aweme_detail": detail}
+            except Exception as e:
+                logger.debug(f"Failed to parse __UNIVERSAL_DATA_FOR_REHYDRATION__: {e}")
+
+        # 策略 2: RENDER_DATA (经典版本)
+        render_script = soup.find('script', id='RENDER_DATA')
+        if render_script and render_script.string:
+            try:
+                content = render_script.string.strip()
+                if '%' in content:
+                    content = urllib.parse.unquote(content)
+                raw_json = json.loads(content)
+                detail = self._find_aweme_detail(raw_json, self.aweme_id)
+                if detail:
+                    logger.info("Successfully extracted Douyin detail from RENDER_DATA")
+                    return {"aweme_detail": detail}
+            except Exception as e:
+                logger.debug(f"Failed to parse RENDER_DATA: {e}")
+
+        # 策略 3: 正则匹配 _ROUTER_DATA / _SSR_DATA / __INIT_PROPS__
+        patterns = [
+            re.compile(r'_ROUTER_DATA\s*=\s*(\{.*?\});', re.DOTALL),
+            re.compile(r'window\._SSR_DATA\s*=\s*(\{.*?\});', re.DOTALL),
+            re.compile(r'window\.__INIT_PROPS__\s*=\s*(\{.*?\});', re.DOTALL),
+        ]
+        for pattern in patterns:
+            match = pattern.search(html_content)
+            if match:
+                try:
+                    raw_json = json.loads(match.group(1).strip())
+                    detail = self._find_aweme_detail(raw_json, self.aweme_id)
+                    if detail:
+                        logger.info("Successfully extracted Douyin detail from regex SSR script")
+                        return {"aweme_detail": detail}
+                except Exception as e:
+                    logger.debug(f"Failed to parse regex SSR data: {e}")
+
+        return None
+
     def fetch_html_data(self):
-        # 尝试使用缓存的 ttwid，并在失败时重试一次（刷新 ttwid）
+        """
+        获取抖音作品元数据（包含 a_bogus 签名 API 抓取与 SSR HTML 免签名多级容灾兜底）。
+        """
+        # 1. 尝试使用缓存的 ttwid 调用 API，并在失败时重试一次（刷新 ttwid）
         for attempt in range(2):
             ttwid = self._get_ttwid()
             if not ttwid:
@@ -92,30 +200,44 @@ class DouyinParser(BaseParser):
             new_headers['Referer'] = referer_url
             new_headers['Cookie'] = f"ttwid={ttwid}"
             
-            abogus = self.signer.get_abogus(play_url, self.signer.user_agent)
-            url = f"{play_url}&a_bogus={abogus}"
-            
+            try:
+                abogus = self.signer.get_abogus(play_url, self.signer.user_agent)
+                url = f"{play_url}&a_bogus={abogus}"
+            except Exception as e:
+                logger.warning(f"生成 a_bogus 签名异常: {e}")
+                break
+
             try:
                 response = self.session.get(url, headers=new_headers, verify=False, timeout=5)
                 if response.status_code == 200 and response.text:
                     data = response.json()
-                    # 如果返回结果中没有核心字段，说明 ttwid 可能在服务器端已失效，清空缓存重试
-                    if not data.get('aweme_detail') and attempt == 0:
+                    # 如果返回结果中包含核心字段，说明 API 抓取成功
+                    if data.get('aweme_detail'):
+                        return data
+                    if attempt == 0:
                         DouyinParser._TTWID_CACHE = None
                         continue
-                    return data
                 else:
                     if attempt == 0:
                         DouyinParser._TTWID_CACHE = None
                         continue
                     logger.warning(f"获取抖音视频详情失败: Status={response.status_code}")
-                    return None
             except Exception as e:
                 logger.error(f"请求抖音详情接口异常: {e}")
                 if attempt == 0:
                     DouyinParser._TTWID_CACHE = None
                     continue
-                return None
+
+        # 2. 多级容灾降级：当 API 失败时，从页面 SSR HTML 提取数据
+        logger.info(f"抖音 a_bogus API 未返回有效详情，触发 SSR HTML 兜底解析: {self.real_url}")
+        if not self.html_content:
+            self.fetch_html_content()
+
+        if self.html_content:
+            ssr_data = self._parse_ssr_data(self.html_content)
+            if ssr_data and ssr_data.get('aweme_detail'):
+                return ssr_data
+
         return None
 
     @staticmethod
