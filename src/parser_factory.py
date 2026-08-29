@@ -19,11 +19,11 @@ class ParserFactory:
         """自动扫描并载入 src.parsers 下的所有解析器模块。"""
         if cls._discovered:
             return
+        cls._discovered = True
         package = src.parsers
         for _, module_name, _ in pkgutil.iter_modules(package.__path__):
             if module_name != "base_parser" and not module_name.startswith("_"):
                 importlib.import_module(f"src.parsers.{module_name}")
-        cls._discovered = True
 
     @classmethod
     def get_parser_class(cls, platform: str):
@@ -54,5 +54,5 @@ def register_parser(*platform_names: str):
     return decorator
 
 
-# 模块导入时自动执行一次发现，确保 ParserFactory.platform_to_parser 随时可用
-ParserFactory._discover()
+# 确保在需要时通过 get_parser_class/create_parser 懒加载发现解析器
+

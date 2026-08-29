@@ -11,7 +11,12 @@ class DummyParser:
 
 
 class ParserFactoryTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        ParserFactory._discover()
+
     def test_every_configured_platform_has_a_parser(self):
+        ParserFactory._discover()
         configured_platforms = set(DOMAIN_TO_NAME.values())
         self.assertTrue(configured_platforms)
         self.assertEqual(configured_platforms - set(ParserFactory.platform_to_parser), set())

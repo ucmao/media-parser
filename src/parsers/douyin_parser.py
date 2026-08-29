@@ -118,28 +118,148 @@ class DouyinParser(BaseParser):
                 return None
         return None
 
+    @staticmethod
+    def _extract_best_url_from_play_addr(play_addr_dict):
+        """
+        从 play_addr 字典中提取最佳播放链接。
+        play_addr_list 结构通常为：[主CDN节点, 备用CDN节点, 抖音官方源站URL]
+        优先取源站 URL（如列表中有 3 个或更多元素，取 index 2），否则取第 1 个。
+        """
+        if not play_addr_dict or not isinstance(play_addr_dict, dict):
+            return None
+        url_list = play_addr_dict.get('url_list') or []
+        if not url_list:
+            return None
+        if len(url_list) >= 3 and url_list[2]:
+            return url_list[2]
+        return url_list[0] if url_list else None
+
     def get_real_video_url(self):
+        """
+        获取最高清晰度视频播放地址。
+        优化策略：
+        1. 遍历 bit_rate 数组，提取有效流并按码率 (bit_rate) 降序排序；
+        2. 优先选取 H.264 (is_h265 == 0) 的最高码率流，以保障跨平台及 Web 浏览器播放兼容性；
+        3. 若无 H.264 则选取 H.265 的最高码率流；
+        4. 若 bit_rate 为空或解析失败，无缝兜底到 video.play_addr / video.play_addr_h264 / video.play_addr_265。
+        """
         try:
             data_dict = self.data
             if not data_dict or not data_dict.get('aweme_detail'):
                 return None
-            
+
             detail = data_dict.get('aweme_detail', {}) or {}
             video = detail.get('video', {}) or {}
-            bit_rate = video.get('bit_rate', []) or []
-            
-            if not bit_rate:
-                return None
-                
-            play_addr_list = bit_rate[0].get('play_addr', {}).get('url_list', []) or []
-            if len(play_addr_list) < 3:
-                return play_addr_list[0] if play_addr_list else None
-                
-            # play_addr_list[0]:主CDN节点; play_addr_list[1]:备用CDN节点; play_addr_list[2]:抖音官方的源站URL
-            play_addr = play_addr_list[2]
-            return play_addr
-        except (KeyError, json.JSONDecodeError, TypeError) as e:
+            bit_rate_list = video.get('bit_rate', []) or []
+
+            # 1. 尝试从 bit_rate 列表中选择最佳流
+            valid_streams = []
+            for item in bit_rate_list:
+                if not isinstance(item, dict):
+                    continue
+                play_addr = item.get('play_addr')
+                url = self._extract_best_url_from_play_addr(play_addr)
+                if url:
+                    rate = item.get('bit_rate') or 0
+                    is_h265 = item.get('is_h265', 0)
+                    valid_streams.append({
+                        'bit_rate': rate,
+                        'is_h265': is_h265,
+                        'url': url
+                    })
+
+            if valid_streams:
+                # 优先筛选 H.264 流
+                h264_streams = [s for s in valid_streams if not s.get('is_h265')]
+                if h264_streams:
+                    # 按码率降序，选最高画质
+                    h264_streams.sort(key=lambda s: s['bit_rate'], reverse=True)
+                    return h264_streams[0]['url']
+
+                # 若仅有 H.265，则按码率降序选最高画质
+                valid_streams.sort(key=lambda s: s['bit_rate'], reverse=True)
+                return valid_streams[0]['url']
+
+            # 2. 兜底方案：从 video.play_addr / play_addr_h264 / play_addr_265 提取
+            for fallback_key in ('play_addr_h264', 'play_addr', 'play_addr_265'):
+                fallback_play_addr = video.get(fallback_key)
+                url = self._extract_best_url_from_play_addr(fallback_play_addr)
+                if url:
+                    return url
+
+            return None
+        except Exception as e:
             logger.warning(f"Failed to parse video URL: {e}")
+            return None
+
+    def get_video_list(self):
+        """获取视频列表（单视频作品返回包含主视频的列表）"""
+        video_url = self.get_real_video_url()
+        return [video_url] if video_url else []
+
+    def get_subtitles(self):
+        """
+        提取抖音原生 AI 生成字幕或多语言字幕列表。
+        返回格式:
+        [
+            {
+                "language_code": "zh-Hans",
+                "url": "https://...",
+                "format": "webvtt",
+                "is_auto_generated": True,
+                "sub_id": "123456"
+            }
+        ]
+        若无字幕则返回 None。
+        """
+        try:
+            data_dict = self.data
+            if not data_dict or not data_dict.get('aweme_detail'):
+                return None
+
+            detail = data_dict.get('aweme_detail', {}) or {}
+            video = detail.get('video', {}) or {}
+
+            # 1. 优先从 video.cla_info 中提取
+            cla_info = video.get('cla_info') or {}
+            caption_infos = cla_info.get('caption_infos') or cla_info.get('captions') or []
+
+            # 2. 兜底从 video.subtitle_infos 提取
+            if not caption_infos:
+                caption_infos = video.get('subtitle_infos') or []
+
+            if not caption_infos or not isinstance(caption_infos, list):
+                return None
+
+            subtitles = []
+            for cap in caption_infos:
+                if not isinstance(cap, dict):
+                    continue
+
+                url = cap.get('url')
+                if not url:
+                    url_list = cap.get('url_list') or []
+                    if url_list:
+                        url = url_list[0]
+
+                if not url:
+                    continue
+
+                sub_item = {
+                    'language_code': cap.get('language_code', ''),
+                    'url': UrlParser.convert_to_https(url),
+                    'format': cap.get('format', 'webvtt'),
+                    'is_auto_generated': bool(cap.get('is_auto_generated', True)),
+                }
+                sub_id = cap.get('sub_id')
+                if sub_id is not None:
+                    sub_item['sub_id'] = str(sub_id)
+
+                subtitles.append(sub_item)
+
+            return subtitles if subtitles else None
+        except Exception as e:
+            logger.warning(f"Failed to parse Douyin subtitles: {e}")
             return None
 
     def get_title_content(self):
