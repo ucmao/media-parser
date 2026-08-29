@@ -27,18 +27,18 @@
 ```mermaid
 flowchart TD
     Start["输入豆包分享 URL"] --> Route{"判断 URL 路径"}
-    Route -->|"/thread/xxx"| ThreadFlow["1. 会话线程解析 (_parse_thread)"]
-    Route -->|"/video-sharing"| VideoFlow["2. 独立视频解析 (_parse_video_sharing)"]
+    Route -->|"路径包含 /thread/"| ThreadFlow["1. 会话线程解析"]
+    Route -->|"路径为 /video-sharing"| VideoFlow["2. 独立视频解析"]
     
     ThreadFlow --> ScriptPayload["提取 HTML 中 script 注入的 JSON 负载"]
     ScriptPayload --> Creations["递归遍历提取 creation 实体 (视频/图像)"]
     
     VideoFlow --> AuthCheck{"是否配置了 DOUBAO_COOKIE?"}
-    AuthCheck -->|已配置| SamanthaAPI["调用 /samantha/media/get_play_info"]
-    SamanthaAPI --> AES["执行 FPLAY KDF 盐值派生 + AES-128-CBC 解密"]
+    AuthCheck -->|"已配置 Cookie"| SamanthaAPI["调用 samantha/media/get_play_info"]
+    SamanthaAPI --> AES["执行 FPLAY KDF 盐值派生与 AES-128-CBC 解密"]
     AES --> HDVideo["获得 1080P 纯净无水印原画视频 (3960kbps)"]
     
-    AuthCheck -->|未配置 (降级)| ShareAPI["调用 /creativity/share/get_video_share_info"]
+    AuthCheck -->|"未配置 (自动降级)"| ShareAPI["调用 creativity/share/get_video_share_info"]
     ShareAPI --> StripParam["清理 URL 水印参数 (降级为带水印预览切片)"]
 ```
 

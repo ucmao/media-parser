@@ -1,36 +1,3855 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
+  "description": "31 平台多形态全景自动化回归测试用例库 (涵盖短链/长链/图集/单视频/AI生成等)",
+  "total_cases": 266,
   "cases": [
-    {"platform": "AcFun", "url": "https://www.acfun.cn/v/ac43445963", "media_types": ["video"], "expected_fields": ["video", "cover", "title", "author"], "note": "2026-08-28 已验证"},
-    {"platform": "Soul", "url": "https://w13.soulsmile.cn/activity/#/web/topic/detail?postIdEcpt=djB4RGYyZGZUYk8vUk9IZDRPMER4dz09&sign=Sk45WDJIbGtlY25YNDRkbTNQd290Y2JmakJvUXV0MDRjSEZ0eEFXUGdXST0&signVersion=0.0.1", "media_types": ["video"], "expected_fields": ["video", "cover", "title", "author"], "note": "2026-08-28 已验证"},
-    {"platform": "全民K歌", "url": "https://static-play.kg.qq.com/node/on3NDg1SU2/play_v2?s=rv8cHFpUTXw32p0l&shareuid=63999d82232b358b3348&shareDescABType=1&topsource=a0_pn201001006_z1_u1407662076_l1_t1787831498__&chain_share_id=KSmmuy31z0HQqqgddGww8rU3YZWc_SOVI93Vf5FfleXCaJhVkWbD6Q&pageId=feed", "media_types": ["video"], "expected_fields": ["video", "cover", "title"], "note": "2026-08-28 已验证"},
-    {"platform": "剪映", "url": "https://lv.ulikecam.com/activity/lv/sharevideo?template_id=7631885529415568665&sec_uid=MS4wLjABAAAACO85ffvek0kT2ly3Ta2jGsvDqz7k5GBrEdZ1Ufu9w0sR_0NnrqDYFZSBLmirL3M_&item_type=0", "media_types": ["video"], "expected_fields": ["video", "cover", "title", "author"], "note": "2026-08-28 已验证"},
-    {"platform": "即梦AI", "url": "https://jimeng.jianying.com/s/rdloCrYi2wc/?t=8011", "media_types": ["video"], "expected_fields": ["video", "cover", "title", "author"], "note": "2026-08-28 已验证"},
-    {"platform": "小云雀AI", "url": "https://xiaoyunque.jianying.com/s/z_7nWGLGruM/", "media_types": ["images"], "expected_fields": ["images", "cover", "title", "author"], "note": "2026-08-28 已验证"},
-    {"platform": "可灵AI", "url": "https://klingai-share.kuaishou.com/h5-app/share?work_id=305387532165182&creative_id=305387532165182&creative_type=WORK", "media_types": ["video"], "expected_fields": ["video", "cover", "title", "author"], "note": "2026-08-28 已验证"},
-    {"platform": "哔哩哔哩", "url": "https://www.bilibili.com/video/BV1asTR6FEWu", "media_types": ["video"], "expected_fields": ["video", "cover", "title", "author"], "note": "2026-08-28 已验证"},
-    {"platform": "好看视频", "url": "https://haokan.baidu.com/v?vid=17831460188721240800&pd=pcshare&hkRelaunch=p1%3Dpc%26p2%3Dvideoland%26p3%3Dshare_input", "media_types": ["video"], "expected_fields": ["video", "cover", "title", "author"], "note": "2026-08-28 已验证"},
-    {"platform": "小红书", "url": "https://www.xiaohongshu.com/discovery/item/6a8fbccc000000002a03825a?source=webshare&xhsshare=pc_web&xsec_token=ABiWgOL_dtvWThmNa0wejoFAWRt0SZyqbLoyvG0j0ATDg=&xsec_source=pc_share", "media_types": ["images"], "expected_fields": ["images", "title", "author"], "note": "2026-08-28 已验证"},
-    {"platform": "视频号", "url": "https://weixin.qq.com/sph/AzGrUgqzFv", "media_types": ["video"], "expected_fields": ["video", "cover", "title", "author"], "note": "2026-08-28 已验证"},
-    {"platform": "微博", "url": "https://video.weibo.com/show?fid=1034:5336219874426938", "media_types": ["video"], "expected_fields": ["video", "cover", "title", "author"], "note": "2026-08-28 已验证"},
-    {"platform": "微视", "url": "https://video.weishi.qq.com/5D41bben", "media_types": ["video"], "expected_fields": ["video", "cover", "title", "author"], "note": "2026-08-28 已验证"},
-    {"platform": "快手", "url": "https://v.m.chenzhongtech.com/fw/photo/3xbr5pi8hxi4e6s", "media_types": ["video", "images", "audio"], "expected_fields": ["title", "author"], "note": "2026-08-28 已验证"},
-    {"platform": "抖音", "url": "https://www.douyin.com/note/7616399587141737704", "media_types": ["images", "live_media", "audio"], "expected_fields": ["title", "author", "images"], "note": "2026-08-28 已验证"},
-    {"platform": "新片场", "url": "https://www.xinpianchang.com/a13792376?from=share&xpcApp=xpc&channel=link&type=URL", "media_types": ["video"], "expected_fields": ["video", "cover", "title", "author"], "note": "2026-08-28 已验证"},
-    {"platform": "最右", "url": "https://share.xiaochuankeji.cn/hybrid/share/post?pid=423835942&vid=2542343457&zy_to=applink&share_count=1&m=7d666671821b36c6a0f542e90c5b0c5a&d=1be9dee05bcf18b874b40760d69aaacd2816be77053c4ab0c29e2f5e9efeea6a92669245dccb1faf87f4d933e1f0c63e&app=zuiyou&recommend=r0&name=n0&title_type=t0", "media_types": ["video", "images"], "expected_fields": ["title", "author"], "note": "2026-08-28 已验证"},
-    {"platform": "梨视频", "url": "https://www.pearvideo.com/video_1805408", "media_types": ["video"], "expected_fields": ["video", "cover", "title", "author"], "note": "2026-08-28 已验证"},
-    {"platform": "汽水音乐", "url": "https://qishui.douyin.com/s/iX21ep91/", "media_types": ["video", "audio"], "expected_fields": ["video", "cover", "title", "author"], "note": "2026-08-28 已验证；该样例为 UGC 视频"},
-    {"platform": "皮皮搞笑", "url": "https://h5.pipigx.com/pp/post/815491325984?pid=815491325984&type=post", "media_types": ["video"], "expected_fields": ["video", "cover", "title", "author"], "note": "2026-08-28 已验证"},
-    {"platform": "皮皮虾", "url": "https://h5.pipix.com/s/lggjR-ynbpI/", "media_types": ["video", "images"], "expected_fields": ["title", "author"], "note": "2026-08-28 已验证"},
-    {"platform": "知乎", "url": "https://www.zhihu.com/pin/2066168388699807826?native=1&page=video_pin&scene=share&utm_psn=2066168736831345973", "media_types": ["video"], "expected_fields": ["video", "cover", "title", "author"], "note": "2026-08-28 已验证 video_pin"},
-    {"platform": "绿洲", "url": "https://oasis.weibo.cn/v1/h5/share?cctype=share&lfid=wbcc_lz&luicode=10000001&sid=4641407099208582&wm=90223_90008", "media_types": ["images"], "expected_fields": ["title", "author"], "note": "2026-08-28 已验证"},
-    {"platform": "美拍", "url": "http://www.meipai.com/video/533/6777602107506448933?client_id=1089857299&utm_media_id=6777602107506448933&utm_source=meipai_share&utm_term=meipai_ios&gnum=13502403761169873&utm_content=9458&utm_share_type=3", "media_types": ["video"], "expected_fields": ["video", "cover", "title", "author"], "note": "2026-08-28 已验证"},
-    {"platform": "腾讯频道", "url": "https://pd.qq.com/s/9df0az124?b=2", "media_types": ["video"], "expected_fields": ["video", "cover", "title", "author"], "note": "2026-08-28 已验证"},
-    {"platform": "虎牙", "url": "https://hy.fan/v3cwMK", "media_types": ["video"], "expected_fields": ["video", "cover", "title"], "note": "2026-08-28 已验证"},
-    {"platform": "西瓜视频", "url": "https://www.iesdouyin.com/xg/video/7676450021063735414/?app=video_article&timestamp=1787834623&device_id=973518813013579&tt_from=copy_link&utm_source=copy_link&utm_medium=ios&utm_campaign=client_share&test_group=v1", "alternate_urls": ["https://v.douyin.com/Nid-fFF_sdI/"], "media_types": ["video"], "expected_fields": ["video", "cover", "title", "author"], "note": "2026-08-28 已验证"},
-    {"platform": "豆包", "url": "https://www.doubao.com/video-sharing?share_id=41356597786354690&source_type=mobile&video_id=v0d69cg10004d6978e2ljht0i4fdpp00&share_scene=video_viewer", "media_types": ["video"], "expected_fields": ["video", "cover", "title", "author"], "note": "2026-08-28 已验证"},
-    {"platform": "通义千问", "url": "https://activity.qianwen.com/r/ai-studio-mobile/qwen-external-share?&shareId=ZeeOedXncnGlElkluRMA&authorId=OjTAcGHgZgyeCwY4jeMDuH9JkGZ10BNYFM1HfW4CcLhxRA%3D%3D&enter_from=create_share&fp_from=create_share&channel_from=qwen&image_index=0", "media_types": ["images"], "expected_fields": ["images", "cover", "title", "author"], "note": "2026-08-28 已验证"},
-    {"platform": "夸克AI", "url": "https://act.quark.cn/apps/sharepages/routes/share?biz_id=ai_chat_v2&env=prod&share_id=3aeb87e5f7214ecbb54881903cd02a23&url=https%3A%2F%2Fb.quark.cn%2Fapps%2Fmchat%2Froutes%2Fchat", "media_types": ["images"], "expected_fields": ["images", "cover", "title"], "note": "2026-08-28 已验证"},
-    {"platform": "闲鱼", "url": "https://e.tb.cn/h.87fj9SNrqHW8kfC?tk=y1E5Tb4wkGd", "media_types": ["images"], "expected_fields": ["title"], "note": "2026-08-28 已验证"}
+    {
+      "platform": "AcFun",
+      "url": "https://www.acfun.cn/v/ac43445963",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08-28 已验证",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "Soul",
+      "url": "https://w13.soulsmile.cn/activity/#/web/topic/detail?postIdEcpt=djB4RGYyZGZUYk8vUk9IZDRPMER4dz09&sign=Sk45WDJIbGtlY25YNDRkbTNQd290Y2JmakJvUXV0MDRjSEZ0eEFXUGdXST0&signVersion=0.0.1",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08-28 已验证",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "全民K歌",
+      "url": "https://static-play.kg.qq.com/node/on3NDg1SU2/play_v2?s=rv8cHFpUTXw32p0l&shareuid=63999d82232b358b3348&shareDescABType=1&topsource=a0_pn201001006_z1_u1407662076_l1_t1787831498__&chain_share_id=KSmmuy31z0HQqqgddGww8rU3YZWc_SOVI93Vf5FfleXCaJhVkWbD6Q&pageId=feed",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08-28 已验证",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "剪映",
+      "url": "https://lv.ulikecam.com/activity/lv/sharevideo?template_id=7631885529415568665&sec_uid=MS4wLjABAAAACO85ffvek0kT2ly3Ta2jGsvDqz7k5GBrEdZ1Ufu9w0sR_0NnrqDYFZSBLmirL3M_&item_type=0",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08-28 已验证",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "即梦AI",
+      "url": "https://jimeng.jianying.com/s/rdloCrYi2wc/?t=8011",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08-28 已验证",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "小云雀AI",
+      "url": "https://xiaoyunque.jianying.com/s/z_7nWGLGruM/",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08-28 已验证",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "可灵AI",
+      "url": "https://klingai-share.kuaishou.com/h5-app/share?work_id=305387532165182&creative_id=305387532165182&creative_type=WORK",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08-28 已验证",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "哔哩哔哩",
+      "url": "https://www.bilibili.com/video/BV1asTR6FEWu",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08-28 已验证",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "好看视频",
+      "url": "https://haokan.baidu.com/v?vid=17831460188721240800&pd=pcshare&hkRelaunch=p1%3Dpc%26p2%3Dvideoland%26p3%3Dshare_input",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08-28 已验证",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "小红书",
+      "url": "https://www.xiaohongshu.com/discovery/item/6a8fbccc000000002a03825a?source=webshare&xhsshare=pc_web&xsec_token=ABiWgOL_dtvWThmNa0wejoFAWRt0SZyqbLoyvG0j0ATDg=&xsec_source=pc_share",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "title",
+        "author"
+      ],
+      "note": "2026-08-28 已验证",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "视频号",
+      "url": "https://weixin.qq.com/sph/AzGrUgqzFv",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08-28 已验证",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "微博",
+      "url": "https://video.weibo.com/show?fid=1034:5336219874426938",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08-28 已验证",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "微视",
+      "url": "https://video.weishi.qq.com/5D41bben",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08-28 已验证",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "快手",
+      "url": "https://v.m.chenzhongtech.com/fw/photo/3xbr5pi8hxi4e6s",
+      "media_types": [
+        "video",
+        "images",
+        "audio"
+      ],
+      "expected_fields": [
+        "title",
+        "author"
+      ],
+      "note": "2026-08-28 已验证",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "抖音",
+      "url": "https://www.douyin.com/note/7616399587141737704",
+      "media_types": [
+        "images",
+        "live_media",
+        "audio"
+      ],
+      "expected_fields": [
+        "title",
+        "author",
+        "images"
+      ],
+      "note": "2026-08-28 已验证",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "新片场",
+      "url": "https://www.xinpianchang.com/a13792376?from=share&xpcApp=xpc&channel=link&type=URL",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08-28 已验证",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "最右",
+      "url": "https://share.xiaochuankeji.cn/hybrid/share/post?pid=423835942&vid=2542343457&zy_to=applink&share_count=1&m=7d666671821b36c6a0f542e90c5b0c5a&d=1be9dee05bcf18b874b40760d69aaacd2816be77053c4ab0c29e2f5e9efeea6a92669245dccb1faf87f4d933e1f0c63e&app=zuiyou&recommend=r0&name=n0&title_type=t0",
+      "media_types": [
+        "video",
+        "images"
+      ],
+      "expected_fields": [
+        "title",
+        "author"
+      ],
+      "note": "2026-08-28 已验证",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "梨视频",
+      "url": "https://www.pearvideo.com/video_1805408",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08-28 已验证",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "汽水音乐",
+      "url": "https://qishui.douyin.com/s/iX21ep91/",
+      "media_types": [
+        "video",
+        "audio"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08-28 已验证；该样例为 UGC 视频",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "皮皮搞笑",
+      "url": "https://h5.pipigx.com/pp/post/815491325984?pid=815491325984&type=post",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08-28 已验证",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "皮皮虾",
+      "url": "https://h5.pipix.com/s/lggjR-ynbpI/",
+      "media_types": [
+        "video",
+        "images"
+      ],
+      "expected_fields": [
+        "title",
+        "author"
+      ],
+      "note": "2026-08-28 已验证",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "知乎",
+      "url": "https://www.zhihu.com/pin/2066168388699807826?native=1&page=video_pin&scene=share&utm_psn=2066168736831345973",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08-28 已验证 video_pin",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "绿洲",
+      "url": "https://oasis.weibo.cn/v1/h5/share?cctype=share&lfid=wbcc_lz&luicode=10000001&sid=4641407099208582&wm=90223_90008",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "title",
+        "author"
+      ],
+      "note": "2026-08-28 已验证",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "美拍",
+      "url": "http://www.meipai.com/video/533/6777602107506448933?client_id=1089857299&utm_media_id=6777602107506448933&utm_source=meipai_share&utm_term=meipai_ios&gnum=13502403761169873&utm_content=9458&utm_share_type=3",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08-28 已验证",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "腾讯频道",
+      "url": "https://pd.qq.com/s/9df0az124?b=2",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08-28 已验证",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "虎牙",
+      "url": "https://hy.fan/v3cwMK",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08-28 已验证",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "西瓜视频",
+      "url": "https://www.iesdouyin.com/xg/video/7676450021063735414/?app=video_article&timestamp=1787834623&device_id=973518813013579&tt_from=copy_link&utm_source=copy_link&utm_medium=ios&utm_campaign=client_share&test_group=v1",
+      "alternate_urls": [
+        "https://v.douyin.com/Nid-fFF_sdI/"
+      ],
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08-28 已验证",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/video-sharing?share_id=41356597786354690&source_type=mobile&video_id=v0d69cg10004d6978e2ljht0i4fdpp00&share_scene=video_viewer",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08-28 已验证",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "通义千问",
+      "url": "https://activity.qianwen.com/r/ai-studio-mobile/qwen-external-share?&shareId=ZeeOedXncnGlElkluRMA&authorId=OjTAcGHgZgyeCwY4jeMDuH9JkGZ10BNYFM1HfW4CcLhxRA%3D%3D&enter_from=create_share&fp_from=create_share&channel_from=qwen&image_index=0",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08-28 已验证",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "夸克AI",
+      "url": "https://act.quark.cn/apps/sharepages/routes/share?biz_id=ai_chat_v2&env=prod&share_id=3aeb87e5f7214ecbb54881903cd02a23&url=https%3A%2F%2Fb.quark.cn%2Fapps%2Fmchat%2Froutes%2Fchat",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08-28 已验证",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "闲鱼",
+      "url": "https://e.tb.cn/h.87fj9SNrqHW8kfC?tk=y1E5Tb4wkGd",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "title"
+      ],
+      "note": "2026-08-28 已验证",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "微博",
+      "url": "https://weibo.com/6784487686/5336975297217940",
+      "pattern": "微博博文标准页 (weibo.com/[uid]/[mid])",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: *弟弟在炫耀自己和姐姐的小卡🗣️：可以给我吗？⛈️"
+    },
+    {
+      "platform": "微博",
+      "url": "https://weibo.com/2326056911/5214864290611694",
+      "pattern": "微博博文标准页 (weibo.com/[uid]/[mid])",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 那天是个电子🧚 "
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/video-sharing?source_type=mobile&share_id=53704379523549442&video_id=v0269cg10004da8f0i27dldai7lp2teg",
+      "pattern": "豆包AI生成视频分享 (doubao.com/video-sharing?...)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 确认并快速生成"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/video-sharing?share_id=53757795860822274&source_type=mobile&video_id=v0269cg10004da8dq2q7dldaen4cma80&share_scene=video_viewer",
+      "pattern": "豆包AI生成视频分享 (doubao.com/video-sharing?...)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 图一是要穿的衣服图二是我画的人物，帮我生成一个视频"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xLe1rLj2Coi0cCwob",
+      "pattern": "豆包其他页面 (thread/xLe1rLj2Coi0cCwob)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/ab019d06ab77d",
+      "pattern": "豆包其他页面 (thread/ab019d06ab77d)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xQS14V3avgSHhYMUx",
+      "pattern": "豆包其他页面 (thread/xQS14V3avgSHhYMUx)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 基于原图产品生成方形电商主图，保留蓝色水泥路面高强"
+    },
+    {
+      "platform": "视频号",
+      "url": "https://weixin.qq.com/sph/AWvOcUGDuf",
+      "pattern": "微信视频号短链 (weixin.qq.com/sph/[id])",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 珠村550公交总站🚍\n路边🚘采光好🌤民电⚡\n🉑押一"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/af78725242c46",
+      "pattern": "豆包其他页面 (thread/af78725242c46)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 谁让你弄黑色背景了？我说是白色背景。再就是你那个老"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xPlQFoXKlqeTQsdjT",
+      "pattern": "豆包其他页面 (thread/xPlQFoXKlqeTQsdjT)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xl4jLWH8ZaFAAKNCf",
+      "pattern": "豆包其他页面 (thread/xl4jLWH8ZaFAAKNCf)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 生成一条10秒高清写实的室内法式背景墙施工展示视频"
+    },
+    {
+      "platform": "夸克AI",
+      "url": "https://act.quark.cn/apps/sharepages/routes/share?biz_id=ai_chat_v2&env=prod&share_id=3178e46ad78d4df7a395dda99ff8e298&qwcontainer=qk&url=https%3A%2F%2Fb.quark.cn%2Fapps%2Fmchat%2Froutes%2Fchat",
+      "pattern": "act.quark.cn 标准链接 (apps/sharepages/routes/sh)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 分析图片内容"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xyDEQ5PjH0fJb2NbN",
+      "pattern": "豆包其他页面 (thread/xyDEQ5PjH0fJb2NbN)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 这是一个音乐MV封面开头的动态画面：镜头先从整体画"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xnbBIGrn1n96FTExr",
+      "pattern": "豆包其他页面 (thread/xnbBIGrn1n96FTExr)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 3D卡通迪士尼风格，可爱的古风嫦娥仙子，精致的盘发"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xvf9g7ylANOgWNpzI",
+      "pattern": "豆包其他页面 (thread/xvf9g7ylANOgWNpzI)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 无前奏直接演唱，低饱和黑天怼脸视角，美女披散着长发"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xPdLFmx49VEJyZXFz",
+      "pattern": "豆包其他页面 (thread/xPdLFmx49VEJyZXFz)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 基于原图制作温馨中秋团圆动画，严格保持画面中七个人"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xI2eHZAe1zgkuTYKG",
+      "pattern": "豆包其他页面 (thread/xI2eHZAe1zgkuTYKG)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 基于参考图生成一段10秒9:16竖版3D卡通牙科科"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xmJOlbhuWF1RV3qPR",
+      "pattern": "豆包其他页面 (thread/xmJOlbhuWF1RV3qPR)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 基于参考图生成一段10秒9:16竖版3D卡通牙科科"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xk7o1WcVciRtJMgps",
+      "pattern": "豆包其他页面 (thread/xk7o1WcVciRtJMgps)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 以原图中的动漫头型、短发轮廓和正面半身角度为基础，"
+    },
+    {
+      "platform": "闲鱼",
+      "url": "https://e.tb.cn/h.8PM4CEksDIETE40?tk=tqLjTWrD8Jr",
+      "pattern": "闲鱼商品/分享短链 (e.tb.cn/h.8PM4CEksDIETE40)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 闲鱼商品 (商品ID: 806977732552,"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xKSIky7v4Z8h7hJci",
+      "pattern": "豆包其他页面 (thread/xKSIky7v4Z8h7hJci)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 基于参考图生成一段10秒9:16竖版3D卡通牙科科"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xDS0lVHB8LkoZ4vLf",
+      "pattern": "豆包其他页面 (thread/xDS0lVHB8LkoZ4vLf)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 基于参考图生成一段8秒9:16竖版3D卡通牙科科普"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xOWJrMuQgHPsmohSU",
+      "pattern": "豆包其他页面 (thread/xOWJrMuQgHPsmohSU)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/ae55bfb4404b0",
+      "pattern": "豆包其他页面 (thread/ae55bfb4404b0)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xgAY0KrDNmbWiCRG5",
+      "pattern": "豆包其他页面 (thread/xgAY0KrDNmbWiCRG5)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "闲鱼",
+      "url": "https://m.tb.cn/h.896PM0N?tk=5Vg4TdNSROA",
+      "pattern": "闲鱼商品/分享短链 (m.tb.cn/h.896PM0N)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 闲鱼商品 (商品ID: 1035539822791"
+    },
+    {
+      "platform": "通义千问",
+      "url": "https://activity.qianwen.com/r/ai-studio-mobile/qwen-external-share?&shareId=Gx682ARJMfFL2mX7hj6h&authorId=OjTHRDM0HfNi50kb3ATad8cedUZXNQA%2F%2BmzOr5cTwuW0kQ%3D%3D&enter_from=create_share&fp_from=create_share&channel_from=qwen",
+      "pattern": "activity.qianwen.com 标准链接 (r/ai-studio-mobile/qwen-e)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 岳飞成为将军率兵打仗的视频"
+    },
+    {
+      "platform": "腾讯频道",
+      "url": "https://pd.qq.com/s/bju6lrk7d?b=2",
+      "pattern": "pd.qq.com 标准链接 (s/bju6lrk7d)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 看完这个视频，我突然大彻大悟，看透了现在社会人性的"
+    },
+    {
+      "platform": "皮皮虾",
+      "url": "https://h5.pipix.com/s/il9paYdXMKU/",
+      "pattern": "h5.pipix.com 标准链接 (s/il9paYdXMKU)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 皮这一下很开心"
+    },
+    {
+      "platform": "皮皮虾",
+      "url": "https://h5.pipix.com/s/2-kFjekOW5o/",
+      "pattern": "h5.pipix.com 标准链接 (s/2-kFjekOW5o)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: ？"
+    },
+    {
+      "platform": "皮皮虾",
+      "url": "https://h5.pipix.com/s/uA7ZSMC9zUM/",
+      "pattern": "h5.pipix.com 标准链接 (s/uA7ZSMC9zUM)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 怪不得挨打"
+    },
+    {
+      "platform": "皮皮虾",
+      "url": "https://h5.pipix.com/s/iz3UKQLcpkM/",
+      "pattern": "h5.pipix.com 标准链接 (s/iz3UKQLcpkM)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 甲鱼："
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xtYacgkSpqOENcSkV",
+      "pattern": "豆包其他页面 (thread/xtYacgkSpqOENcSkV)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x2IStxWjnSe1T0Onm",
+      "pattern": "豆包其他页面 (thread/x2IStxWjnSe1T0Onm)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 参考第1张图片中的女生形象，少女将剑拔出，站在月亮"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/abda61ea41c34",
+      "pattern": "豆包其他页面 (thread/abda61ea41c34)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/a5429d280defc",
+      "pattern": "豆包其他页面 (thread/a5429d280defc)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "抖音",
+      "url": "https://www.iesdouyin.com/share/note/7669579412325683877/?region=CN&mid=7077295469461784613&u_code=27d38b219877&did=MS4wLjABAAAAmK9gV-8kLyyNxxTEiBs2lRxuVfXevObJjWV5e2cfuXP_JqmHmVz7Z_t41ogXKB-C&iid=MS4wLjABAAAALXwKvhykuHUb6795SnVzMYGStZkCp3q_L331hWajPPE9ZpgUd09OREUU8_suAcW0&with_sec_did=1&video_share_track_ver=&titleType=title&schema_type=37&share_sign=fq60BuTIEI1vgAX.va4iIVsJUDQYNJJBys3xGcLEnHs-&share_version=370400&ts=1787333313&from_aid=2329&from_ssr=1&share_track_info=%7B%22link_description_type%22%3A%22%22%7D&utm_source=copy&utm_campaign=client_share&utm_medium=android&app=aweme&ug_share_id=e196ca85805dc_1787333482588&activity_info=%7B%22social_author_id%22%3A%223933416966077961%22%2C%22social_share_id%22%3A%222219283892143044_1787333482586%22%2C%22social_share_time%22%3A%221787333482%22%2C%22social_share_user_id%22%3A%222219283892143044%22%7D&share_extra_params=%7B%22schema_type%22%3A%2237%22%7D",
+      "pattern": "抖音网页图集笔记 (douyin.com/note/[id])",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: #veritymob #verity #同人  —"
+    },
+    {
+      "platform": "抖音",
+      "url": "https://www.iesdouyin.com/share/note/7675010865947858341/?region=CN&mid=7659743259229195044&u_code=1327ga722&did=MS4wLjABAAAAb_Y40DGqaVaTj8fBTb_1fxzyxm4qHay8voqPmR6wW1Acf0sEh4VRIUWiIWw186xv&iid=MS4wLjABAAAAkOMjIUjqAY6LZNAByIFlpMs7ZO802T_vDzyvfS4-j-I&with_sec_did=1&video_share_track_ver=&titleType=title&schema_type=37&share_sign=qAQRtsNRgH7xLSGPfuDngdwF8yN00aHE8vZcnSrXu5w-&share_version=390600&ts=1787165458&from_aid=2329&from_ssr=1&share_track_info=%7B%22link_description_type%22%3A%22%22%7D&utm_source=copy&utm_campaign=client_share&utm_medium=android&app=aweme&ug_share_id=ba56475c82a00_1787165500168&activity_info=%7B%22social_author_id%22%3A%221295655043884171%22%2C%22social_share_id%22%3A%2288871190678_1787165500167%22%2C%22social_share_time%22%3A%221787165500%22%2C%22social_share_user_id%22%3A%2288871190678%22%7D&share_extra_params=%7B%22schema_type%22%3A%2237%22%7D",
+      "pattern": "抖音网页图集笔记 (douyin.com/note/[id])",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 我有个🤓想法。#韩漫御姐 #漫画御姐风 #都艺恩 "
+    },
+    {
+      "platform": "新片场",
+      "url": "https://www.xinpianchang.com/a13779565?from=share&xpcApp=xpc&channel=link&type=URL",
+      "pattern": "www.xinpianchang.com 标准链接 (a13779565)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 汽车卡点"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/a1550309b876a",
+      "pattern": "豆包其他页面 (thread/a1550309b876a)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xLsAJ1KyYw7dmvG1j",
+      "pattern": "豆包其他页面 (thread/xLsAJ1KyYw7dmvG1j)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "即梦AI",
+      "url": "https://jimeng.jianying.com/s/sCa5ivLStNE/?t=0",
+      "pattern": "即梦AI生成分享 (s/sCa5ivLStNE)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 即梦AI 视频"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xO7PkyeZhJmJ9rRAR",
+      "pattern": "豆包其他页面 (thread/xO7PkyeZhJmJ9rRAR)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "闲鱼",
+      "url": "https://m.tb.cn/h.8Rid7au?tk=ElcJT19bu0h",
+      "pattern": "闲鱼商品/分享短链 (m.tb.cn/h.8Rid7au)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 闲鱼商品 (商品ID: 1075818044966"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/aa980ba8808ac",
+      "pattern": "豆包其他页面 (thread/aa980ba8808ac)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xox0bLSmSaJabAkpR",
+      "pattern": "豆包其他页面 (thread/xox0bLSmSaJabAkpR)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 3D高精度渲染，CG动画。镜头从灶膛火焰开始，随着"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xctE6QDVBNWLXiARm",
+      "pattern": "豆包其他页面 (thread/xctE6QDVBNWLXiARm)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 3D高精度渲染，CG动画。视频开始，在温暖的农家土"
+    },
+    {
+      "platform": "闲鱼",
+      "url": "https://m.tb.cn/h.88UyMRS?tk=sDa1T1e3fRO",
+      "pattern": "闲鱼商品/分享短链 (m.tb.cn/h.88UyMRS)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: "
+    },
+    {
+      "platform": "闲鱼",
+      "url": "https://m.tb.cn/h.87xRPu7?tk=NTROTYyuVEO",
+      "pattern": "闲鱼商品/分享短链 (m.tb.cn/h.87xRPu7)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: "
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xhYyIuiOiId5Zo3KG",
+      "pattern": "豆包其他页面 (thread/xhYyIuiOiId5Zo3KG)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 基于参考图生成15秒连贯电影级广告短片，全程不出现"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xAi5YYlg9llLin9TH",
+      "pattern": "豆包其他页面 (thread/xAi5YYlg9llLin9TH)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 基于参考图生成医师节视频中段动态镜头，保持原画面构"
+    },
+    {
+      "platform": "腾讯频道",
+      "url": "https://pd.qq.com/s/dvuwbrlvg?b=2",
+      "pattern": "pd.qq.com 标准链接 (s/dvuwbrlvg)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 啦啦哗哗｜00后cpdD扩列交友找对象聊天群｜腾讯"
+    },
+    {
+      "platform": "腾讯频道",
+      "url": "https://pd.qq.com/s/2uxe9q30j?b=2",
+      "pattern": "pd.qq.com 标准链接 (s/2uxe9q30j)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 蚩奼｜小污不伤大雅的频道｜腾讯频道"
+    },
+    {
+      "platform": "可灵AI",
+      "url": "https://klingai-share.kuaishou.com/h5-app/share?work_id=317807290130009&creative_id=317807290130009&creative_type=WORK&target=home",
+      "pattern": "快手其他页面 (h5-app/share)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 可灵AI 作品"
+    },
+    {
+      "platform": "闲鱼",
+      "url": "https://e.tb.cn/h.8i8z2O3V2e1s7jh?tk=lK6ITYk0uYX",
+      "pattern": "闲鱼商品/分享短链 (e.tb.cn/h.8i8z2O3V2e1s7jh)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 闲鱼商品 (商品ID: 899895727372,"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xSCbNn6Ht74ExRdri",
+      "pattern": "豆包其他页面 (thread/xSCbNn6Ht74ExRdri)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 基于原图生成一段5秒横版视频，保持人物坐在轮椅上面"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xw8nd9I63oqJ6L95e",
+      "pattern": "豆包其他页面 (thread/xw8nd9I63oqJ6L95e)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 将人物黑色无袖上衣下摆处理得更自然下垂，衣摆轻微覆"
+    },
+    {
+      "platform": "汽水音乐",
+      "url": "https://qishui.douyin.com/s/iXYYUkP6/",
+      "pattern": "抖音其他网页 (s/iXYYUkP6)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: “2026上半年高燃神曲” "
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xdcQAGdvLe1gus0Fh",
+      "pattern": "豆包其他页面 (thread/xdcQAGdvLe1gus0Fh)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 9:16竖屏，3D盲盒小女孩从地面缓缓起飞，先垂直"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xnjo8k2jHQys82I83",
+      "pattern": "豆包其他页面 (thread/xnjo8k2jHQys82I83)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "皮皮虾",
+      "url": "https://h5.pipix.com/s/1kMlIILFkds/",
+      "pattern": "h5.pipix.com 标准链接 (s/1kMlIILFkds)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 皮这一下很开心"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x5QnLJ6FHIvoUMvvW",
+      "pattern": "豆包其他页面 (thread/x5QnLJ6FHIvoUMvvW)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xDYwe42t4h4q39gmq",
+      "pattern": "豆包其他页面 (thread/xDYwe42t4h4q39gmq)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xrUmqgihFFtOirZ1t",
+      "pattern": "豆包其他页面 (thread/xrUmqgihFFtOirZ1t)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "皮皮虾",
+      "url": "https://h5.pipix.com/s/uknUmhMGWRo/",
+      "pattern": "h5.pipix.com 标准链接 (s/uknUmhMGWRo)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 皮这一下很开心"
+    },
+    {
+      "platform": "皮皮虾",
+      "url": "https://h5.pipix.com/s/KeUWgvsOUro/",
+      "pattern": "h5.pipix.com 标准链接 (s/KeUWgvsOUro)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 皮这一下很开心"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xkwzMqQcujmhw1SGB",
+      "pattern": "豆包其他页面 (thread/xkwzMqQcujmhw1SGB)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 纯白摄影棚内，一位知性的年轻女博主正在介绍一辆灰色"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x9kULtBJc9udakHWE",
+      "pattern": "豆包其他页面 (thread/x9kULtBJc9udakHWE)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 纯白摄影棚，地板、墙面、天花板均为纯白色，光线柔和"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xD8NHUxOAjqGt6rGI",
+      "pattern": "豆包其他页面 (thread/xD8NHUxOAjqGt6rGI)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 基于参考图生成一条10秒竖屏眼霜上脸演示广告。参考"
+    },
+    {
+      "platform": "闲鱼",
+      "url": "https://m.tb.cn/h.8S4a8Tk?tk=7SBsTb3GnGh",
+      "pattern": "闲鱼商品/分享短链 (m.tb.cn/h.8S4a8Tk)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 闲鱼商品 (商品ID: 997495364277)"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xoT57yuSeXcxs8FIL",
+      "pattern": "豆包其他页面 (thread/xoT57yuSeXcxs8FIL)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xZ6U3KF4cvCIhPylf",
+      "pattern": "豆包其他页面 (thread/xZ6U3KF4cvCIhPylf)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 16:9宽画幅，10秒时长，纪实居家广告视频，手持"
+    },
+    {
+      "platform": "汽水音乐",
+      "url": "https://qishui.douyin.com/s/iX8sCrMS/",
+      "pattern": "抖音其他网页 (s/iX8sCrMS)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 《游京》【宿命版】 交响融合重制版 《游京》【宿命"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xZ7lnoxdYwqkUICiU",
+      "pattern": "豆包其他页面 (thread/xZ7lnoxdYwqkUICiU)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 画面镜头保持不动，星空和云朵有轻微流动，月光和萤火"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xY4aHqmD5TIkHkkwc",
+      "pattern": "豆包其他页面 (thread/xY4aHqmD5TIkHkkwc)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 32K 超高清 8K 全通道 PBR 物理材质，2"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xMYsodo5QYNdC5sL9",
+      "pattern": "豆包其他页面 (thread/xMYsodo5QYNdC5sL9)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 固定镜头，一镜到底，第一人称机位，现代轻奢正规足浴"
+    },
+    {
+      "platform": "闲鱼",
+      "url": "https://e.tb.cn/h.870aImM?tk=Fx8jTZvvLHG",
+      "pattern": "闲鱼商品/分享短链 (e.tb.cn/h.870aImM)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: "
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xvVsa68joT11eN5wM",
+      "pattern": "豆包其他页面 (thread/xvVsa68joT11eN5wM)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "闲鱼",
+      "url": "https://e.tb.cn/h.8SEP52k?tk=uyP1TZqYErT",
+      "pattern": "闲鱼商品/分享短链 (e.tb.cn/h.8SEP52k)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: "
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xlYRYAfXecy9wAhZa",
+      "pattern": "豆包其他页面 (thread/xlYRYAfXecy9wAhZa)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "腾讯频道",
+      "url": "https://pd.qq.com/s/gjyr4f5hj?b=2",
+      "pattern": "pd.qq.com 标准链接 (s/gjyr4f5hj)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 新手｜动漫剪辑素材【国漫素材】｜腾讯频道"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xfASL3wVdsBQwkOJn",
+      "pattern": "豆包其他页面 (thread/xfASL3wVdsBQwkOJn)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "汽水音乐",
+      "url": "https://qishui.douyin.com/s/iX1u7ABJ/",
+      "pattern": "抖音其他网页 (s/iX1u7ABJ)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: “为什么刷到的歌总比搜的好听 因为缘分总比刻意好”"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xQOgAcrTc59QTzM5Y",
+      "pattern": "豆包其他页面 (thread/xQOgAcrTc59QTzM5Y)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "汽水音乐",
+      "url": "https://qishui.douyin.com/s/iX1ykMJg/",
+      "pattern": "抖音其他网页 (s/iX1ykMJg)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: AI三角洲乐队《生日祝福歌》”跟所有的烦恼说拜拜”"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/abb9edb7b4060",
+      "pattern": "豆包其他页面 (thread/abb9edb7b4060)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/a8854d9a619bf",
+      "pattern": "豆包其他页面 (thread/a8854d9a619bf)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/a66b9407a7d32",
+      "pattern": "豆包其他页面 (thread/a66b9407a7d32)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x1oNYtUPgOhtfVmeP",
+      "pattern": "豆包其他页面 (thread/x1oNYtUPgOhtfVmeP)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "腾讯频道",
+      "url": "https://pd.qq.com/s/gwvvgq59q?b=2",
+      "pattern": "pd.qq.com 标准链接 (s/gwvvgq59q)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 分享视频｜火影忍者手游｜腾讯频道"
+    },
+    {
+      "platform": "腾讯频道",
+      "url": "https://pd.qq.com/s/f5mklsjht?b=2",
+      "pattern": "pd.qq.com 标准链接 (s/f5mklsjht)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 分享视频｜大苟分｜腾讯频道"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xlqm9ooynhUaKF3HA",
+      "pattern": "豆包其他页面 (thread/xlqm9ooynhUaKF3HA)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xkR6gZA5nZMzwe91z",
+      "pattern": "豆包其他页面 (thread/xkR6gZA5nZMzwe91z)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "汽水音乐",
+      "url": "https://qishui.douyin.com/s/iCKGkHSP/",
+      "pattern": "抖音其他网页 (s/iCKGkHSP)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 寻找团长中……#五十五天在北京 #摇滚 #乐队现场"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/a336986569b87",
+      "pattern": "豆包其他页面 (thread/a336986569b87)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "闲鱼",
+      "url": "https://m.tb.cn/h.85bVwX7?tk=0T3MgBFYbVt",
+      "pattern": "闲鱼商品/分享短链 (m.tb.cn/h.85bVwX7)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 闲鱼商品 (商品ID: 1022417717050"
+    },
+    {
+      "platform": "闲鱼",
+      "url": "https://m.tb.cn/h.8gqaSHO",
+      "pattern": "闲鱼商品/分享短链 (m.tb.cn/h.8gqaSHO)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 闲鱼商品 (商品ID: 1065271917373"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xOTxdid3TjvD38a8n",
+      "pattern": "豆包其他页面 (thread/xOTxdid3TjvD38a8n)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 巨熊变身・触手杀熊（10s）【全局风格与环境】时间"
+    },
+    {
+      "platform": "即梦AI",
+      "url": "https://jimeng.jianying.com/s/zB9xlpqqeDQ/?t=0",
+      "pattern": "即梦AI生成分享 (s/zB9xlpqqeDQ)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 老马采访大爷，树叶都是绿的，大爷脸上没有老年斑，面"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x83F4yIXmuNKJL60C",
+      "pattern": "豆包其他页面 (thread/x83F4yIXmuNKJL60C)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xxWffHOsj5DgwlYw3",
+      "pattern": "豆包其他页面 (thread/xxWffHOsj5DgwlYw3)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xHAxoUYzpfhAdwGNm",
+      "pattern": "豆包其他页面 (thread/xHAxoUYzpfhAdwGNm)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/a41e73a9c3f45",
+      "pattern": "豆包其他页面 (thread/a41e73a9c3f45)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xI7zwqGKJYME1kT0d",
+      "pattern": "豆包其他页面 (thread/xI7zwqGKJYME1kT0d)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "闲鱼",
+      "url": "https://m.tb.cn/h.84YD9JR?tk=ZWMHgDIA57I",
+      "pattern": "闲鱼商品/分享短链 (m.tb.cn/h.84YD9JR)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 闲鱼商品 (商品ID: 1055059481917"
+    },
+    {
+      "platform": "抖音",
+      "url": "https://www.iesdouyin.com/share/slides/7668561203254657707/?region=CN&mid=7657009378818328626&u_code=32bihj9cbifd&did=MS4wLjABAAAAjKE5Foaxvs6nzNTbvOi4fBJgYL2a0EqDhreLa2wKi54&iid=MS4wLjABAAAAfmNddfuv1OgYYUCia2JlyueoXYh5S24gSv8WcrrAPi7SXqEB9FP7Ry6NxF1ibeyQ&with_sec_did=1&video_share_track_ver=&titleType=title&schema_type=37&is_slides=1&contains_video_type_clip=1&share_sign=u8POjTlIsQfC9_cM7RZm90PCHctyfCRB_LP_BJCenLg-&share_version=390800&ts=1785546907&from_aid=1128&from_ssr=1&share_track_info=%7B%22link_description_type%22%3A%22%22%7D&utm_source=copy&utm_campaign=client_share&utm_medium=android&app=aweme&ug_share_id=3866ffe1918ea_1785564538724&activity_info=%7B%22social_author_id%22%3A%223792691457177152%22%2C%22social_share_id%22%3A%222962565329323616_1785564538724%22%2C%22social_share_time%22%3A%221785564538%22%2C%22social_share_user_id%22%3A%222962565329323616%22%7D&share_extra_params=%7B%22schema_type%22%3A%2237%22%7D",
+      "pattern": "抖音其他网页 (share/slides/766856120325)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 100张不是我的极限 而是抖音的极限.#左奇函实况"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xYkCrDAUgCsGGxhWa",
+      "pattern": "豆包其他页面 (thread/xYkCrDAUgCsGGxhWa)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/abc92e9d4c5df",
+      "pattern": "豆包其他页面 (thread/abc92e9d4c5df)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xnupBXkld0S6DqMkp",
+      "pattern": "豆包其他页面 (thread/xnupBXkld0S6DqMkp)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xgbStODPO57Dbny6d",
+      "pattern": "豆包其他页面 (thread/xgbStODPO57Dbny6d)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "腾讯频道",
+      "url": "https://pd.qq.com/s/dd4yyj9uy?b=2",
+      "pattern": "pd.qq.com 标准链接 (s/dd4yyj9uy)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 分享视频｜纯欲Cos穿搭社｜腾讯频道"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xNfci7N6ASvTs3iGT",
+      "pattern": "豆包其他页面 (thread/xNfci7N6ASvTs3iGT)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "闲鱼",
+      "url": "https://e.tb.cn/h.832CmsVFDWUsGLI?tk=zGtEgEqroAS",
+      "pattern": "闲鱼商品/分享短链 (e.tb.cn/h.832CmsVFDWUsGLI)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 闲鱼商品 (商品ID: 886271402566,"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xqSOJRM5dFlW16JsR",
+      "pattern": "豆包其他页面 (thread/xqSOJRM5dFlW16JsR)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/a590d5e70912b",
+      "pattern": "豆包其他页面 (thread/a590d5e70912b)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xNjaJRKjDCOyZVkU9",
+      "pattern": "豆包其他页面 (thread/xNjaJRKjDCOyZVkU9)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xdDEWYRL8PfJeWIMF",
+      "pattern": "豆包其他页面 (thread/xdDEWYRL8PfJeWIMF)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xGu4ezqSDLkjLHn9f",
+      "pattern": "豆包其他页面 (thread/xGu4ezqSDLkjLHn9f)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "闲鱼",
+      "url": "https://e.tb.cn/h.83jcEotBe9omlhK?tk=GPxEguPNnBK",
+      "pattern": "闲鱼商品/分享短链 (e.tb.cn/h.83jcEotBe9omlhK)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 闲鱼商品 (商品ID: 1063480306276"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xWv47fLOcciFm3kmM",
+      "pattern": "豆包其他页面 (thread/xWv47fLOcciFm3kmM)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 在保持原照片整体风格、光线、发型、服装、纹身和人物"
+    },
+    {
+      "platform": "闲鱼",
+      "url": "https://e.tb.cn/h.8WWK6wNfpnTUZ3e?tk=cl5hgupHPlx",
+      "pattern": "闲鱼商品/分享短链 (e.tb.cn/h.8WWK6wNfpnTUZ3e)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 闲鱼商品 (商品ID: 944431823329,"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xLyZuZWm8qXyGGTpK",
+      "pattern": "豆包其他页面 (thread/xLyZuZWm8qXyGGTpK)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "即梦AI",
+      "url": "https://jimeng.jianying.com/s/JUl2o-Kb2GQ/?t=0",
+      "pattern": "即梦AI生成分享 (s/JUl2o-Kb2GQ)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 老马在公园的林荫路上采访大爷，老马问大爷:大爷，结"
+    },
+    {
+      "platform": "汽水音乐",
+      "url": "https://qishui.douyin.com/s/iCHgm9ke/",
+      "pattern": "抖音其他网页 (s/iCHgm9ke)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 又用上了这个转场了#我不难过 #孙燕姿"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x9cdfd8744d9c8cea893a5949d60020b1",
+      "pattern": "豆包其他页面 (thread/x9cdfd8744d9c8cea8)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/a635c18712862",
+      "pattern": "豆包其他页面 (thread/a635c18712862)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xae2b0a61bea88c569b049e2943fd8d3f",
+      "pattern": "豆包其他页面 (thread/xae2b0a61bea88c569)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "汽水音乐",
+      "url": "https://qishui.douyin.com/s/iCmfm2bL/",
+      "pattern": "抖音其他网页 (s/iCmfm2bL)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 钱除了死亡，剩下什么问题都可以解决……"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xbb5cc6a561be8222aef0e661e76b8c2e",
+      "pattern": "豆包其他页面 (thread/xbb5cc6a561be8222a)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xc89c77ce79eb8ec9bdda68ea969c8313",
+      "pattern": "豆包其他页面 (thread/xc89c77ce79eb8ec9b)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "闲鱼",
+      "url": "https://e.tb.cn/h.8co3akNzENNRB5k?tk=ZLEcgsAwcwt",
+      "pattern": "闲鱼商品/分享短链 (e.tb.cn/h.8co3akNzENNRB5k)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 闲鱼商品 (商品ID: 1065109317370"
+    },
+    {
+      "platform": "即梦AI",
+      "url": "https://jimeng.jianying.com/s/HywqJX3BtOA/?t=0",
+      "pattern": "即梦AI生成分享 (s/HywqJX3BtOA)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 早点睡吧服装白色，体重九十斤，画质高清➕锐化"
+    },
+    {
+      "platform": "即梦AI",
+      "url": "https://jimeng.jianying.com/s/UINWol7cmkk/?t=0",
+      "pattern": "即梦AI生成分享 (s/UINWol7cmkk)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 沈阳装修东哥沈阳装修丽姐@沈阳装修丽姐 @沈阳装修"
+    },
+    {
+      "platform": "即梦AI",
+      "url": "https://jimeng.jianying.com/s/HfmYMR0DyMI/?t=0",
+      "pattern": "即梦AI生成分享 (s/HfmYMR0DyMI)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 把主角换成安泽航在东莞"
+    },
+    {
+      "platform": "即梦AI",
+      "url": "https://jimeng.jianying.com/s/ReVzcHHVkdw/?t=0",
+      "pattern": "即梦AI生成分享 (s/ReVzcHHVkdw)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 萌萌出镜人身高一米六五，体重110斤，身穿黑色职业"
+    },
+    {
+      "platform": "即梦AI",
+      "url": "https://jimeng.jianying.com/s/IzR4ael_Ddc/?t=0",
+      "pattern": "即梦AI生成分享 (s/IzR4ael_Ddc)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 即梦AI 视频"
+    },
+    {
+      "platform": "闲鱼",
+      "url": "https://e.tb.cn/h.8Y83ewzyIXOZ4EQ?tk=m2aJgIFXHlp",
+      "pattern": "闲鱼商品/分享短链 (e.tb.cn/h.8Y83ewzyIXOZ4EQ)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 闲鱼商品 (商品ID: 999547093073,"
+    },
+    {
+      "platform": "即梦AI",
+      "url": "https://jimeng.jianying.com/s/NIF8DXFSAtc/?t=210",
+      "pattern": "即梦AI生成分享 (s/NIF8DXFSAtc)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 即梦AI 视频"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/a9c3f95a3ac24",
+      "pattern": "豆包其他页面 (thread/a9c3f95a3ac24)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "即梦AI",
+      "url": "https://jimeng.jianying.com/s/QQtxWs2HjXA/?t=210",
+      "pattern": "即梦AI生成分享 (s/QQtxWs2HjXA)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 第九集率土之滨率土星推计划率批同盟故事会率批AI整"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x70b8ad1a54028f74ba139fb1f36facf8",
+      "pattern": "豆包其他页面 (thread/x70b8ad1a54028f74b)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "即梦AI",
+      "url": "https://jimeng.jianying.com/s/odfRnLPnwh8/?t=0",
+      "pattern": "即梦AI生成分享 (s/odfRnLPnwh8)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 即梦AI 视频"
+    },
+    {
+      "platform": "即梦AI",
+      "url": "https://jimeng.jianying.com/s/B2ouwAeW81A/?t=210",
+      "pattern": "即梦AI生成分享 (s/B2ouwAeW81A)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 替换角色 车换成白色的丰田卡罗拉 我带着墨镜 穿白"
+    },
+    {
+      "platform": "即梦AI",
+      "url": "https://jimeng.jianying.com/s/Ab39NHPMDa4/?t=210",
+      "pattern": "即梦AI生成分享 (s/Ab39NHPMDa4)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 即梦AI 视频"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x1b86e532960489a1be86a2434ce73215",
+      "pattern": "豆包其他页面 (thread/x1b86e532960489a1b)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "即梦AI",
+      "url": "https://jimeng.jianying.com/s/Rx6kdeEhkWc/?t=210",
+      "pattern": "即梦AI生成分享 (s/Rx6kdeEhkWc)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 替换角色 车换成白色的丰田卡罗拉 我带着墨镜 穿白"
+    },
+    {
+      "platform": "即梦AI",
+      "url": "https://jimeng.jianying.com/s/LtDjA0bxKCQ/?t=210",
+      "pattern": "即梦AI生成分享 (s/LtDjA0bxKCQ)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 学院分粉色短款上衣黑色短裙黑色丝袜"
+    },
+    {
+      "platform": "即梦AI",
+      "url": "https://jimeng.jianying.com/s/RKIv4RY7ltk/?t=0",
+      "pattern": "即梦AI生成分享 (s/RKIv4RY7ltk)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: @名发世家雨泽在汉阳许婉婉正在跟一位棕色长头发美女"
+    },
+    {
+      "platform": "汽水音乐",
+      "url": "https://qishui.douyin.com/s/iCfgycwJ/",
+      "pattern": "抖音其他网页 (s/iCfgycwJ)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 发个库存#梦仍是一样谭咏麟 #粤语经典老歌 #无声"
+    },
+    {
+      "platform": "即梦AI",
+      "url": "https://jimeng.jianying.com/s/89PzDpS_BIw/?t=0",
+      "pattern": "即梦AI生成分享 (s/89PzDpS_BIw)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 真人写实风格，发型师武汉名发世家福星何琛出镜一对一"
+    },
+    {
+      "platform": "即梦AI",
+      "url": "https://jimeng.jianying.com/s/NIp85VXJtMc/?t=0",
+      "pattern": "即梦AI生成分享 (s/NIp85VXJtMc)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 即梦AI 视频"
+    },
+    {
+      "platform": "即梦AI",
+      "url": "https://jimeng.jianying.com/s/Oqx11oqR_48/?t=210",
+      "pattern": "即梦AI生成分享 (s/Oqx11oqR_48)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: এۣۖิ情深奈何缘浅ꦿ᭄᪲এᮁ໊࿐ᩚ 复刻“AI理"
+    },
+    {
+      "platform": "汽水音乐",
+      "url": "https://qishui.douyin.com/s/iCf2bC9g/",
+      "pattern": "抖音其他网页 (s/iCf2bC9g)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: “你的爱像风 我永远都抓不住” #一起听歌 #音乐"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x16432701365a86d59aa2fa6e2c69a677",
+      "pattern": "豆包其他页面 (thread/x16432701365a86d59)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x144ed97db50c8836b6bfef294c8b6942",
+      "pattern": "豆包其他页面 (thread/x144ed97db50c8836b)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x8da69c0f93c28ef4a4e0f9f5bc32c583",
+      "pattern": "豆包其他页面 (thread/x8da69c0f93c28ef4a)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/a4afb34681c59",
+      "pattern": "豆包其他页面 (thread/a4afb34681c59)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/a918d1a7d9c1e",
+      "pattern": "豆包其他页面 (thread/a918d1a7d9c1e)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xca85d30bd63d801e9f6c8f2d1f009cb6",
+      "pattern": "豆包其他页面 (thread/xca85d30bd63d801e9)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xde52053f9b6783a0a16f7451f7b09a71",
+      "pattern": "豆包其他页面 (thread/xde52053f9b6783a0a)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 提升整张夜景城市照片清晰度与细节锐度，增强建筑轮廓"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/a9db1e584703c",
+      "pattern": "豆包其他页面 (thread/a9db1e584703c)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "最右",
+      "url": "https://share.xiaochuankeji.cn/hybrid/share/post?pid=423144525&zy_to=applink&share_count=1&m=7c48f77ad760bee3cf5c97c9e9156827&d=75465afb51bd4f75f675bcc763fedeb357eafe8945ca63ed9a7559e1bcee97adb67ddfa8dce7d0d19f2172d45b0fe76d&app=zuiyou&recommend=r0&name=n0&title_type=t0",
+      "pattern": "share.xiaochuankeji.cn 标准链接 (hybrid/share/post)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 送猫猫洗澡澡咯"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x9767c5cc055a800aba5d0c4b2607aa23",
+      "pattern": "豆包其他页面 (thread/x9767c5cc055a800ab)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 保持原图人物背影、白色连衣裙、裙摆、海水、石子滩、"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x66b6296c8883861ebfc498992a0940f7",
+      "pattern": "豆包其他页面 (thread/x66b6296c8883861eb)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "汽水音乐",
+      "url": "https://qishui.douyin.com/s/iCAbJWNH/",
+      "pattern": "抖音其他网页 (s/iCAbJWNH)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: #经典怀旧歌曲推荐 #创作者中心 #创作灵感 张靓"
+    },
+    {
+      "platform": "闲鱼",
+      "url": "https://e.tb.cn/h.RACOJuO4IstT8ci?tk=6qF4gq2UZFC",
+      "pattern": "闲鱼商品/分享短链 (e.tb.cn/h.RACOJuO4IstT8ci)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 闲鱼商品 (商品ID: 1006737161917"
+    },
+    {
+      "platform": "闲鱼",
+      "url": "https://e.tb.cn/h.RzkyYc6S58IG99a?tk=3H4LgoIzBO1",
+      "pattern": "闲鱼商品/分享短链 (e.tb.cn/h.RzkyYc6S58IG99a)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 闲鱼商品 (商品ID: 826323441527)"
+    },
+    {
+      "platform": "闲鱼",
+      "url": "https://e.tb.cn/h.Ry2PctmoLkgILap?tk=mTH6goUihFQ",
+      "pattern": "闲鱼商品/分享短链 (e.tb.cn/h.Ry2PctmoLkgILap)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: "
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x62aaa6a192f18519a31eb2db6c761f14",
+      "pattern": "豆包其他页面 (thread/x62aaa6a192f18519a)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xe42d05008d3a812ea639c3566bddfc6c",
+      "pattern": "豆包其他页面 (thread/xe42d05008d3a812ea)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 将原图整体改造成可爱粉色 Hello Kitty "
+    },
+    {
+      "platform": "闲鱼",
+      "url": "https://e.tb.cn/h.RwcWEuMgFizHhpM?tk=2hZKgOgUDKD",
+      "pattern": "闲鱼商品/分享短链 (e.tb.cn/h.RwcWEuMgFizHhpM)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 闲鱼商品 (商品ID: 1000725055040"
+    },
+    {
+      "platform": "闲鱼",
+      "url": "https://e.tb.cn/h.RE4TwxkqZawM9RS?tk=DwF7gOgTBj5",
+      "pattern": "闲鱼商品/分享短链 (e.tb.cn/h.RE4TwxkqZawM9RS)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 闲鱼商品 (商品ID: 579813733414,"
+    },
+    {
+      "platform": "汽水音乐",
+      "url": "https://qishui.douyin.com/s/iCRqKVE2/",
+      "pattern": "抖音其他网页 (s/iCRqKVE2)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 巴黎有史以来规模最大的快闪活动… 100位音乐家，"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x544b3b0e28ff81a1abcb13bd8cf13960",
+      "pattern": "豆包其他页面 (thread/x544b3b0e28ff81a1a)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x9e2d80ba7a5885bbaa08727e40e38472",
+      "pattern": "豆包其他页面 (thread/x9e2d80ba7a5885bba)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 生成视频：生成视频：皮克斯 3D 夸张喜剧动画，柔"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x3e9d3d2122438cd39a9f10c983c39151",
+      "pattern": "豆包其他页面 (thread/x3e9d3d2122438cd39)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 生成视频：\n生成视频：竖屏 9:16，写实街坊采访"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x3996d49891718beaa220c2c46c96d09f",
+      "pattern": "豆包其他页面 (thread/x3996d49891718beaa)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xb09f5ede34648e5e828996098ccf2920",
+      "pattern": "豆包其他页面 (thread/xb09f5ede34648e5e8)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x595bcee13ea68e4d9138b6ce2bab74d9",
+      "pattern": "豆包其他页面 (thread/x595bcee13ea68e4d9)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 生成视频：生成视频：8K电影级超高清纪实自拍短视频"
+    },
+    {
+      "platform": "夸克AI",
+      "url": "https://pages.quark.cn/r/ai-studio-mobile/external-share?uc_biz_str=OPT%3AW_PAGE_REFRESH%400%7COPT%3ABACK_BTN_STYLE%400%7COPT%3AW_ENTER_ANI%401%7COPT%3ATOOLBAR_STYLE%400%7COPT%3AIMMERSIVE%401&shareId=cSOCm6IPMqQotVRJe1rZ&authorId=AARD2azxY8%2FQBjuoW0NTXLH7BTqK4Okc7QPjUS3pkpFWMA%3D%3D&enter_from=create_share&fp_from=create_share&channel_from=ucpro",
+      "pattern": "pages.quark.cn 标准链接 (r/ai-studio-mobile/extern)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 横屏拍摄的壮阔大漠风光视频，时长1分钟，展现《使至"
+    },
+    {
+      "platform": "汽水音乐",
+      "url": "https://qishui.douyin.com/s/iQK6WoTS/",
+      "pattern": "抖音其他网页 (s/iQK6WoTS)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 《乱世书》——霸王烧鸡！ #平生不晚 #寻影202"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x031c38f000df8c72afcfb613cadd2385",
+      "pattern": "豆包其他页面 (thread/x031c38f000df8c72a)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x212f05803f318f75b504af6a5431a4fe",
+      "pattern": "豆包其他页面 (thread/x212f05803f318f75b)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 生成视频：生成视频：画面无人机缓慢向前推进，镜头从"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x96bc80f572cd8ed68b07498462121649",
+      "pattern": "豆包其他页面 (thread/x96bc80f572cd8ed68)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x319dd78c854b8f66aabef68308aaf012",
+      "pattern": "豆包其他页面 (thread/x319dd78c854b8f66a)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 生成视频：画面不要推进，画面不变化，镜头固定，生成"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x31b7610733588998857569e4a927afa2",
+      "pattern": "豆包其他页面 (thread/x31b76107335889988)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x59632962248d83ceb8810414c4aee8d4",
+      "pattern": "豆包其他页面 (thread/x59632962248d83ceb)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 生成视频：镜头缓缓平移，电影质感，高级，9:16"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/aea75e786be15",
+      "pattern": "豆包其他页面 (thread/aea75e786be15)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 2026版纳橡胶收购新规宣传视频，展现收胶工人风吹"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/a97ff3e0732f1",
+      "pattern": "豆包其他页面 (thread/a97ff3e0732f1)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 将画面中的笔记本电脑调整为正面朝向拍摄者的视角，屏"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/ad6cad54e8f17",
+      "pattern": "豆包其他页面 (thread/ad6cad54e8f17)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xe4d08298596b8443bc9db6f20a03f98f",
+      "pattern": "豆包其他页面 (thread/xe4d08298596b8443b)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xe2b3f5e0aec28d3c93b58e51640404a7",
+      "pattern": "豆包其他页面 (thread/xe2b3f5e0aec28d3c9)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x68de202878f4861aab471ef33ae10163",
+      "pattern": "豆包其他页面 (thread/x68de202878f4861aa)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xf1e0b53f922d888891a9c4f2c7b660ad",
+      "pattern": "豆包其他页面 (thread/xf1e0b53f922d88889)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x64ddb2c7793e8ad3a61e44b8f690f2d5",
+      "pattern": "豆包其他页面 (thread/x64ddb2c7793e8ad3a)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xa06cd894798986fd8adbb9908459c8a3",
+      "pattern": "豆包其他页面 (thread/xa06cd894798986fd8)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x7be5c95d27a3853084ee258108fee3b6",
+      "pattern": "豆包其他页面 (thread/x7be5c95d27a385308)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 根据图片内容生成会动的视频"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x198d58ea86da8d6b8e028ed63ebb796a?share_token=1D69D43C-086C-4420-A603-0BE81C7D24BC",
+      "pattern": "豆包其他页面 (thread/x198d58ea86da8d6b8)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x20da88aa96708919a32ec83f8c77bc30",
+      "pattern": "豆包其他页面 (thread/x20da88aa96708919a)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x6976f15dcb7c8a79b82968c535e606d0",
+      "pattern": "豆包其他页面 (thread/x6976f15dcb7c8a79b)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x2504163f4f0086848bdada393d63363d",
+      "pattern": "豆包其他页面 (thread/x2504163f4f0086848)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xcbad58d438648c3abbd4fb7563e28713",
+      "pattern": "豆包其他页面 (thread/xcbad58d438648c3ab)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 生成视频：接狂风动态，劲风逐步收弱，风雪短暂骤停，"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x3fc31aeccd5a8644be005f12318925be",
+      "pattern": "豆包其他页面 (thread/x3fc31aeccd5a8644b)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 生成视频：接狂风动态，劲风逐步收弱，风雪短暂骤停，"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/w2b506eb75b6e77de",
+      "pattern": "豆包其他页面 (thread/w2b506eb75b6e77de)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 生成视频：生成会动的视频，有光影效果"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/a599659b373dd",
+      "pattern": "豆包其他页面 (thread/a599659b373dd)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/a76ee4b0c3fd9",
+      "pattern": "豆包其他页面 (thread/a76ee4b0c3fd9)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/ad6e8c4276a26",
+      "pattern": "豆包其他页面 (thread/ad6e8c4276a26)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xa2f449bc7fa18cba858dddc863f9b903",
+      "pattern": "豆包其他页面 (thread/xa2f449bc7fa18cba8)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/ad659d07438ad",
+      "pattern": "豆包其他页面 (thread/ad659d07438ad)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/a71bfa685b62a",
+      "pattern": "豆包其他页面 (thread/a71bfa685b62a)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "汽水音乐",
+      "url": "https://qishui.douyin.com/s/iQQTnYAd/",
+      "pattern": "抖音其他网页 (s/iQQTnYAd)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: #一口气看完系列 #女生必看 #完结"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/a95cef3c2fc90",
+      "pattern": "豆包其他页面 (thread/a95cef3c2fc90)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/ad97f958d64e2",
+      "pattern": "豆包其他页面 (thread/ad97f958d64e2)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/a23290906247a",
+      "pattern": "豆包其他页面 (thread/a23290906247a)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/a66e59bb59143",
+      "pattern": "豆包其他页面 (thread/a66e59bb59143)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/a06a62de120e0",
+      "pattern": "豆包其他页面 (thread/a06a62de120e0)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 消除所选区域"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/a903237344441",
+      "pattern": "豆包其他页面 (thread/a903237344441)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 帮我生成一个视频：第一张张是许山的照片，第二张照片"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/ab4995bf2905b",
+      "pattern": "豆包其他页面 (thread/ab4995bf2905b)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 已完成 PPT 素材收集"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/xd66ab921-172b-88c2-b2c3-ee1b0c93a1aa",
+      "pattern": "豆包其他页面 (thread/xd66ab921-172b-88c)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/x31130fac-dc35-88c2-96f3-5d47d97e1ae0",
+      "pattern": "豆包其他页面 (thread/x31130fac-dc35-88c)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/a046a04ac5ddb",
+      "pattern": "豆包其他页面 (thread/a046a04ac5ddb)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 风格：再把水印去掉，发电子版给我"
+    },
+    {
+      "platform": "汽水音乐",
+      "url": "https://qishui.douyin.com/s/iQaCosjc/",
+      "pattern": "抖音其他网页 (s/iQaCosjc)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: #上热门话题榜🔥新疆的馕VS挖煤球的干起来了（左边"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/ad33c3dc7829d",
+      "pattern": "豆包其他页面 (thread/ad33c3dc7829d)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 把第一张图左上角的logo换成第二张图的logo，"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/wbfe7b7215dd5bb53",
+      "pattern": "豆包其他页面 (thread/wbfe7b7215dd5bb53)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "即梦AI",
+      "url": "https://jimeng.jianying.com/s/Z6RCQQcN_wQ/?t=210",
+      "pattern": "即梦AI生成分享 (s/Z6RCQQcN_wQ)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: @跃迁新生 化身胖橘猫，骑回收车冲进房间，搬走彩电"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/a5f92c92727f8",
+      "pattern": "豆包其他页面 (thread/a5f92c92727f8)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/a554bcd76ce0f",
+      "pattern": "豆包其他页面 (thread/a554bcd76ce0f)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "即梦AI",
+      "url": "https://jimeng.jianying.com/s/ObM3qKpEWbQ/?t=0",
+      "pattern": "即梦AI生成分享 (s/ObM3qKpEWbQ)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: AAA无锡乐派劳务-小杨参考图以这个作为场景，车间"
+    },
+    {
+      "platform": "剪映",
+      "url": "https://lv.ulikecam.com/activity/lv/sharevideo?template_id=7632180893406285081&sec_uid=MS4wLjABAAAAQF2W-CxLvDsRUdkAWy3cPHyrsH4Q29l6ADbvfdMuEi4&item_type=0",
+      "pattern": "lv.ulikecam.com 标准链接 (activity/lv/sharevideo)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 小兔跳舞表情包改字｜被教学逼疯我就这样#搞笑  #"
+    },
+    {
+      "platform": "剪映",
+      "url": "https://lv.ulikecam.com/activity/lv/sharevideo?template_id=7558722263433137433&sec_uid=MS4wLjABAAAAPpNpxyVGYbWcyKpKZs8yU8UybKOxuKGr8J9l-9YoIYPoxE67yu2vtZqlDUB99fG4&item_type=0",
+      "pattern": "lv.ulikecam.com 标准链接 (activity/lv/sharevideo)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 处处风景#旅行 #旅游 #卡点 #日常碎片 #假期"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/w6e6b4428796fe245",
+      "pattern": "豆包其他页面 (thread/w6e6b4428796fe245)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 把标签和log去掉 你的视频生成好啦。"
+    },
+    {
+      "platform": "汽水音乐",
+      "url": "https://qishui.douyin.com/s/iQhETHhu/",
+      "pattern": "抖音其他网页 (s/iQhETHhu)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 【已完结】一夜回春的代价，是全身皮肉融化，连骨头都"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/acc3c249b467f",
+      "pattern": "豆包其他页面 (thread/acc3c249b467f)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 消除所选区域"
+    },
+    {
+      "platform": "即梦AI",
+      "url": "https://jimeng.jianying.com/s/XPEamrbIV0Y/?t=210",
+      "pattern": "即梦AI生成分享 (s/XPEamrbIV0Y)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 帮我生成一个老板的形象，大肚子，地中海西装革履老板"
+    },
+    {
+      "platform": "豆包",
+      "url": "https://www.doubao.com/thread/w8a46df70abf5027d",
+      "pattern": "豆包其他页面 (thread/w8a46df70abf5027d)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-08 真实反馈验证: 豆包对话分享"
+    }
   ]
 }

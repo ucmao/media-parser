@@ -12,10 +12,10 @@
 graph TD
     Start["目标平台页面 / 接口"] --> Decision{"数据载荷形式"}
     
-    Decision -->|"模式 1: HTML 内嵌状态"| SSR["SSR 状态提取<br>(__INITIAL_STATE__)"]
-    Decision -->|"模式 2: 开放/半开放 API"| API["移动端/H5 AJAX 抓取<br>(Headers 伪装)"]
-    Decision -->|"模式 3: 前端算法加密"| JS["JS 签名沙箱执行<br>(mini-racer / BogusSigner)"]
-    Decision -->|"模式 4: 登录态会话维持"| Session["Session 维持与任务轮询<br>(Cookie 注入)"]
+    Decision -->|"模式 1: HTML 内嵌状态"| SSR["SSR 状态提取 (__INITIAL_STATE__)"]
+    Decision -->|"模式 2: 开放/半开放 API"| API["移动端/H5 AJAX 抓取 (Headers 伪装)"]
+    Decision -->|"模式 3: 前端算法加密"| JS["JS 签名沙箱执行 (mini-racer / BogusSigner)"]
+    Decision -->|"模式 4: 登录态会话维持"| Session["Session 维持与任务轮询 (Cookie 注入)"]
 ```
 
 ### 模式 1：SSR 页面状态注入提取 (Server-Side Rendering)

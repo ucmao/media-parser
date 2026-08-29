@@ -47,30 +47,34 @@ def collect_media(parser):
 
 def verify_case(case):
     platform = case["platform"]
-    if not case.get("url"):
-        return "MISSING", platform, "未配置真实链接"
+    pattern = case.get("pattern", "标准链接")
+    url = case.get("url", "")
+    if not url:
+        return "MISSING", platform, pattern, "未配置真实链接", url
     try:
-        real_url = WebFetcher.fetch_redirect_url(case["url"])
+        real_url = WebFetcher.fetch_redirect_url(url)
         if not real_url:
-            return "FAILED", platform, "无法获取或识别分享链接"
+            return "FAILED", platform, pattern, "无法获取或识别分享链接", url
         detected_platform = UrlParser.get_platform(real_url)
         if detected_platform != platform:
-            return "FAILED", platform, f"识别为 {detected_platform or '未知平台'}"
+            return "FAILED", platform, pattern, f"识别为 {detected_platform or '未知平台'}", url
         parser = ParserFactory.create_parser(platform, real_url)
         found = collect_media(parser)
-        missing = [field for field in case["expected_fields"] if not found.get(field)]
+        expected = case.get("expected_fields", ["title"])
+        missing = [field for field in expected if not found.get(field)]
         if missing:
-            return "FAILED", platform, f"缺少字段：{', '.join(missing)}"
+            return "FAILED", platform, pattern, f"缺少字段：{', '.join(missing)}", url
         present = ", ".join(name for name, value in found.items() if value)
-        return "PASSED", platform, f"已取得：{present}"
+        return "PASSED", platform, pattern, f"已取得：{present}", url
     except Exception as exc:
-        return "FAILED", platform, f"{type(exc).__name__}: {exc}"
+        return "FAILED", platform, pattern, f"{type(exc).__name__}: {exc}", url
 
 
 def main():
-    parser = argparse.ArgumentParser(description="人工验证 Parser 真实分享链接")
+    parser = argparse.ArgumentParser(description="一键多形态验证 31 平台真实分享链接")
     parser.add_argument("--platform", action="append", help="仅验证指定平台；可重复传入")
     parser.add_argument("--list-missing", action="store_true", help="仅列出缺少链接的平台")
+    parser.add_argument("--limit", type=int, default=0, help="限制每个平台运行的最大用例数 (默认全部)")
     args = parser.parse_args()
 
     cases = load_cases()
@@ -86,12 +90,32 @@ def main():
                 print(f"MISSING  {case['platform']}: {case['note']}")
         return
 
+    if args.limit > 0:
+        limited_cases = []
+        counts = {}
+        for case in cases:
+            p = case["platform"]
+            counts[p] = counts.get(p, 0) + 1
+            if counts[p] <= args.limit:
+                limited_cases.append(case)
+        cases = limited_cases
+
+    print(f"🧪 开始执行 31 平台自动化多形态链接验证 (共 {len(cases)} 条用例)...\n")
     results = [verify_case(case) for case in cases]
-    for status, platform, detail in results:
-        print(f"{status:<7} {platform}: {detail}")
+    for status, platform, pattern, detail, url in results:
+        status_tag = f"✅ {status}" if status == "PASSED" else (f"❌ {status}" if status == "FAILED" else f"⚪ {status}")
+        print(f"{status_tag:<10} [{platform:<6}] ({pattern[:25]}): {detail}")
+
     summary = {status: sum(1 for result in results if result[0] == status) for status in ("PASSED", "FAILED", "MISSING")}
-    print("\n汇总：" + ", ".join(f"{key}={value}" for key, value in summary.items()))
+    print("\n" + "=" * 60)
+    print("📊 验证汇总：" + ", ".join(f"{key}={value}" for key, value in summary.items()))
+    total = len(results)
+    if total > 0:
+        pass_rate = (summary['PASSED'] / total) * 100
+        print(f"🎯 整体通过率：{pass_rate:.1f}% ({summary['PASSED']}/{total})")
+    print("=" * 60)
 
 
 if __name__ == "__main__":
     main()
+

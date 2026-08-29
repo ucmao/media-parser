@@ -21,8 +21,10 @@ class WebFetcher:
         # 知乎公开 API 可直接通过内容 ID 解析，访问网页常触发 403 风控。
         # 绿洲分享页会对通用桌面请求头返回 500，由解析器使用移动端请求头抓取。
         # 微博博文可通过 API 直接根据 ID 解析，直接访问网页端常触发访客系统重定向。
-        if UrlParser.get_platform(url) in {"知乎", "绿洲", "新片场", "夸克AI", "通义千问", "微博", "小云雀AI", "哔哩哔哩"}:
-            return UrlParser.extract_video_address(url)
+        domain = UrlParser.get_domain(url)
+        if domain not in {"t.cn", "b23.tv", "xhslink.cn", "xhslink.com", "hy.fan"}:
+            if UrlParser.get_platform(url) in {"知乎", "绿洲", "新片场", "夸克AI", "通义千问", "微博", "小云雀AI", "哔哩哔哩"}:
+                return UrlParser.extract_video_address(url)
         try:
             current_url = url
             for _ in range(max_redirects):

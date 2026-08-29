@@ -45,7 +45,11 @@ flowchart TD
     ParseAPI --> WebFetcher
     ParseAPI --> Factory
     Factory --> BaseParser
-    BaseParser --> Douyin & Kuaishou & XHS & Bili & Others
+    BaseParser --> Douyin
+    BaseParser --> Kuaishou
+    BaseParser --> XHS
+    BaseParser --> Bili
+    BaseParser --> Others
     Douyin --> Signer
     ParseAPI --> CommonUtils
 ```
