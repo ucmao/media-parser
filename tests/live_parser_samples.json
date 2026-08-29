@@ -3865,6 +3865,36 @@
         "title"
       ],
       "note": "2026-08 真实反馈验证: 豆包对话分享"
+    },
+    {
+      "platform": "快影",
+      "url": "https://share.kwaiying.com/share/template/index.html?id=8467216&userId=702561542395651960",
+      "pattern": "share.kwaiying.com 模板分享 (id=8467216)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 《复古氛围感》快影模板"
+    },
+    {
+      "platform": "快影",
+      "url": "https://share.kwaiying.com/share/template/index.html?id=37069795&userId=664843898673931655",
+      "pattern": "share.kwaiying.com 模板分享 (id=37069795)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 《鬼灭之刃》快影模板"
     }
   ]
 }

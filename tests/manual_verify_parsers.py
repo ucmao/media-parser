@@ -71,7 +71,7 @@ def verify_case(case):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="一键多形态验证 31 平台真实分享链接")
+    parser = argparse.ArgumentParser(description="一键多形态验证 32 平台真实分享链接")
     parser.add_argument("--platform", action="append", help="仅验证指定平台；可重复传入")
     parser.add_argument("--list-missing", action="store_true", help="仅列出缺少链接的平台")
     parser.add_argument("--limit", type=int, default=0, help="限制每个平台运行的最大用例数 (默认全部)")
@@ -100,7 +100,7 @@ def main():
                 limited_cases.append(case)
         cases = limited_cases
 
-    print(f"🧪 开始执行 31 平台自动化多形态链接验证 (共 {len(cases)} 条用例)...\n")
+    print(f"🧪 开始执行 32 平台自动化多形态链接验证 (共 {len(cases)} 条用例)...\n")
     results = [verify_case(case) for case in cases]
     for status, platform, pattern, detail, url in results:
         status_tag = f"✅ {status}" if status == "PASSED" else (f"❌ {status}" if status == "FAILED" else f"⚪ {status}")
