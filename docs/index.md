@@ -13,7 +13,7 @@
 * 🧪 **[测试与回归验证 (Testing Guide)](testing.md)**：学习 Pytest 单元测试、Mock 构造与真实样本（Live Samples）测试。
 * 📖 **平台实战指南 (Parser Guides)**：
   * **短视频与轻社区**：[抖音](parsers/douyin.md) ｜ [快手](parsers/kuaishou.md) ｜ [皮皮虾](parsers/pipixia.md) ｜ [皮皮搞笑](parsers/pipigaoxiao.md) ｜ [最右](parsers/zuiyou.md) ｜ [美拍](parsers/meipai.md) ｜ [微视](parsers/weishi.md) ｜ [绿洲](parsers/lvzhou.md)
-  * **图文与综合社区**：[小红书](parsers/xiaohongshu.md) ｜ [微博](parsers/weibo.md) ｜ [知乎](parsers/zhihu.md) ｜ [闲鱼](parsers/xianyu.md) ｜ [Soul](parsers/soul.md)
+  * **图文与综合社区**：[小红书](parsers/xiaohongshu.md) ｜ [微信公众号](parsers/wechat-mp.md) ｜ [微博](parsers/weibo.md) ｜ [知乎](parsers/zhihu.md) ｜ [闲鱼](parsers/xianyu.md) ｜ [Soul](parsers/soul.md)
   * **长视频与弹幕/创作**：[哔哩哔哩](parsers/bilibili.md) ｜ [AcFun](parsers/acfun.md) ｜ [新片场](parsers/xinpianchang.md) ｜ [好看视频](parsers/haokan.md) ｜ [西瓜视频](parsers/xigua.md) ｜ [剪映](parsers/jianying.md) ｜ [快影](parsers/kwaiying.md)
   * **AI 生成与大模型**：[豆包 AI](parsers/doubao.md) ｜ [即梦 AI](parsers/jimeng.md) ｜ [可灵 AI](parsers/kling.md) ｜ [通义千问](parsers/qianwen.md) ｜ [夸克 AI](parsers/quark-ai.md) ｜ [小云雀 AI](parsers/xiaoyunque.md)
   * **音频与垂直频道**：[汽水音乐](parsers/qsmusic.md) ｜ [全民K歌](parsers/quanminkge.md) ｜ [虎牙](parsers/huya.md) ｜ [梨视频](parsers/lishipin.md) ｜ [微信视频号](parsers/wechat-channels.md) ｜ [腾讯频道](parsers/tencent-channel.md)
@@ -61,6 +61,7 @@
 | 30 | **剪映 / CapCut** | 模板视频 / Web协作视频 | ✅ 支持 | 🟢 免配置 | 字节剪映 & CapCut 协作 API | [查看指南](parsers/jianying.md) |
 | 31 | **梨视频** | 资讯短视频 | ✅ 支持 | 🟢 免配置 | 动态防盗链时间戳解密 | [查看指南](parsers/lishipin.md) |
 | 32 | **快影** | 模板视频 / 原声音乐 | ✅ 支持 | 🟢 免配置 | 快影 OpenAPI + 动态签名 | [查看指南](parsers/kwaiying.md) |
+| 33 | **微信公众号** | 文章插图图集 / 音频 | ✅ 支持 | 🟢 免配置 | SSR 正文解析 + 无损图片升级 | [查看指南](parsers/wechat-mp.md) |
 
 ---
 

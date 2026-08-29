@@ -3895,6 +3895,36 @@
         "author"
       ],
       "note": "2026-08 真实反馈验证: 《鬼灭之刃》快影模板"
+    },
+    {
+      "platform": "微信公众号",
+      "url": "https://mp.weixin.qq.com/s/CoQ8GG6f7lD7EADUey13BA",
+      "pattern": "mp.weixin.qq.com 文章图文 (s/CoQ8GG6f7lD7EADUey13BA)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 《共轴圆组与开世圆幂定理》微信公众号图文"
+    },
+    {
+      "platform": "微信公众号",
+      "url": "https://mp.weixin.qq.com/s/4DqaLtndNRDLWm-iLQIK5Q",
+      "pattern": "mp.weixin.qq.com 文章图集 (s/4DqaLtndNRDLWm-iLQIK5Q)",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 《超自然行动组 | 朋友圈背景图》"
     }
   ]
 }
