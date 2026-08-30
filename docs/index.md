@@ -78,10 +78,16 @@ pip install -r requirements.txt
 ```bash
 cp .env.example .env
 ```
-如需解析受限的小红书笔记或大模型 AI 平台（如豆包），在 `.env` 中填入对应 Cookie：
+根据需求在 `.env` 中按需配置：
 ```env
-DOUBAO_COOKIE="your_doubao_cookie_here"
-YUANBAO_COOKIE="your_yuanbao_cookie_here"
+# 1. 抖音放映厅长视频风控通行证 (可选，仅 1% 的 /lvdetail/ 长片需要，非个人登录信息)
+DOUYIN_COOKIE="s_v_web_id=verify_xxx; __ac_nonce=xxx;"
+
+# 2. 豆包 AI 视频无水印权限凭证 (可选，用于获取 1080P 原始无水印视频)
+DOUBAO_COOKIE="sessionid_ss=your_doubao_sessionid_ss"
+
+# 3. 腾讯元宝 Cookie (可选，用于提取视频号原始流，涉及个人账号登录态，建议使用闲置小号)
+YUANBAO_COOKIE="hy_user=xxx; hy_token=yyy;"
 ```
 
 ### 3. 运行服务

@@ -513,6 +513,139 @@ class DouyinParserTest(unittest.TestCase):
         self.assertEqual(parser.get_cover_photo_url(), "http://origin.douyin.com/mix_cover.jpg")
         self.assertEqual(parser.get_author_info()["nickname"], "短剧创作者")
 
+    def test_lvdetail_single_episode_extraction(self):
+        lv_data = {
+            "album_info": {
+                "album_id": "7677129845654061500",
+                "album_name": "放映厅热播剧",
+                "cover_url": {"url_list": ["http://origin.douyin.com/album_cover.jpg"]},
+                "author": {
+                    "nickname": "影视出品方",
+                    "unique_id": "film_studio",
+                    "avatar_thumb": {"url_list": ["http://origin.douyin.com/studio_avatar.jpg"]}
+                }
+            },
+            "episode_info": {
+                "episode_id": "7677129845654061595",
+                "episode_name": "第01集 精彩开播",
+                "video": {
+                    "bit_rate": [
+                        {"bit_rate": 2500000, "is_h265": 0, "play_addr": {"url_list": ["http://origin.douyin.com/lv_ep1_1080.mp4"]}},
+                        {"bit_rate": 1200000, "is_h265": 0, "play_addr": {"url_list": ["http://origin.douyin.com/lv_ep1_720.mp4"]}}
+                    ],
+                    "cla_info": {
+                        "caption_infos": [
+                            {
+                                "language_code": "zh-Hans",
+                                "url": "https://p3-sign.douyinpic.com/tos-cn-p-0015/zh.vtt",
+                                "format": "webvtt"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+        with patch.object(DouyinParser, "fetch_html_content", return_value="<html></html>"):
+            with patch.object(DouyinParser, "fetch_html_data", return_value=lv_data):
+                with patch("utils.signer.bytedance.bogus_signer.BogusSigner.get_ms_token", return_value="mock_token"):
+                    parser = DouyinParser("https://www.douyin.com/lvdetail/7677129845654061595")
+                    parser.data = lv_data
+
+        self.assertTrue(parser.is_lvdetail)
+        self.assertEqual(parser.get_title_content(), "【放映厅】放映厅热播剧 - 第01集 精彩开播")
+        self.assertEqual(parser.get_real_video_url(), "http://origin.douyin.com/lv_ep1_1080.mp4")
+        self.assertEqual(parser.get_video_list(), ["http://origin.douyin.com/lv_ep1_1080.mp4"])
+        self.assertEqual(parser.get_cover_photo_url(), "http://origin.douyin.com/album_cover.jpg")
+        self.assertEqual(parser.get_author_info()["nickname"], "影视出品方")
+        self.assertEqual(parser.get_author_info()["author_id"], "film_studio")
+        self.assertEqual(parser.get_author_info()["avatar"], "http://origin.douyin.com/studio_avatar.jpg")
+        self.assertEqual(parser.get_image_list(), [])
+
+    def test_lvdetail_multi_episode_video_list(self):
+        lv_multi_data = {
+            "album_info": {
+                "album_name": "经典连载剧集",
+                "horizontal_cover": "http://origin.douyin.com/album_h_cover.jpg"
+            },
+            "episode_list": [
+                {
+                    "episode_name": "第1集",
+                    "video": {
+                        "bit_rate": [
+                            {"bit_rate": 2000000, "is_h265": 0, "play_addr": {"url_list": ["http://origin.douyin.com/ep1.mp4"]}}
+                        ]
+                    }
+                },
+                {
+                    "episode_name": "第2集",
+                    "video": {
+                        "bit_rate": [
+                            {"bit_rate": 2000000, "is_h265": 0, "play_addr": {"url_list": ["http://origin.douyin.com/ep2.mp4"]}}
+                        ]
+                    }
+                },
+                {
+                    "episode_name": "第3集",
+                    "video": {
+                        "bit_rate": [
+                            {"bit_rate": 2000000, "is_h265": 0, "play_addr": {"url_list": ["http://origin.douyin.com/ep3.mp4"]}}
+                        ]
+                    }
+                }
+            ]
+        }
+        with patch.object(DouyinParser, "fetch_html_content", return_value="<html></html>"):
+            with patch.object(DouyinParser, "fetch_html_data", return_value=lv_multi_data):
+                with patch("utils.signer.bytedance.bogus_signer.BogusSigner.get_ms_token", return_value="mock_token"):
+                    parser = DouyinParser("https://www.iesdouyin.com/share/video/123/?ep_id=7677129845654061595")
+                    parser.data = lv_multi_data
+
+        self.assertTrue(parser.is_lvdetail)
+        self.assertEqual(parser.get_title_content(), "【放映厅】经典连载剧集 - 第1集")
+        self.assertEqual(parser.get_real_video_url(), "http://origin.douyin.com/ep1.mp4")
+        self.assertEqual(parser.get_video_list(), [
+            "http://origin.douyin.com/ep1.mp4",
+            "http://origin.douyin.com/ep2.mp4",
+            "http://origin.douyin.com/ep3.mp4"
+        ])
+        self.assertEqual(parser.get_cover_photo_url(), "http://origin.douyin.com/album_h_cover.jpg")
+
+    def test_lvdetail_ssr_universal_data_fallback(self):
+        ssr_payload = {
+            "__DEFAULT_SCOPE__": {
+                "webapp.lvideo-detail": {
+                    "lvideo_detail": {
+                        "album_info": {
+                            "album_name": "SSR放映厅电影",
+                            "poster_url": "http://origin.douyin.com/ssr_poster.jpg"
+                        },
+                        "episode_info": {
+                            "episode_name": "正片",
+                            "video": {
+                                "play_addr": {
+                                    "url_list": ["http://origin.douyin.com/ssr_movie.mp4"]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        html = f'<html><body><script id="__UNIVERSAL_DATA_FOR_REHYDRATION__" type="application/json">{json.dumps(ssr_payload)}</script></body></html>'
+
+        api_response = Mock(status_code=404, text="Not Found")
+        with patch("requests.Session.get", return_value=api_response):
+            with patch.object(DouyinParser, "fetch_html_content", return_value=html):
+                with patch("utils.signer.bytedance.bogus_signer.BogusSigner.get_ms_token", return_value="mock_token"):
+                    parser = DouyinParser("https://www.douyin.com/lvdetail/7677129845654061595")
+                    parser.html_content = html
+                    parser.data = parser.fetch_html_data()
+
+        self.assertTrue(parser.is_lvdetail)
+        self.assertEqual(parser.get_title_content(), "【放映厅】SSR放映厅电影 - 正片")
+        self.assertEqual(parser.get_real_video_url(), "http://origin.douyin.com/ssr_movie.mp4")
+        self.assertEqual(parser.get_cover_photo_url(), "http://origin.douyin.com/ssr_poster.jpg")
+
 
 if __name__ == "__main__":
     unittest.main()

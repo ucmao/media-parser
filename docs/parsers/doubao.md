@@ -93,6 +93,8 @@ flowchart TD
    DOUBAO_COOKIE="sessionid_ss=xxx; passport_csrf_token=yyy; ..."
    ```
 
+> 💡 **提示**：`DOUBAO_COOKIE` 仅用于向豆包 AI 视频播放接口请求未压制水印的原画解密直链。豆包属于通用 AI 创作工具，如果希望彻底隔离主账号，可使用任意闲置小号的 Cookie。
+
 ---
 
 ## 6. 测试与验证

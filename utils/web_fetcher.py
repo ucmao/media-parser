@@ -130,9 +130,13 @@ class UrlParser:
             address = address.replace('http://', 'https://')
         elif platform == "抖音":
             query_params = parse_qs(parsed_url.query)
-            modal_id = query_params.get('modal_id', [None])[0]
-            if modal_id:
-                address = f"{address}?modal_id={modal_id}"
+            preserved_params = []
+            for key in ('modal_id', 'ep_id', 'album_id', 'episode_id'):
+                value = query_params.get(key, [None])[0]
+                if value is not None:
+                    preserved_params.append((key, value))
+            if preserved_params:
+                address = f"{address}?{urlencode(preserved_params)}"
         elif platform == "全民K歌":
             query_params = parse_qs(parsed_url.query)
             s = query_params.get('s', [None])[0]
@@ -285,6 +289,15 @@ class UrlParser:
             params_modal_id = query_params.get('modal_id', [None])[0]
             if params_modal_id:
                 return params_modal_id
+            params_ep_id = query_params.get('ep_id', [None])[0]
+            if params_ep_id:
+                return params_ep_id
+            params_episode_id = query_params.get('episode_id', [None])[0]
+            if params_episode_id:
+                return params_episode_id
+            params_album_id = query_params.get('album_id', [None])[0]
+            if params_album_id:
+                return params_album_id
             params_v = query_params.get('v', [None])[0]
             if params_v:
                 return params_v
