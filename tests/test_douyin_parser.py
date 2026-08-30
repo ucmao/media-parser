@@ -102,6 +102,53 @@ class DouyinParserTest(unittest.TestCase):
         parser = self.make_parser(data)
         self.assertEqual(parser.get_real_video_url(), "http://origin.douyin.com/video_origin.mp4")
 
+    def test_image_note_returns_none_video_url(self):
+        data = {
+            "aweme_detail": {
+                "desc": "图文作品测试",
+                "media_type": 2,
+                "images": [
+                    {
+                        "url_list": [
+                            "https://p3-pc-sign.douyinpic.com/img1.webp",
+                            "https://p3-pc-sign.douyinpic.com/img1.jpeg"
+                        ]
+                    }
+                ],
+                "video": {
+                    "bit_rate": None,
+                    "play_addr": {
+                        "url_list": [
+                            "https://lf26-music-east.douyinstatic.com/obj/ies-music-hj/bgm.mp3"
+                        ]
+                    }
+                }
+            }
+        }
+        parser = self.make_parser(data)
+        self.assertIsNone(parser.get_real_video_url())
+        self.assertEqual(parser.get_video_list(), [])
+        self.assertEqual(len(parser.get_image_list()), 1)
+
+    def test_audio_fallback_filtered_out(self):
+        data = {
+            "aweme_detail": {
+                "desc": "异常作品，无bit_rate且play_addr为音频",
+                "video": {
+                    "bit_rate": [],
+                    "play_addr": {
+                        "url_list": [
+                            "https://sf6-cdn-tos.douyinstatic.com/obj/ies-music/audio.mp3"
+                        ]
+                    }
+                }
+            }
+        }
+        parser = self.make_parser(data)
+        self.assertIsNone(parser.get_real_video_url())
+        self.assertEqual(parser.get_video_list(), [])
+
+
     def test_extracts_subtitles_from_cla_info(self):
         data = {
             "aweme_detail": {

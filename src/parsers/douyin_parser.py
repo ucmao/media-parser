@@ -354,10 +354,11 @@ class DouyinParser(BaseParser):
         """
         获取最高清晰度视频播放地址。
         优化策略：
-        1. 遍历 bit_rate 数组，提取有效流并按码率 (bit_rate) 降序排序；
-        2. 优先选取 H.264 (is_h265 == 0) 的最高码率流，以保障跨平台及 Web 浏览器播放兼容性；
-        3. 若无 H.264 则选取 H.265 的最高码率流；
-        4. 若 bit_rate 为空或解析失败，无缝兜底到 video.play_addr / video.play_addr_h264 / video.play_addr_265。
+        1. 图文作品（包含 images 列表或 media_type=2 且无 bit_rate）直接返回 None；
+        2. 遍历 bit_rate 数组，提取有效流并按码率 (bit_rate) 降序排序；
+        3. 优先选取 H.264 (is_h265 == 0) 的最高码率流，以保障跨平台及 Web 浏览器播放兼容性；
+        4. 若无 H.264 则选取 H.265 的最高码率流；
+        5. 若 bit_rate 为空或解析失败，无缝兜底到 video.play_addr / video.play_addr_h264 / video.play_addr_265（严格过滤音频流）。
         """
         if self.is_music:
             return None
@@ -373,8 +374,14 @@ class DouyinParser(BaseParser):
 
             video = detail.get('video', {}) or {}
             bit_rate_list = video.get('bit_rate', []) or []
+            images = detail.get('images') or detail.get('image_list') or []
+            media_type = detail.get('media_type')
 
-            # 1. 尝试从 bit_rate 列表中选择最佳流
+            # 1. 图文作品识别：如果存在 images 列表或 media_type=2，且没有视频码率流，则为纯图文作品，不返回视频地址
+            if (images or media_type == 2) and not bit_rate_list:
+                return None
+
+            # 2. 尝试从 bit_rate 列表中选择最佳流
             valid_streams = []
             for item in bit_rate_list:
                 if not isinstance(item, dict):
@@ -402,11 +409,14 @@ class DouyinParser(BaseParser):
                 valid_streams.sort(key=lambda s: s['bit_rate'], reverse=True)
                 return valid_streams[0]['url']
 
-            # 2. 兜底方案：从 video.play_addr / play_addr_h264 / play_addr_265 提取
+            # 3. 兜底方案：从 video.play_addr / play_addr_h264 / play_addr_265 提取（严格过滤音频流）
             for fallback_key in ('play_addr_h264', 'play_addr', 'play_addr_265'):
                 fallback_play_addr = video.get(fallback_key)
                 url = self._extract_best_url_from_play_addr(fallback_play_addr)
                 if url:
+                    clean_url = url.split('?')[0].lower()
+                    if clean_url.endswith(('.mp3', '.m4a', '.aac', '.wav')) or 'ies-music' in url:
+                        continue
                     return url
 
             return None
