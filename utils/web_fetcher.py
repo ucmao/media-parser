@@ -113,9 +113,13 @@ class UrlParser:
             address = address[:-1]
         if platform == '好看视频':
             query_params = parse_qs(parsed_url.query)
-            vid = query_params.get('vid', [None])[0]  # 使用 get 方法避免 KeyError
-            if vid:
-                address = f"{address}?vid={vid}"
+            preserved_params = []
+            for key in ('vid', 'id', 'context', 'pd', 'src'):
+                value = query_params.get(key, [None])[0]
+                if value is not None:
+                    preserved_params.append((key, value))
+            if preserved_params:
+                address = f"{address}?{urlencode(preserved_params)}"
         elif platform == "微视":
             query_params = parse_qs(parsed_url.query)
             vid = query_params.get('id', [None])[0]  # 使用 get 方法避免 KeyError

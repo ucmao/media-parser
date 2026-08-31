@@ -105,6 +105,28 @@ class UrlParserTest(unittest.TestCase):
             UrlParser.get_platform("https://channels.weixin.qq.com/finder-preview/pages/sph?id=abc"),
             "视频号",
         )
+        self.assertEqual(
+            UrlParser.get_platform("https://finder.video.qq.com/251/20302/stodownload?encfilekey=abc"),
+            "视频号",
+        )
+
+    def test_recognizes_supplemented_domain_variants(self):
+        cases = [
+            ("https://sv.baidu.com/videoui/page/videoland?context=abc", "好看视频"),
+            ("https://baijiahao.baidu.com/s?id=123", "好看视频"),
+            ("https://m.baidu.com/sf/v_search?pd=video", "好看视频"),
+            ("https://mbd.baidu.com/newspage/data/videolanding?nid=123", "好看视频"),
+            ("https://m.toutiao.com/is/669xD9UIQfI/", "今日头条"),
+            ("https://www.toutiao.com/video/123/", "今日头条"),
+            ("https://qianwen.my.cn/share/chat/e16bbf94a34d4b88acd7ed1214f", "通义千问"),
+            ("https://pages.tongyi.com/r/share?shareId=123", "通义千问"),
+            ("https://xyq.jianying.com/s/abc", "小云雀AI"),
+            ("https://jimeng.ai/mproject/123", "即梦AI"),
+            ("https://www.capcut.com/template/123", "剪映"),
+        ]
+        for url, expected_platform in cases:
+            with self.subTest(url=url):
+                self.assertEqual(UrlParser.get_platform(url), expected_platform)
 
     def test_recognizes_kling_share_domain(self):
         self.assertEqual(
