@@ -23,7 +23,7 @@ class WebFetcher:
         # 微博博文可通过 API 直接根据 ID 解析，直接访问网页端常触发访客系统重定向。
         domain = UrlParser.get_domain(url)
         if domain not in {"t.cn", "b23.tv", "xhslink.cn", "xhslink.com", "hy.fan"}:
-            if UrlParser.get_platform(url) in {"知乎", "绿洲", "新片场", "夸克AI", "通义千问", "微博", "小云雀AI", "哔哩哔哩", "快影", "微信公众号"}:
+            if UrlParser.get_platform(url) in {"知乎", "绿洲", "新片场", "夸克AI", "通义千问", "微博", "小云雀AI", "哔哩哔哩", "快影", "微信公众号", "海螺AI"}:
                 return UrlParser.extract_video_address(url)
         try:
             current_url = url

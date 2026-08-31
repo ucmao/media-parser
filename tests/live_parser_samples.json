@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
-  "description": "33 平台多形态全景自动化回归测试用例库 (涵盖短链/长链/图集/单视频/AI生成等)",
-  "total_cases": 272,
+  "description": "34 平台多形态全景自动化回归测试用例库 (涵盖短链/长链/图集/单视频/AI生成等)",
+  "total_cases": 274,
   "cases": [
     {
       "platform": "AcFun",
@@ -106,6 +106,36 @@
       ],
       "note": "2026-08-28 已验证",
       "pattern": "基础标准样例"
+    },
+    {
+      "platform": "海螺AI",
+      "url": "https://hailuoai.com/share/ai-video/enbrdg0JlAen?source-scene=shared",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 海螺AI 图生视频分享",
+      "pattern": "基础标准样例"
+    },
+    {
+      "platform": "海螺AI",
+      "url": "https://hailuoai.com/share/ai-video/RkDkwWYZQRby?source-scene=shared&source-media=shared_wechat",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-08 真实反馈验证: 海螺AI 文生视频分享",
+      "pattern": "文生视频样例"
     },
     {
       "platform": "哔哩哔哩",

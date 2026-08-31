@@ -112,6 +112,16 @@ class UrlParserTest(unittest.TestCase):
             "可灵AI",
         )
 
+    def test_recognizes_hailuo_domains(self):
+        self.assertEqual(
+            UrlParser.get_platform("https://hailuoai.com/share/ai-video/enbrdg0JlAen?source-scene=shared"),
+            "海螺AI",
+        )
+        self.assertEqual(
+            UrlParser.get_platform("https://hailuoai.video/share/ai-video/RkDkwWYZQRby"),
+            "海螺AI",
+        )
+
     def test_recognizes_soul_share_domain(self):
         self.assertEqual(UrlParser.get_platform("https://w13.soulsmile.cn/activity/"), "Soul")
 
