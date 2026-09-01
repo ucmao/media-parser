@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
-  "description": "44 平台多形态全景自动化回归测试用例库 (涵盖短链/长链/图集/单视频/AI生成等)",
-  "total_cases": 296,
+  "description": "45 平台多形态全景自动化回归测试用例库 (涵盖短链/长链/图集/单视频/AI生成等)",
+  "total_cases": 297,
   "cases": [
     {
       "platform": "网易云音乐",
@@ -126,6 +126,25 @@
       ],
       "note": "2026-09-01 已验证: 配音秀公开作品页，页面初始化数据直接提供 MP4",
       "pattern": "公开配音作品"
+    },
+    {
+      "platform": "松果时刻",
+      "url": "https://m.pineconemoment.com/o/48FVc8IDuz7",
+      "media_types": [
+        "video",
+        "images",
+        "audio"
+      ],
+      "expected_fields": [
+        "video",
+        "images",
+        "audio",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-09-01 已验证: 松果时刻故事短链，可提取多页 MP4、原图与合成配音",
+      "pattern": "AI 故事短链"
     },
     {
       "platform": "腾讯元宝",

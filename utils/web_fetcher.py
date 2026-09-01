@@ -245,6 +245,15 @@ class UrlParser:
                     preserved_params.append((key, value))
             if preserved_params:
                 address = f"{address}?{urlencode(preserved_params)}"
+        elif platform == "松果时刻":
+            query_params = parse_qs(parsed_url.query)
+            preserved_params = []
+            for key in ("sharer_id", "author_id", "channel", "version", "style_id", "share_id", "project_id", "story_type", "story_id", "item_type", "item_id"):
+                value = query_params.get(key, [None])[0]
+                if value is not None:
+                    preserved_params.append((key, value))
+            if preserved_params:
+                address = f"{address}?{urlencode(preserved_params)}"
         elif platform == "腾讯频道":
             query_params = parse_qs(parsed_url.query)
             if value := query_params.get("b", [None])[0]:
