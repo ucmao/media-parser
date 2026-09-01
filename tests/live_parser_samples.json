@@ -1,8 +1,38 @@
 {
   "schema_version": 2,
-  "description": "39 平台多形态全景自动化回归测试用例库 (涵盖短链/长链/图集/单视频/AI生成等)",
-  "total_cases": 277,
+  "description": "40 平台多形态全景自动化回归测试用例库 (涵盖短链/长链/图集/单视频/AI生成等)",
+  "total_cases": 288,
   "cases": [
+    {
+      "platform": "腾讯元宝",
+      "url": "https://yb.tencent.com/s/OXzXwcr2Vk9H",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-09-01 已验证: 元宝图生视频公开对话分享，SSR 直接提供 MP4 与封面",
+      "pattern": "AI 视频分享"
+    },
+    {
+      "platform": "腾讯元宝",
+      "url": "https://yb.tencent.com/s/iy4anxVGCDlz",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-09-01 已验证: 元宝 AI 生图公开对话分享，优先返回高清下载地址",
+      "pattern": "AI 生图分享"
+    },
     {
       "platform": "拼多多",
       "url": "https://mobile.yangkeduo.com/goods.html?ps=6K2Mc4rjNT",

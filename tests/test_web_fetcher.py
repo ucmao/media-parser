@@ -58,6 +58,10 @@ class UrlParserTest(unittest.TestCase):
                 "https://activity.qianwen.com/r/ai-studio-mobile/qwen-external-share?shareId=abc&authorId=author&channel_from=qwen",
             ),
             (
+                "https://yuanbao.tencent.com/bot/app/share/beautifulPhotos/share-id?userId=user-id&noise=x",
+                "https://yuanbao.tencent.com/bot/app/share/beautifulPhotos/share-id?userId=user-id",
+            ),
+            (
                 "https://mobile.yangkeduo.com/goods.html?goods_id=123&review_id=456&noise=x",
                 "https://mobile.yangkeduo.com/goods.html?goods_id=123&review_id=456",
             ),
@@ -134,6 +138,8 @@ class UrlParserTest(unittest.TestCase):
             ("https://xyq.jianying.com/s/abc", "小云雀AI"),
             ("https://jimeng.ai/mproject/123", "即梦AI"),
             ("https://www.capcut.com/template/123", "剪映"),
+            ("https://yb.tencent.com/s/share-id", "腾讯元宝"),
+            ("https://yuanbao.tencent.com/bot/app/share/loadingVideo/share-id", "腾讯元宝"),
         ]
         for url, expected_platform in cases:
             with self.subTest(url=url):

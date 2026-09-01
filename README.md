@@ -3,7 +3,7 @@
 
 **基于 Python 的多平台媒体原生本地解析系统**
 
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Python Version](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/) [![Flask](https://img.shields.io/badge/Framework-Flask-000000?logo=flask&logoColor=white)](https://flask.palletsprojects.com/) [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](#-部署指南) [![Support](https://img.shields.io/badge/support-39%20Platforms-brightgreen.svg)](#-支持的平台矩阵)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Python Version](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/) [![Flask](https://img.shields.io/badge/Framework-Flask-000000?logo=flask&logoColor=white)](https://flask.palletsprojects.com/) [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](#-部署指南) [![Support](https://img.shields.io/badge/support-40%20Platforms-brightgreen.svg)](#-支持的平台矩阵)
 
 <p align="center">
 <a href="#-核心解析逻辑">解析逻辑</a> •
@@ -57,6 +57,7 @@
 | **海螺AI** | ✓ | ✓ | ✓ | ✓ | ✓ | | | |
 | **夸克AI** | ✓ | ✓ | ✓ | ✓ | ✓ | | | |
 | **通义千问** | ✓ | ✓ | ✓ | ✓ | ✓ | | | |
+| **腾讯元宝** | ✓ | ✓ | ✓ | ✓ | ✓ | | | |
 | **闲鱼** | | ✓ | ✓ | | ✓ | | | |
 | **拼多多** | ✓ | ✓ | ✓ | ✓ | ✓ | | | |
 | **Soul** | ✓ | ✓ | ✓ | ✓ | ✓ | | | |
@@ -83,6 +84,8 @@
 | **番茄小说** | ✓ | ✓ | ✓ | ✓ | | | | |
 | **红果短剧** | ✓ | ✓ | ✓ | ✓ | | | | |
 | **红果漫剧** | ✓ | ✓ | ✓ | ✓ | | | | |
+
+*注：腾讯元宝等极少数平台提取的是官方存储桶原画质直链，素材保留官方原生水印。
 
 ---
 
@@ -149,17 +152,17 @@ media-parser/
 │   ├── architecture.md        # 系统分层架构与生命周期设计
 │   ├── reverse-guide.md       # 通用逆向方法论 (抓包/SSR/JS签名提取)
 │   ├── testing.md             # 完整测试规范与回归手册
-│   └── parsers/               # 36 份逆向分析文档，覆盖 39 个平台
+│   └── parsers/               # 37 份逆向分析文档，覆盖 40 个平台
 ├── src/                       # 核心业务逻辑
 │   ├── api/                   # RESTful API 路由 (/api/parse, /api/health)
 │   ├── web/                   # Demo 体验页与交互蓝图
-│   ├── parsers/               # 36 个解析器模块，支持 39 个平台 (核心解析逻辑)
+│   ├── parsers/               # 37 个解析器模块，支持 40 个平台 (核心解析逻辑)
 │   └── parser_factory.py      # 工厂分发器 (解析器动态发现与自动注册)
 ├── utils/                     # 底层工具库与逆向支持
 │   ├── signer/                # JS 签名沙箱引擎 (a_bogus, x_bogus 等算法执行)
 │   └── web_fetcher.py         # 智能 URL 识别、重定向追踪与请求封装
 ├── tests/                     # 完备的双层测试体系
-│   ├── live_parser_samples.json # 39 平台真实多形态在线样本库
+│   ├── live_parser_samples.json # 40 平台真实多形态在线样本库
 │   ├── manual_verify_parsers.py # 命令行交互式冒烟与健康检查工具
 │   └── test_*_parser.py         # 各平台 Mock 自动化单元测试
 ├── static/ & templates/       # Web 演示页面前端静态资源
@@ -173,7 +176,7 @@ media-parser/
 * 🏗️ **[系统架构与生命周期设计](docs/architecture.md)**：分层设计、302 追踪与 `ParserFactory` 动态发现机制。
 * 🔍 **[通用逆向方法论](docs/reverse-guide.md)**：SSR 数据提取、H5 接口伪装、JS 签名沙箱及抓包 SOP。
 * 🧪 **[测试体系与回归验证](docs/testing.md)**：Pytest 单元测试、Mock 与线上真实样例回归。
-* 📚 **[平台逆向指南索引](docs/index.md)**：包含抖音、快手、小红书、B站等全部 39 个平台的技术文档。
+* 📚 **[平台逆向指南索引](docs/index.md)**：包含抖音、快手、小红书、B站等全部 40 个平台的技术文档。
 
 ---
 
@@ -182,7 +185,7 @@ media-parser/
 本项目拥有完备的测试体系，包括基础单元测试与基于真实样本库的在线回归测试：
 
 ### 1. 真实样本交互式验证
-样例测试库见 [`tests/live_parser_samples.json`](tests/live_parser_samples.json)，用于实时验证 39 个平台的解析有效性与多形态覆盖：
+样例测试库见 [`tests/live_parser_samples.json`](tests/live_parser_samples.json)，用于实时验证 40 个平台的解析有效性与多形态覆盖：
 
 ```bash
 # 快速冒烟测试（每个平台测 1 条最具代表性的链接，极速完成健康检查）

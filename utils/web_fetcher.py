@@ -261,6 +261,11 @@ class UrlParser:
                     preserved_params.append((key, value))
             if preserved_params:
                 address = f"{address}?{urlencode(preserved_params)}"
+        elif platform == "腾讯元宝":
+            query_params = parse_qs(parsed_url.query)
+            user_id = query_params.get("userId", [None])[0]
+            if user_id:
+                address = f"{address}?{urlencode({'userId': user_id})}"
         elif platform == "闲鱼":
             query_params = parse_qs(parsed_url.query)
             preserved_params = []

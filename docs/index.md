@@ -2,7 +2,7 @@
 
 欢迎查阅 **Media Parser** 开发者文档与逆向工程知识库。
 
-本项目是一个高性能、模块化、支持 **39 个主流媒体与 AI 内容平台** 的无水印音视频、图文及 LivePhoto 结构化解析引擎。
+本项目是一个高性能、模块化、支持 **40 个主流媒体与 AI 内容平台** 的无水印音视频、图文及 LivePhoto 结构化解析引擎。
 
 ---
 
@@ -15,7 +15,7 @@
   * **短视频与轻社区**：[抖音](parsers/douyin.md) ｜ [快手](parsers/kuaishou.md) ｜ [今日头条](parsers/xigua.md) ｜ [皮皮虾](parsers/pipixia.md) ｜ [皮皮搞笑](parsers/pipigaoxiao.md) ｜ [最右](parsers/zuiyou.md) ｜ [美拍](parsers/meipai.md) ｜ [微视](parsers/weishi.md) ｜ [绿洲](parsers/lvzhou.md) ｜ [番茄小说/红果短剧/红果漫剧](parsers/fanqie.md)
   * **图文与综合社区**：[小红书](parsers/xiaohongshu.md) ｜ [微信公众号](parsers/wechat-mp.md) ｜ [微博](parsers/weibo.md) ｜ [知乎](parsers/zhihu.md) ｜ [闲鱼](parsers/xianyu.md) ｜ [Soul](parsers/soul.md)
   * **长视频与弹幕/创作**：[哔哩哔哩](parsers/bilibili.md) ｜ [AcFun](parsers/acfun.md) ｜ [新片场](parsers/xinpianchang.md) ｜ [好看视频](parsers/haokan.md) ｜ [西瓜视频](parsers/xigua.md) ｜ [剪映](parsers/jianying.md) ｜ [快影](parsers/kwaiying.md)
-  * **AI 生成与大模型**：[豆包 AI](parsers/doubao.md) ｜ [即梦 AI](parsers/jimeng.md) ｜ [可灵 AI](parsers/kling.md) ｜ [海螺 AI](parsers/hailuo.md) ｜ [通义千问](parsers/qianwen.md) ｜ [夸克 AI](parsers/quark-ai.md) ｜ [小云雀 AI](parsers/xiaoyunque.md)
+  * **AI 生成与大模型**：[豆包 AI](parsers/doubao.md) ｜ [腾讯元宝](parsers/yuanbao.md) ｜ [即梦 AI](parsers/jimeng.md) ｜ [可灵 AI](parsers/kling.md) ｜ [海螺 AI](parsers/hailuo.md) ｜ [通义千问](parsers/qianwen.md) ｜ [夸克 AI](parsers/quark-ai.md) ｜ [小云雀 AI](parsers/xiaoyunque.md)
   * **音频与垂直频道**：[汽水音乐](parsers/qsmusic.md) ｜ [全民K歌](parsers/quanminkge.md) ｜ [虎牙](parsers/huya.md) ｜ [梨视频](parsers/lishipin.md) ｜ [微信视频号](parsers/wechat-channels.md) ｜ [腾讯频道](parsers/tencent-channel.md)
 
 ---
@@ -40,34 +40,35 @@
 | 9 | **通义千问** | AI 图文 / 图像生成 | ✅ 支持 | ⚠️ 需 `YUANBAO_COOKIE` | AI Studio 移动分享端抓取 | [查看指南](parsers/qianwen.md) |
 | 10 | **夸克 AI** | AI 图文 / 图像 | ✅ 支持 | 🟢 免配置 | 夸克 H5 分享路由解析 | [查看指南](parsers/quark-ai.md) |
 | 11 | **小云雀 AI** | AI 图文 / 图像 | ✅ 支持 | 🟢 免配置 | 剪映小云雀分享端 | [查看指南](parsers/xiaoyunque.md) |
-| 12 | **微博** | 视频 / 微博正文 / 多图 | ✅ 支持 | 🟢 免配置 | 移动端 H5 接口 + Base62 解码 | [查看指南](parsers/weibo.md) |
-| 13 | **知乎** | 视频 (Video Pin) / 想法 / 问答 | ✅ 支持 | 🟢 免配置 | Web API 多路由正则提取 | [查看指南](parsers/zhihu.md) |
-| 14 | **皮皮虾** | 视频 / 图文 | ✅ 支持 | 🟢 免配置 | H5 接口数据解析 | [查看指南](parsers/pipixia.md) |
-| 15 | **皮皮搞笑** | 视频 | ✅ 支持 | 🟢 免配置 | H5 页面 JSON 提取 | [查看指南](parsers/pipigaoxiao.md) |
-| 16 | **最右** | 视频 / 图集 | ✅ 支持 | 🟢 免配置 | H5 接口键值映射提取 | [查看指南](parsers/zuiyou.md) |
-| 17 | **AcFun** | 视频 (m3u8/MP4) | ✅ 支持 | 🟢 免配置 | KSPlayer 播放器参数还原 | [查看指南](parsers/acfun.md) |
-| 18 | **汽水音乐** | UGC 视频 / 背景原声 | ✅ 支持 | 🟢 免配置 | 字节系分享 API | [查看指南](parsers/qsmusic.md) |
-| 19 | **全民K歌** | 视频 / 伴奏音频 | ✅ 支持 | 🟢 免配置 | H5 播放页正则提取 | [查看指南](parsers/quanminkge.md) |
-| 20 | **虎牙** | 视频 / 录播 | ✅ 支持 | 🟢 免配置 | 移动端短链解析 | [查看指南](parsers/huya.md) |
-| 21 | **微信视频号** | 视频 | ✅ 支持 | 🟢 免配置 | 视频号短链解析 | [查看指南](parsers/wechat-channels.md) |
-| 22 | **腾讯视频/频道** | 视频 | ✅ 支持 | 🟢 免配置 | 企鹅频道分享解析 | [查看指南](parsers/tencent-channel.md) |
-| 23 | **西瓜视频** | 视频 | ✅ 支持 | 🟢 免配置 | 字节系引擎继承解析 | [查看指南](parsers/xigua.md) |
-| 24 | **今日头条** | 视频 / 微头条视频 | ✅ 支持 | 🟢 免配置 | 字节系引擎继承解析 | [查看指南](parsers/xigua.md) |
-| 25 | **新片场** | 高清视频 | ✅ 支持 | 🟢 免配置 | Next.js SSR 播放页提取 | [查看指南](parsers/xinpianchang.md) |
-| 26 | **好看视频** | 百度短视频 | ✅ 支持 | 🟢 免配置 | 百度视频落地页提取 | [查看指南](parsers/haokan.md) |
-| 27 | **美拍** | 视频 | ✅ 支持 | 🟢 免配置 | 网页 MP4 流还原 | [查看指南](parsers/meipai.md) |
-| 28 | **微视** | 腾讯微视视频 | ✅ 支持 | 🟢 免配置 | 微视开放接口 | [查看指南](parsers/weishi.md) |
-| 29 | **绿洲** | 新浪绿洲图文 | ✅ 支持 | 🟢 免配置 | 微博绿洲 H5 提取 | [查看指南](parsers/lvzhou.md) |
-| 30 | **闲鱼** | 闲鱼图文贴 | ✅ 支持 | 🟢 免配置 | 淘系分享页解析 | [查看指南](parsers/xianyu.md) |
-| 31 | **Soul** | 视频 / 瞬间 | ✅ 支持 | 🟢 免配置 | Web 话题页解析 | [查看指南](parsers/soul.md) |
-| 32 | **剪映 / CapCut** | 模板视频 / Web协作视频 | ✅ 支持 | 🟢 免配置 | 字节剪映 & CapCut 协作 API | [查看指南](parsers/jianying.md) |
-| 33 | **梨视频** | 资讯短视频 | ✅ 支持 | 🟢 免配置 | 动态防盗链时间戳解密 | [查看指南](parsers/lishipin.md) |
-| 34 | **快影** | 模板视频 / 原声音乐 | ✅ 支持 | 🟢 免配置 | 快影 OpenAPI + 动态签名 | [查看指南](parsers/kwaiying.md) |
-| 35 | **微信公众号** | 视频 / 文章插图图集 / 音频 | ✅ 支持 | 🟢 免配置 | SSR 正文解析 + 1080P 视频流提取与原画升级 | [查看指南](parsers/wechat-mp.md) |
-| 36 | **拼多多** | 多多视频 / 商品图集 / 实物原图 | ✅ 支持 | 🟡 视频需 Cookie / 商品免配置 | anti-content 动态验签 + 307 素材提取 | [查看指南](parsers/pinduoduo.md) |
-| 37 | **番茄小说** | 短剧视频 | ✅ 支持 | 🟢 免配置 | H5 推广页 HTML 提取 | [查看指南](parsers/fanqie.md) |
-| 38 | **红果短剧** | 短剧视频 | ✅ 支持 | 🟢 免配置 | H5 推广页 HTML 提取 | [查看指南](parsers/fanqie.md) |
-| 39 | **红果漫剧** | 漫剧/短剧视频 | ✅ 支持 | 🟢 免配置 | H5 推广页 HTML 提取 | [查看指南](parsers/fanqie.md) |
+| 12 | **腾讯元宝** | AI 生图 / 图片编辑 / AI 视频 | ⚠️ 含原生水印 | 🟢 公开分享免配置 | Next.js SSR 对话数据提取 | [查看指南](parsers/yuanbao.md) |
+| 13 | **微博** | 视频 / 微博正文 / 多图 | ✅ 支持 | 🟢 免配置 | 移动端 H5 接口 + Base62 解码 | [查看指南](parsers/weibo.md) |
+| 14 | **知乎** | 视频 (Video Pin) / 想法 / 问答 | ✅ 支持 | 🟢 免配置 | Web API 多路由正则提取 | [查看指南](parsers/zhihu.md) |
+| 15 | **皮皮虾** | 视频 / 图文 | ✅ 支持 | 🟢 免配置 | H5 接口数据解析 | [查看指南](parsers/pipixia.md) |
+| 16 | **皮皮搞笑** | 视频 | ✅ 支持 | 🟢 免配置 | H5 页面 JSON 提取 | [查看指南](parsers/pipigaoxiao.md) |
+| 17 | **最右** | 视频 / 图集 | ✅ 支持 | 🟢 免配置 | H5 接口键值映射提取 | [查看指南](parsers/zuiyou.md) |
+| 18 | **AcFun** | 视频 (m3u8/MP4) | ✅ 支持 | 🟢 免配置 | KSPlayer 播放器参数还原 | [查看指南](parsers/acfun.md) |
+| 19 | **汽水音乐** | UGC 视频 / 背景原声 | ✅ 支持 | 🟢 免配置 | 字节系分享 API | [查看指南](parsers/qsmusic.md) |
+| 20 | **全民K歌** | 视频 / 伴奏音频 | ✅ 支持 | 🟢 免配置 | H5 播放页正则提取 | [查看指南](parsers/quanminkge.md) |
+| 21 | **虎牙** | 视频 / 录播 | ✅ 支持 | 🟢 免配置 | 移动端短链解析 | [查看指南](parsers/huya.md) |
+| 22 | **微信视频号** | 视频 | ✅ 支持 | 🟢 免配置 | 视频号短链解析 | [查看指南](parsers/wechat-channels.md) |
+| 23 | **腾讯视频/频道** | 视频 | ✅ 支持 | 🟢 免配置 | 企鹅频道分享解析 | [查看指南](parsers/tencent-channel.md) |
+| 24 | **西瓜视频** | 视频 | ✅ 支持 | 🟢 免配置 | 字节系引擎继承解析 | [查看指南](parsers/xigua.md) |
+| 25 | **今日头条** | 视频 / 微头条视频 | ✅ 支持 | 🟢 免配置 | 字节系引擎继承解析 | [查看指南](parsers/xigua.md) |
+| 26 | **新片场** | 高清视频 | ✅ 支持 | 🟢 免配置 | Next.js SSR 播放页提取 | [查看指南](parsers/xinpianchang.md) |
+| 27 | **好看视频** | 百度短视频 | ✅ 支持 | 🟢 免配置 | 百度视频落地页提取 | [查看指南](parsers/haokan.md) |
+| 28 | **美拍** | 视频 | ✅ 支持 | 🟢 免配置 | 网页 MP4 流还原 | [查看指南](parsers/meipai.md) |
+| 29 | **微视** | 腾讯微视视频 | ✅ 支持 | 🟢 免配置 | 微视开放接口 | [查看指南](parsers/weishi.md) |
+| 30 | **绿洲** | 新浪绿洲图文 | ✅ 支持 | 🟢 免配置 | 微博绿洲 H5 提取 | [查看指南](parsers/lvzhou.md) |
+| 31 | **闲鱼** | 闲鱼图文贴 | ✅ 支持 | 🟢 免配置 | 淘系分享页解析 | [查看指南](parsers/xianyu.md) |
+| 32 | **Soul** | 视频 / 瞬间 | ✅ 支持 | 🟢 免配置 | Web 话题页解析 | [查看指南](parsers/soul.md) |
+| 33 | **剪映 / CapCut** | 模板视频 / Web协作视频 | ✅ 支持 | 🟢 免配置 | 字节剪映 & CapCut 协作 API | [查看指南](parsers/jianying.md) |
+| 34 | **梨视频** | 资讯短视频 | ✅ 支持 | 🟢 免配置 | 动态防盗链时间戳解密 | [查看指南](parsers/lishipin.md) |
+| 35 | **快影** | 模板视频 / 原声音乐 | ✅ 支持 | 🟢 免配置 | 快影 OpenAPI + 动态签名 | [查看指南](parsers/kwaiying.md) |
+| 36 | **微信公众号** | 视频 / 文章插图图集 / 音频 | ✅ 支持 | 🟢 免配置 | SSR 正文解析 + 1080P 视频流提取与原画升级 | [查看指南](parsers/wechat-mp.md) |
+| 37 | **拼多多** | 多多视频 / 商品图集 / 实物原图 | ✅ 支持 | 🟡 视频需 Cookie / 商品免配置 | anti-content 动态验签 + 307 素材提取 | [查看指南](parsers/pinduoduo.md) |
+| 38 | **番茄小说** | 短剧视频 | ✅ 支持 | 🟢 免配置 | H5 推广页 HTML 提取 | [查看指南](parsers/fanqie.md) |
+| 39 | **红果短剧** | 短剧视频 | ✅ 支持 | 🟢 免配置 | H5 推广页 HTML 提取 | [查看指南](parsers/fanqie.md) |
+| 40 | **红果漫剧** | 漫剧/短剧视频 | ✅ 支持 | 🟢 免配置 | H5 推广页 HTML 提取 | [查看指南](parsers/fanqie.md) |
 
 ---
 
