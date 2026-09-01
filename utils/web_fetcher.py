@@ -212,6 +212,15 @@ class UrlParser:
                     preserved_params.append((key, value))
             if preserved_params:
                 address = f"{address}?{urlencode(preserved_params)}"
+        elif platform == "QQ音乐":
+            query_params = parse_qs(parsed_url.query)
+            preserved_params = []
+            for key in ("vid", "songmid", "songMid", "__"):
+                value = query_params.get(key, [None])[0]
+                if value is not None:
+                    preserved_params.append((key, value))
+            if preserved_params:
+                address = f"{address}?{urlencode(preserved_params)}"
         elif platform == "腾讯频道":
             query_params = parse_qs(parsed_url.query)
             if value := query_params.get("b", [None])[0]:

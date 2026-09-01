@@ -39,6 +39,10 @@ class UrlParserTest(unittest.TestCase):
                 "https://music.douyin.com/qishui/share/ugc_video?ugc_video_id=123&noise=x",
                 "https://music.douyin.com/qishui/share/ugc_video?ugc_video_id=123",
             ),
+            (
+                "https://i2.y.qq.com/n3/other/pages/details/mv.html?vid=012XViNT0znYUR&noise=x",
+                "https://i2.y.qq.com/n3/other/pages/details/mv.html?vid=012XViNT0znYUR",
+            ),
             ("https://pd.qq.com/s/code?b=2&noise=x", "https://pd.qq.com/s/code?b=2"),
             ("https://video.weibo.com/show?fid=1034:123&noise=x", "https://video.weibo.com/show?fid=1034%3A123"),
             (
@@ -168,6 +172,11 @@ class UrlParserTest(unittest.TestCase):
         self.assertEqual(UrlParser.get_platform("https://qishui.douyin.com/s/code/"), "汽水音乐")
         self.assertEqual(UrlParser.get_platform("https://music.douyin.com/track/123"), "汽水音乐")
 
+    def test_recognizes_qqmusic_domains(self):
+        self.assertEqual(UrlParser.get_platform("https://c6.y.qq.com/base/fcgi-bin/u?__=abc"), "QQ音乐")
+        self.assertEqual(UrlParser.get_platform("https://i2.y.qq.com/n3/other/pages/details/mv.html?vid=abc"), "QQ音乐")
+        self.assertEqual(UrlParser.get_platform("https://y.qq.com/n/ryqq/mv/abc"), "QQ音乐")
+
     def test_recognizes_xigua_video_on_iesdouyin_domain(self):
         self.assertEqual(
             UrlParser.get_platform("https://www.iesdouyin.com/xg/video/7676450021063735414/"),
@@ -255,6 +264,23 @@ class WebFetcherTest(unittest.TestCase):
         ):
             result = WebFetcher.fetch_redirect_url("https://v.kuaishou.com/short-code")
         self.assertEqual(result, "https://random-value.m.chenzhongtech.com/fw/photo/123")
+
+    def test_follows_qqmusic_short_link_and_preserves_mv_id(self):
+        redirect_url = (
+            "https://i2.y.qq.com/n3/other/pages/details/mv.html"
+            "?ADTAG=share&vid=012XViNT0znYUR"
+        )
+        with patch(
+            "utils.web_fetcher.requests.get",
+            return_value=self.response(redirect_url),
+        ):
+            result = WebFetcher.fetch_redirect_url(
+                "https://c6.y.qq.com/base/fcgi-bin/u?__=eZmYFaYs9yHY"
+            )
+        self.assertEqual(
+            result,
+            "https://i2.y.qq.com/n3/other/pages/details/mv.html?vid=012XViNT0znYUR",
+        )
 
     def test_stops_before_login_or_verification_page(self):
         for blocked_path in ("/login", "/404", "/captcha", "/verify", "/error"):

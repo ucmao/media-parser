@@ -1,8 +1,38 @@
 {
   "schema_version": 2,
-  "description": "40 平台多形态全景自动化回归测试用例库 (涵盖短链/长链/图集/单视频/AI生成等)",
-  "total_cases": 288,
+  "description": "41 平台多形态全景自动化回归测试用例库 (涵盖短链/长链/图集/单视频/AI生成等)",
+  "total_cases": 290,
   "cases": [
+    {
+      "platform": "QQ音乐",
+      "url": "https://c6.y.qq.com/base/fcgi-bin/u?__=eZmYFaYs9yHY",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-09-01 已验证: QQ 音乐 MV 分享短链，可提取多档 MP4",
+      "pattern": "MV 分享短链"
+    },
+    {
+      "platform": "QQ音乐",
+      "url": "https://c6.y.qq.com/base/fcgi-bin/u?__=K3G2Po2Y91ZH",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-09-01 已验证: QQ 音乐横版 MV 分享，多档清晰度按最高档优先",
+      "pattern": "MV 多清晰度"
+    },
     {
       "platform": "腾讯元宝",
       "url": "https://yb.tencent.com/s/OXzXwcr2Vk9H",

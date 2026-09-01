@@ -2,7 +2,7 @@
 
 欢迎查阅 **Media Parser** 开发者文档与逆向工程知识库。
 
-本项目是一个高性能、模块化、支持 **40 个主流媒体与 AI 内容平台** 的无水印音视频、图文及 LivePhoto 结构化解析引擎。
+本项目是一个高性能、模块化、支持 **41 个主流媒体与 AI 内容平台** 的无水印音视频、图文及 LivePhoto 结构化解析引擎。
 
 ---
 
@@ -16,7 +16,7 @@
   * **图文与综合社区**：[小红书](parsers/xiaohongshu.md) ｜ [微信公众号](parsers/wechat-mp.md) ｜ [微博](parsers/weibo.md) ｜ [知乎](parsers/zhihu.md) ｜ [闲鱼](parsers/xianyu.md) ｜ [Soul](parsers/soul.md)
   * **长视频与弹幕/创作**：[哔哩哔哩](parsers/bilibili.md) ｜ [AcFun](parsers/acfun.md) ｜ [新片场](parsers/xinpianchang.md) ｜ [好看视频](parsers/haokan.md) ｜ [西瓜视频](parsers/xigua.md) ｜ [剪映](parsers/jianying.md) ｜ [快影](parsers/kwaiying.md)
   * **AI 生成与大模型**：[豆包 AI](parsers/doubao.md) ｜ [腾讯元宝](parsers/yuanbao.md) ｜ [即梦 AI](parsers/jimeng.md) ｜ [可灵 AI](parsers/kling.md) ｜ [海螺 AI](parsers/hailuo.md) ｜ [通义千问](parsers/qianwen.md) ｜ [夸克 AI](parsers/quark-ai.md) ｜ [小云雀 AI](parsers/xiaoyunque.md)
-  * **音频与垂直频道**：[汽水音乐](parsers/qsmusic.md) ｜ [全民K歌](parsers/quanminkge.md) ｜ [虎牙](parsers/huya.md) ｜ [梨视频](parsers/lishipin.md) ｜ [微信视频号](parsers/wechat-channels.md) ｜ [腾讯频道](parsers/tencent-channel.md)
+  * **音频与垂直频道**：[汽水音乐](parsers/qsmusic.md) ｜ [QQ音乐](parsers/qqmusic.md) ｜ [全民K歌](parsers/quanminkge.md) ｜ [虎牙](parsers/huya.md) ｜ [梨视频](parsers/lishipin.md) ｜ [微信视频号](parsers/wechat-channels.md) ｜ [腾讯频道](parsers/tencent-channel.md)
 
 ---
 
@@ -69,6 +69,7 @@
 | 38 | **番茄小说** | 短剧视频 | ✅ 支持 | 🟢 免配置 | H5 推广页 HTML 提取 | [查看指南](parsers/fanqie.md) |
 | 39 | **红果短剧** | 短剧视频 | ✅ 支持 | 🟢 免配置 | H5 推广页 HTML 提取 | [查看指南](parsers/fanqie.md) |
 | 40 | **红果漫剧** | 漫剧/短剧视频 | ✅ 支持 | 🟢 免配置 | H5 推广页 HTML 提取 | [查看指南](parsers/fanqie.md) |
+| 41 | **QQ音乐** | MV / 分享视频 / 多档 MP4 | ✅ 支持 | 🟢 免配置 | SSR 元数据 + MusicU 播放接口 | [查看指南](parsers/qqmusic.md) |
 
 ---
 
