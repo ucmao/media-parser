@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
-  "description": "42 平台多形态全景自动化回归测试用例库 (涵盖短链/长链/图集/单视频/AI生成等)",
-  "total_cases": 293,
+  "description": "43 平台多形态全景自动化回归测试用例库 (涵盖短链/长链/图集/单视频/AI生成等)",
+  "total_cases": 295,
   "cases": [
     {
       "platform": "网易云音乐",
@@ -80,6 +80,36 @@
         "author"
       ],
       "note": "2026-09-01 已验证: QQ 音乐横版 MV 分享，多档清晰度按最高档优先",
+      "pattern": "MV 多清晰度"
+    },
+    {
+      "platform": "酷狗音乐",
+      "url": "https://t1.kugou.com/c/gw3TdYszNaiN",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-09-01 已验证: 酷狗音乐 MV 分享短链，可提取 SQ 与 LE 多档 MP4",
+      "pattern": "MV 分享短链"
+    },
+    {
+      "platform": "酷狗音乐",
+      "url": "https://m.kugou.com/mv/?hash=48da1fe5cbe4f8774f73160042377b1e&kgsscty1=link&sruserid=2369252937",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-09-01 已验证: 酷狗移动端 MV 长链，按清晰度优先返回 MP4",
       "pattern": "MV 多清晰度"
     },
     {

@@ -236,6 +236,15 @@ class UrlParser:
                     preserved_params.append((key, value))
             if preserved_params:
                 address = f"{address}?{urlencode(preserved_params)}"
+        elif platform == "酷狗音乐":
+            query_params = parse_qs(parsed_url.query)
+            preserved_params = []
+            for key in ("hash", "chain", "sruserid", "kgsscty1", "chl"):
+                value = query_params.get(key, [None])[0]
+                if value is not None:
+                    preserved_params.append((key, value))
+            if preserved_params:
+                address = f"{address}?{urlencode(preserved_params)}"
         elif platform == "腾讯频道":
             query_params = parse_qs(parsed_url.query)
             if value := query_params.get("b", [None])[0]:
@@ -340,6 +349,9 @@ class UrlParser:
             params_vid = query_params.get('vid', [None])[0]
             if params_vid:
                 return params_vid
+            params_hash = query_params.get('hash', [None])[0]
+            if params_hash:
+                return params_hash
             params_id = query_params.get('id', [None])[0]
             if params_id:
                 return params_id
@@ -404,6 +416,9 @@ class UrlParser:
                 video_id = path_segments[-1]
                 if video_id.endswith('.html'):
                     video_id = video_id[:-5]
+                desktop_mv = re.fullmatch(r'mv_([0-9a-fA-F]{32})', video_id)
+                if desktop_mv:
+                    return desktop_mv.group(1)
                 return video_id
             logger.warning(f'Unable to retrieve video ID from URL: {url}')
             return None

@@ -190,6 +190,21 @@ class UrlParserTest(unittest.TestCase):
         self.assertEqual(UrlParser.get_platform("https://music.163.com/song?id=1"), "网易云音乐")
         self.assertEqual(UrlParser.get_platform("https://fn.music.163.com/g/mlog/x"), "网易云音乐")
 
+    def test_recognizes_kugou_music_domains(self):
+        self.assertEqual(UrlParser.get_platform("https://t1.kugou.com/c/abc"), "酷狗音乐")
+        self.assertEqual(UrlParser.get_platform("https://m.kugou.com/mv/?hash=abc"), "酷狗音乐")
+        self.assertEqual(UrlParser.get_platform("https://m3ws.kugou.com/mv/?hash=abc"), "酷狗音乐")
+
+    def test_extracts_kugou_mv_hash_as_video_id(self):
+        self.assertEqual(
+            UrlParser.get_video_id("https://m.kugou.com/mv/?hash=48da1fe5cbe4f8774f73160042377b1e"),
+            "48da1fe5cbe4f8774f73160042377b1e",
+        )
+        self.assertEqual(
+            UrlParser.get_video_id("https://www.kugou.com/mvweb/html/mv_48da1fe5cbe4f8774f73160042377b1e.html"),
+            "48da1fe5cbe4f8774f73160042377b1e",
+        )
+
     def test_recognizes_xigua_video_on_iesdouyin_domain(self):
         self.assertEqual(
             UrlParser.get_platform("https://www.iesdouyin.com/xg/video/7676450021063735414/"),
@@ -305,6 +320,19 @@ class WebFetcherTest(unittest.TestCase):
         self.assertEqual(
             result,
             "https://y.music.163.com/m/event?id=37826361829&uid=5153433584",
+        )
+
+    def test_follows_kugou_short_link_and_preserves_mv_hash(self):
+        redirect_url = (
+            "https://m.kugou.com/mv/?hash=48da1fe5cbe4f8774f73160042377b1e"
+            "&kgsscty1=link&sruserid=2369252937"
+        )
+        with patch("utils.web_fetcher.requests.get", return_value=self.response(redirect_url)):
+            result = WebFetcher.fetch_redirect_url("https://t1.kugou.com/c/gw3TdYszNaiN")
+        self.assertEqual(
+            result,
+            "https://m.kugou.com/mv?hash=48da1fe5cbe4f8774f73160042377b1e"
+            "&sruserid=2369252937&kgsscty1=link",
         )
 
     def test_stops_before_login_or_verification_page(self):
