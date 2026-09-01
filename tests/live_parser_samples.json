@@ -4027,10 +4027,10 @@
         "cover",
         "title"
       ],
-      "note": "2026-09 真实反馈验证: 番茄短剧推广页"
+      "note": "2026-09 真实反馈验证: 红果短剧推广页"
     },
     {
-      "platform": "畅读短剧",
+      "platform": "番茄小说",
       "url": "https://changdunovel.com/t/byybBzZfKbg/",
       "pattern": "changdunovel.com 短剧推广页",
       "media_types": [
@@ -4041,10 +4041,10 @@
         "cover",
         "title"
       ],
-      "note": "2026-09 真实反馈验证: 畅读短剧推广页"
+      "note": "2026-09 真实反馈验证: 番茄小说短剧推广页"
     },
     {
-      "platform": "鱼跃短剧",
+      "platform": "红果漫剧",
       "url": "https://kylin.hainanyuyue.com/s/bR1qzzEd1A0/",
       "pattern": "kylin.hainanyuyue.com 短剧推广页",
       "media_types": [
@@ -4055,10 +4055,10 @@
         "cover",
         "title"
       ],
-      "note": "2026-09 真实反馈验证: 鱼跃短剧推广页"
+      "note": "2026-09 真实反馈验证: 红果漫剧推广页"
     },
     {
-      "platform": "番茄短剧",
+      "platform": "番茄小说",
       "url": "https://zlink.fqnovel.com/dhVGe",
       "pattern": "zlink.fqnovel.com 短剧/小说推广页",
       "media_types": [
@@ -4067,7 +4067,7 @@
       "expected_fields": [
         "title"
       ],
-      "note": "2026-09 真实反馈验证: 番茄短剧推广页"
+      "note": "2026-09 真实反馈验证: 番茄小说推广页"
     },
     {
       "platform": "小红书",

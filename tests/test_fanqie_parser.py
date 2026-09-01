@@ -38,18 +38,22 @@ class FanqieParserTest(unittest.TestCase):
 
     def test_platform_recognition(self):
         self.assertEqual(UrlParser.get_platform("https://novelquickapp.com/s/xCkhRnNOiTc/"), "红果短剧")
-        self.assertEqual(UrlParser.get_platform("https://changdunovel.com/t/byybBzZfKbg/"), "畅读短剧")
-        self.assertEqual(UrlParser.get_platform("https://kylin.hainanyuyue.com/s/bR1qzzEd1A0/"), "鱼跃短剧")
+        self.assertEqual(UrlParser.get_platform("https://qznovel.com/video.mp4"), "红果短剧")
+        self.assertEqual(UrlParser.get_platform("https://fqnovel.com/video.mp4"), "番茄小说")
+        self.assertEqual(UrlParser.get_platform("https://zlink.fqnovel.com/dhVGe"), "番茄小说")
+        self.assertEqual(UrlParser.get_platform("https://changdunovel.com/t/byybBzZfKbg/"), "番茄小说")
+        self.assertEqual(UrlParser.get_platform("https://kylin.hainanyuyue.com/s/bR1qzzEd1A0/"), "红果漫剧")
+        self.assertEqual(UrlParser.get_platform("https://hainanyuyue.com/"), "木叶短剧")
 
     def test_parser_factory_registration(self):
         cls_hongguo = ParserFactory.get_parser_class("红果短剧")
-        cls_fanqie = ParserFactory.get_parser_class("番茄短剧")
-        cls_changdu = ParserFactory.get_parser_class("畅读短剧")
-        cls_yuyue = ParserFactory.get_parser_class("鱼跃短剧")
+        cls_fanqie = ParserFactory.get_parser_class("番茄小说")
+        cls_hongguo_comic = ParserFactory.get_parser_class("红果漫剧")
+        cls_muye = ParserFactory.get_parser_class("木叶短剧")
         self.assertEqual(cls_hongguo, FanqieParser)
         self.assertEqual(cls_fanqie, FanqieParser)
-        self.assertEqual(cls_changdu, FanqieParser)
-        self.assertEqual(cls_yuyue, FanqieParser)
+        self.assertEqual(cls_hongguo_comic, FanqieParser)
+        self.assertEqual(cls_muye, FanqieParser)
 
     def test_html_video_extractor(self):
         res = HtmlVideoExtractor.parse_page(MOCK_NOVEL_HTML)

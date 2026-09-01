@@ -1,17 +1,18 @@
-# 番茄短剧 / 畅读短剧 / 鱼跃短剧 逆向解析指南
+# 番茄小说 / 红果短剧 / 红果漫剧 / 木叶短剧逆向解析指南
 
-本篇详细记录 **番茄短剧 (novelquickapp.com)**、**畅读短剧 (changdunovel.com)** 以及 **鱼跃短剧 (kylin.hainanyuyue.com)** 短剧推广落地页的逆向提取方案与 Referer 防盗链踩坑注意事项。
+本篇详细记录 **番茄小说**、**红果短剧**、**红果漫剧**与**木叶短剧**推广落地页的逆向提取方案及 Referer 防盗链注意事项。
 
 ---
 
 ## 1. 平台特征与支持能力
 
-* **支持平台标识**：`番茄短剧` / `畅读短剧` / `鱼跃短剧`
+* **支持平台标识**：`番茄小说` / `红果短剧` / `红果漫剧` / `木叶短剧`
 * **支持媒体类型**：高清视频 (MP4) / 剧集封面 / 剧集标题
 * **常见链接形态**：
-  * 番茄短剧：`https://novelquickapp.com/s/xCkhRnNOiTc/`
-  * 畅读短剧：`https://changdunovel.com/t/byybBzZfKbg/`
-  * 鱼跃短剧：`https://kylin.hainanyuyue.com/s/bR1qzzEd1A0/`
+  * 红果短剧：`https://novelquickapp.com/s/xCkhRnNOiTc/`
+  * 番茄小说：`https://changdunovel.com/t/byybBzZfKbg/`
+  * 红果漫剧：`https://kylin.hainanyuyue.com/s/bR1qzzEd1A0/`
+  * 木叶短剧：`https://hainanyuyue.com/`
 * **Cookie 依赖**：无需 Cookie
 
 ---

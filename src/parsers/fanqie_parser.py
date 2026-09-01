@@ -8,9 +8,9 @@ from configs.logging_config import get_logger
 logger = get_logger(__name__)
 
 
-@register_parser("番茄短剧", "红果短剧", "畅读短剧", "鱼跃短剧")
+@register_parser("番茄小说", "红果短剧", "红果漫剧", "木叶短剧")
 class FanqieParser(BaseParser):
-    """番茄短剧 / 畅读短剧 / 鱼跃短剧 推广页解析器"""
+    """番茄小说 / 红果短剧 / 红果漫剧 / 木叶短剧推广页解析器"""
 
     def __init__(self, real_url):
         super().__init__(real_url)
