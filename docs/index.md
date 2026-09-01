@@ -2,7 +2,7 @@
 
 欢迎查阅 **Media Parser** 开发者文档与逆向工程知识库。
 
-本项目是一个高性能、模块化、支持 **40 个主流媒体与 AI 内容平台** 的无水印音视频、图文及 LivePhoto 结构化解析引擎。
+本项目是一个高性能、模块化、支持 **39 个主流媒体与 AI 内容平台** 的无水印音视频、图文及 LivePhoto 结构化解析引擎。
 
 ---
 
@@ -12,7 +12,7 @@
 * 🔍 **[通用逆向方法论 (Reverse Engineering Guide)](reverse-guide.md)**：掌握 SSR 数据提取、H5 接口伪装、JS 签名沙箱及抓包 SOP。
 * 🧪 **[测试与回归验证 (Testing Guide)](testing.md)**：学习 Pytest 单元测试、Mock 构造与真实样本（Live Samples）测试。
 * 📖 **平台实战指南 (Parser Guides)**：
-  * **短视频与轻社区**：[抖音](parsers/douyin.md) ｜ [快手](parsers/kuaishou.md) ｜ [今日头条](parsers/xigua.md) ｜ [皮皮虾](parsers/pipixia.md) ｜ [皮皮搞笑](parsers/pipigaoxiao.md) ｜ [最右](parsers/zuiyou.md) ｜ [美拍](parsers/meipai.md) ｜ [微视](parsers/weishi.md) ｜ [绿洲](parsers/lvzhou.md) ｜ [番茄小说/红果短剧/红果漫剧/木叶短剧](parsers/fanqie.md)
+  * **短视频与轻社区**：[抖音](parsers/douyin.md) ｜ [快手](parsers/kuaishou.md) ｜ [今日头条](parsers/xigua.md) ｜ [皮皮虾](parsers/pipixia.md) ｜ [皮皮搞笑](parsers/pipigaoxiao.md) ｜ [最右](parsers/zuiyou.md) ｜ [美拍](parsers/meipai.md) ｜ [微视](parsers/weishi.md) ｜ [绿洲](parsers/lvzhou.md) ｜ [番茄小说/红果短剧/红果漫剧](parsers/fanqie.md)
   * **图文与综合社区**：[小红书](parsers/xiaohongshu.md) ｜ [微信公众号](parsers/wechat-mp.md) ｜ [微博](parsers/weibo.md) ｜ [知乎](parsers/zhihu.md) ｜ [闲鱼](parsers/xianyu.md) ｜ [Soul](parsers/soul.md)
   * **长视频与弹幕/创作**：[哔哩哔哩](parsers/bilibili.md) ｜ [AcFun](parsers/acfun.md) ｜ [新片场](parsers/xinpianchang.md) ｜ [好看视频](parsers/haokan.md) ｜ [西瓜视频](parsers/xigua.md) ｜ [剪映](parsers/jianying.md) ｜ [快影](parsers/kwaiying.md)
   * **AI 生成与大模型**：[豆包 AI](parsers/doubao.md) ｜ [即梦 AI](parsers/jimeng.md) ｜ [可灵 AI](parsers/kling.md) ｜ [海螺 AI](parsers/hailuo.md) ｜ [通义千问](parsers/qianwen.md) ｜ [夸克 AI](parsers/quark-ai.md) ｜ [小云雀 AI](parsers/xiaoyunque.md)
@@ -68,7 +68,6 @@
 | 37 | **番茄小说** | 短剧视频 | ✅ 支持 | 🟢 免配置 | H5 推广页 HTML 提取 | [查看指南](parsers/fanqie.md) |
 | 38 | **红果短剧** | 短剧视频 | ✅ 支持 | 🟢 免配置 | H5 推广页 HTML 提取 | [查看指南](parsers/fanqie.md) |
 | 39 | **红果漫剧** | 漫剧/短剧视频 | ✅ 支持 | 🟢 免配置 | H5 推广页 HTML 提取 | [查看指南](parsers/fanqie.md) |
-| 40 | **木叶短剧** | 短剧视频 | ✅ 支持 | 🟢 免配置 | H5 推广页 HTML 提取 | [查看指南](parsers/fanqie.md) |
 
 ---
 

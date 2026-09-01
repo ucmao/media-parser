@@ -291,7 +291,7 @@ class UrlParser:
                     preserved_params.append((key, value))
             if preserved_params:
                 address = f"{address}?{urlencode(preserved_params)}"
-        elif platform in ("红果短剧", "番茄小说", "红果漫剧", "木叶短剧", "小云雀AI"):
+        elif platform in ("红果短剧", "番茄小说", "红果漫剧", "小云雀AI"):
             if parsed_url.query:
                 address = f"{address}?{parsed_url.query}"
         return address

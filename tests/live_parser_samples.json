@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "description": "40 平台多形态全景自动化回归测试用例库 (涵盖短链/长链/图集/单视频/AI生成等)",
+  "description": "39 平台多形态全景自动化回归测试用例库 (涵盖短链/长链/图集/单视频/AI生成等)",
   "total_cases": 277,
   "cases": [
     {
