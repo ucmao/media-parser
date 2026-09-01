@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
-  "description": "43 平台多形态全景自动化回归测试用例库 (涵盖短链/长链/图集/单视频/AI生成等)",
-  "total_cases": 295,
+  "description": "44 平台多形态全景自动化回归测试用例库 (涵盖短链/长链/图集/单视频/AI生成等)",
+  "total_cases": 296,
   "cases": [
     {
       "platform": "网易云音乐",
@@ -111,6 +111,21 @@
       ],
       "note": "2026-09-01 已验证: 酷狗移动端 MV 长链，按清晰度优先返回 MP4",
       "pattern": "MV 多清晰度"
+    },
+    {
+      "platform": "配音秀",
+      "url": "https://www.peiyinxiu.com/m/532356596",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-09-01 已验证: 配音秀公开作品页，页面初始化数据直接提供 MP4",
+      "pattern": "公开配音作品"
     },
     {
       "platform": "腾讯元宝",

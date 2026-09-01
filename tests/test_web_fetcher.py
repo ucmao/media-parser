@@ -195,6 +195,9 @@ class UrlParserTest(unittest.TestCase):
         self.assertEqual(UrlParser.get_platform("https://m.kugou.com/mv/?hash=abc"), "酷狗音乐")
         self.assertEqual(UrlParser.get_platform("https://m3ws.kugou.com/mv/?hash=abc"), "酷狗音乐")
 
+    def test_recognizes_peiyinxiu_domains(self):
+        self.assertEqual(UrlParser.get_platform("https://www.peiyinxiu.com/m/535482401"), "配音秀")
+
     def test_extracts_kugou_mv_hash_as_video_id(self):
         self.assertEqual(
             UrlParser.get_video_id("https://m.kugou.com/mv/?hash=48da1fe5cbe4f8774f73160042377b1e"),
