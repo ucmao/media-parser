@@ -43,6 +43,14 @@ class UrlParserTest(unittest.TestCase):
                 "https://i2.y.qq.com/n3/other/pages/details/mv.html?vid=012XViNT0znYUR&noise=x",
                 "https://i2.y.qq.com/n3/other/pages/details/mv.html?vid=012XViNT0znYUR",
             ),
+            (
+                "https://fn.music.163.com/g/mlog/mlog-mobile/landing/mlog?id=a123&type=2&userid=456&noise=x",
+                "https://fn.music.163.com/g/mlog/mlog-mobile/landing/mlog?id=a123&userid=456&type=2",
+            ),
+            (
+                "https://music.163.com/#/song?id=3383347615&noise=x",
+                "https://music.163.com/song?id=3383347615",
+            ),
             ("https://pd.qq.com/s/code?b=2&noise=x", "https://pd.qq.com/s/code?b=2"),
             ("https://video.weibo.com/show?fid=1034:123&noise=x", "https://video.weibo.com/show?fid=1034%3A123"),
             (
@@ -177,6 +185,11 @@ class UrlParserTest(unittest.TestCase):
         self.assertEqual(UrlParser.get_platform("https://i2.y.qq.com/n3/other/pages/details/mv.html?vid=abc"), "QQ音乐")
         self.assertEqual(UrlParser.get_platform("https://y.qq.com/n/ryqq/mv/abc"), "QQ音乐")
 
+    def test_recognizes_netease_music_domains(self):
+        self.assertEqual(UrlParser.get_platform("https://163cn.tv/abc123"), "网易云音乐")
+        self.assertEqual(UrlParser.get_platform("https://music.163.com/song?id=1"), "网易云音乐")
+        self.assertEqual(UrlParser.get_platform("https://fn.music.163.com/g/mlog/x"), "网易云音乐")
+
     def test_recognizes_xigua_video_on_iesdouyin_domain(self):
         self.assertEqual(
             UrlParser.get_platform("https://www.iesdouyin.com/xg/video/7676450021063735414/"),
@@ -280,6 +293,18 @@ class WebFetcherTest(unittest.TestCase):
         self.assertEqual(
             result,
             "https://i2.y.qq.com/n3/other/pages/details/mv.html?vid=012XViNT0znYUR",
+        )
+
+    def test_follows_netease_short_link_and_preserves_event_id(self):
+        redirect_url = "https://y.music.163.com/m/event?id=37826361829&uid=5153433584&dlt=0846"
+        with patch(
+            "utils.web_fetcher.requests.get",
+            return_value=self.response(redirect_url),
+        ):
+            result = WebFetcher.fetch_redirect_url("https://163cn.tv/beBkdACV")
+        self.assertEqual(
+            result,
+            "https://y.music.163.com/m/event?id=37826361829&uid=5153433584",
         )
 
     def test_stops_before_login_or_verification_page(self):

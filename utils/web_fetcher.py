@@ -221,6 +221,21 @@ class UrlParser:
                     preserved_params.append((key, value))
             if preserved_params:
                 address = f"{address}?{urlencode(preserved_params)}"
+        elif platform == "网易云音乐":
+            query_params = parse_qs(parsed_url.query)
+            fragment = parsed_url.fragment.lstrip("/")
+            if "?" in fragment:
+                fragment_path, fragment_query = fragment.split("?", 1)
+                if fragment_path in {"song", "mv", "event"}:
+                    address = f"{parsed_url.scheme}://{domain}/{fragment_path}"
+                    query_params = parse_qs(fragment_query)
+            preserved_params = []
+            for key in ("id", "uid", "userid", "type", "eventId", "songId"):
+                value = query_params.get(key, [None])[0]
+                if value is not None and value != "null":
+                    preserved_params.append((key, value))
+            if preserved_params:
+                address = f"{address}?{urlencode(preserved_params)}"
         elif platform == "腾讯频道":
             query_params = parse_qs(parsed_url.query)
             if value := query_params.get("b", [None])[0]:

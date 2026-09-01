@@ -1,8 +1,57 @@
 {
   "schema_version": 2,
-  "description": "41 平台多形态全景自动化回归测试用例库 (涵盖短链/长链/图集/单视频/AI生成等)",
-  "total_cases": 290,
+  "description": "42 平台多形态全景自动化回归测试用例库 (涵盖短链/长链/图集/单视频/AI生成等)",
+  "total_cases": 293,
   "cases": [
+    {
+      "platform": "网易云音乐",
+      "url": "https://163cn.tv/beBkdACV",
+      "media_types": [
+        "audio",
+        "images",
+        "live_media"
+      ],
+      "expected_fields": [
+        "audio",
+        "images",
+        "live_media",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-09-01 已验证: 网易云短链 Event，包含歌曲、图集、LivePhoto 与歌词",
+      "pattern": "Event 音乐图文与实况"
+    },
+    {
+      "platform": "网易云音乐",
+      "url": "https://163cn.tv/ba6qK0Lv",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-09-01 已验证: 网易云 Mlog 分享短链，多档签名视频",
+      "pattern": "Mlog 动态视频"
+    },
+    {
+      "platform": "网易云音乐",
+      "url": "https://fn.music.163.com/g/mlog/mlog-mobile/landing/mv?id=34781314&userid=12112389178",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-09-01 已验证: 网易云 MV 分享，可提取 1080P 至 240P 多档 MP4",
+      "pattern": "MV 多清晰度"
+    },
     {
       "platform": "QQ音乐",
       "url": "https://c6.y.qq.com/base/fcgi-bin/u?__=eZmYFaYs9yHY",

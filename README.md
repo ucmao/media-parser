@@ -3,7 +3,7 @@
 
 **基于 Python 的多平台媒体原生本地解析系统**
 
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Python Version](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/) [![Flask](https://img.shields.io/badge/Framework-Flask-000000?logo=flask&logoColor=white)](https://flask.palletsprojects.com/) [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](#-部署指南) [![Support](https://img.shields.io/badge/support-41%20Platforms-brightgreen.svg)](#-支持的平台矩阵)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Python Version](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/) [![Flask](https://img.shields.io/badge/Framework-Flask-000000?logo=flask&logoColor=white)](https://flask.palletsprojects.com/) [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](#-部署指南) [![Support](https://img.shields.io/badge/support-42%20Platforms-brightgreen.svg)](#-支持的平台矩阵)
 
 <p align="center">
 <a href="#-核心解析逻辑">解析逻辑</a> •
@@ -63,6 +63,7 @@
 | **Soul** | ✓ | ✓ | ✓ | ✓ | ✓ | | | |
 | **汽水音乐** | ✓ | ✓ | ✓ | ✓ | | ✓ | ✓ | |
 | **QQ音乐** | ✓ | ✓ | ✓ | ✓ | | | | |
+| **网易云音乐** | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | **腾讯频道** | ✓ | ✓ | ✓ | ✓ | | | | |
 | **剪映 / CapCut** | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | | |
 | **快影** | ✓ | ✓ | ✓ | ✓ | | ✓ | | |
@@ -94,7 +95,7 @@
 
 ### Cookie 配置（Docker 与 Python 环境运行通用）
 
-大多数平台无需登录态即可解析；如需按需增强部分特定功能（如抖音放映厅长片、豆包无水印视频、视频号等），请先复制环境变量示例文件：
+大多数平台无需登录态即可解析；如需按需增强部分特定功能（如豆包无水印视频、微信视频号等），请先复制环境变量示例文件：
 
 ```bash
 cp .env.example .env
@@ -104,7 +105,7 @@ cp .env.example .env
 
 1. **抖音放映厅长视频 (`DOUYIN_COOKIE`)**：
    * 仅在解析放映厅/影视长片/演唱会大片等强风控内容时才需要配置。推荐精简 Cookie 配置 `s_v_web_id=xxx; __ac_nonce=xxx`，该字段**不是个人账号登录信息**，仅为字节安全 SDK 的人机风控通行证。日常 99% 的普通短视频、图文笔记、LivePhoto、原声音乐等**完全免 Cookie 匿名解析**。
-2. **豆包视频 (`DOUBAO_COOKIE`)**：
+2. **豆包无水印视频 (`DOUBAO_COOKIE`)**：
    * 用于解密获取 1080P 原始纯净无水印视频。由于该字段包含豆包的个人账号登录会话凭证，**建议使用闲置小号**。推荐精简 Cookie 配置 `sessionid_ss=xxx`。未配置时仍可解析公开图片与带水印预览切片。
 3. **微信视频号视频 (`YUANBAO_COOKIE`)**：
    * 通过腾讯元宝接口提取视频号原始流。由于该接口绑定了腾讯元宝的账号会话（属于个人账号登录凭证），**建议使用闲置小号**。推荐精简 Cookie 配置 `hy_user=xxx; hy_token=xxx`。未配置时仅可获取除视频外的其他信息。
@@ -153,17 +154,17 @@ media-parser/
 │   ├── architecture.md        # 系统分层架构与生命周期设计
 │   ├── reverse-guide.md       # 通用逆向方法论 (抓包/SSR/JS签名提取)
 │   ├── testing.md             # 完整测试规范与回归手册
-│   └── parsers/               # 38 份逆向分析文档，覆盖 41 个平台
+│   └── parsers/               # 39 份逆向分析文档，覆盖 42 个平台
 ├── src/                       # 核心业务逻辑
 │   ├── api/                   # RESTful API 路由 (/api/parse, /api/health)
 │   ├── web/                   # Demo 体验页与交互蓝图
-│   ├── parsers/               # 38 个解析器模块，支持 41 个平台 (核心解析逻辑)
+│   ├── parsers/               # 39 个解析器模块，支持 42 个平台 (核心解析逻辑)
 │   └── parser_factory.py      # 工厂分发器 (解析器动态发现与自动注册)
 ├── utils/                     # 底层工具库与逆向支持
 │   ├── signer/                # JS 签名沙箱引擎 (a_bogus, x_bogus 等算法执行)
 │   └── web_fetcher.py         # 智能 URL 识别、重定向追踪与请求封装
 ├── tests/                     # 完备的双层测试体系
-│   ├── live_parser_samples.json # 41 平台真实多形态在线样本库
+│   ├── live_parser_samples.json # 42 平台真实多形态在线样本库
 │   ├── manual_verify_parsers.py # 命令行交互式冒烟与健康检查工具
 │   └── test_*_parser.py         # 各平台 Mock 自动化单元测试
 ├── static/ & templates/       # Web 演示页面前端静态资源
@@ -177,7 +178,7 @@ media-parser/
 * 🏗️ **[系统架构与生命周期设计](docs/architecture.md)**：分层设计、302 追踪与 `ParserFactory` 动态发现机制。
 * 🔍 **[通用逆向方法论](docs/reverse-guide.md)**：SSR 数据提取、H5 接口伪装、JS 签名沙箱及抓包 SOP。
 * 🧪 **[测试体系与回归验证](docs/testing.md)**：Pytest 单元测试、Mock 与线上真实样例回归。
-* 📚 **[平台逆向指南索引](docs/index.md)**：包含抖音、快手、小红书、B站等全部 41 个平台的技术文档。
+* 📚 **[平台逆向指南索引](docs/index.md)**：包含抖音、快手、小红书、B站等全部 42 个平台的技术文档。
 
 ---
 
@@ -186,7 +187,7 @@ media-parser/
 本项目拥有完备的测试体系，包括基础单元测试与基于真实样本库的在线回归测试：
 
 ### 1. 真实样本交互式验证
-样例测试库见 [`tests/live_parser_samples.json`](tests/live_parser_samples.json)，用于实时验证 41 个平台的解析有效性与多形态覆盖：
+样例测试库见 [`tests/live_parser_samples.json`](tests/live_parser_samples.json)，用于实时验证 42 个平台的解析有效性与多形态覆盖：
 
 ```bash
 # 快速冒烟测试（每个平台测 1 条最具代表性的链接，极速完成健康检查）
