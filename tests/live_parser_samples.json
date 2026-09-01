@@ -1,8 +1,37 @@
 {
   "schema_version": 2,
-  "description": "35 平台多形态全景自动化回归测试用例库 (涵盖短链/长链/图集/单视频/AI生成等)",
-  "total_cases": 275,
+  "description": "36 平台多形态全景自动化回归测试用例库 (涵盖短链/长链/图集/单视频/AI生成等)",
+  "total_cases": 277,
   "cases": [
+    {
+      "platform": "拼多多",
+      "url": "https://mobile.yangkeduo.com/goods.html?ps=6K2Mc4rjNT",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "cover",
+        "title"
+      ],
+      "note": "2026-09-01 已验证: 拼多多商品实物图短链解析",
+      "pattern": "商品实物短链"
+    },
+    {
+      "platform": "拼多多",
+      "url": "https://mobile.yangkeduo.com/fyxmkief.html?feed_id=6960355310530660128&goods_id=978211601383",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-09-01 已验证: 多多视频Feed分享解析 (支持Cookie原画解析)",
+      "pattern": "多多视频"
+    },
     {
       "platform": "今日头条",
       "url": "https://m.toutiao.com/is/669xD9UIQfI/",

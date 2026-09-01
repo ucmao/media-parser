@@ -270,6 +270,27 @@ class UrlParser:
                     preserved_params.append((key, value))
             if preserved_params:
                 address = f"{address}?{urlencode(preserved_params)}"
+        elif platform == "拼多多":
+            query_params = parse_qs(parsed_url.query)
+            preserved_params = []
+            for key in (
+                "goods_id",
+                "feed_id",
+                "review_id",
+                "ps",
+                "_oak_share_url",
+                "_t_timestamp",
+                "share_uin",
+                "refer_share_uin",
+                "refer_share_id",
+                "channel",
+                "page_from",
+            ):
+                value = query_params.get(key, [None])[0]
+                if value is not None:
+                    preserved_params.append((key, value))
+            if preserved_params:
+                address = f"{address}?{urlencode(preserved_params)}"
         elif platform == "小云雀AI":
             if parsed_url.query:
                 address = f"{address}?{parsed_url.query}"
@@ -333,6 +354,18 @@ class UrlParser:
             params_template_id = query_params.get('template_id', [None])[0]
             if params_template_id:
                 return params_template_id
+            params_feed_id = query_params.get('feed_id', [None])[0]
+            if params_feed_id:
+                return params_feed_id
+            params_goods_id = query_params.get('goods_id', [None])[0]
+            if params_goods_id:
+                return params_goods_id
+            params_review_id = query_params.get('review_id', [None])[0]
+            if params_review_id:
+                return params_review_id
+            params_ps = query_params.get('ps', [None])[0]
+            if params_ps:
+                return params_ps
             # 尝试从URL路径中获取视频ID
             path_segments = parsed_url.path.strip('/').split('/')
             if path_segments:

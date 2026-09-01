@@ -57,6 +57,14 @@ class UrlParserTest(unittest.TestCase):
                 "https://activity.qianwen.com/r/ai-studio-mobile/qwen-external-share?shareId=abc&authorId=author&channel_from=qwen&noise=x",
                 "https://activity.qianwen.com/r/ai-studio-mobile/qwen-external-share?shareId=abc&authorId=author&channel_from=qwen",
             ),
+            (
+                "https://mobile.yangkeduo.com/goods.html?goods_id=123&review_id=456&noise=x",
+                "https://mobile.yangkeduo.com/goods.html?goods_id=123&review_id=456",
+            ),
+            (
+                "https://mobile.yangkeduo.com/fyxmkief.html?feed_id=789&noise=x",
+                "https://mobile.yangkeduo.com/fyxmkief.html?feed_id=789",
+            ),
         ]
         for original, expected in cases:
             with self.subTest(original=original):
@@ -73,6 +81,9 @@ class UrlParserTest(unittest.TestCase):
             ("https://lv.ulikecam.com/activity/lv/sharevideo?template_id=123", "123"),
             ("https://www.bilibili.com/video/BV123", "BV123"),
             ("https://www.pearvideo.com/video_123.html", "video_123"),
+            ("https://mobile.yangkeduo.com/fyxmkief.html?feed_id=6960355310530660128", "6960355310530660128"),
+            ("https://mobile.yangkeduo.com/goods.html?goods_id=935025706654", "935025706654"),
+            ("https://mobile.yangkeduo.com/goods.html?ps=X1JcF4pgqU", "X1JcF4pgqU"),
         ]
         for url, expected in cases:
             with self.subTest(url=url):
@@ -175,6 +186,18 @@ class UrlParserTest(unittest.TestCase):
             UrlParser.get_platform("https://act.quark.cn/apps/sharepages/routes/share?share_id=abc"),
             "夸克AI",
         )
+
+    def test_recognizes_pinduoduo_domains(self):
+        for domain in [
+            "https://mobile.yangkeduo.com/goods.html?ps=123",
+            "https://yangkeduo.com/goods.html?goods_id=123",
+            "https://pinduoduo.com/goods.html?goods_id=123",
+            "https://www.pinduoduo.com/goods.html?goods_id=123",
+            "https://mobile.pinduoduo.com/goods.html?goods_id=123",
+        ]:
+            with self.subTest(domain=domain):
+                self.assertEqual(UrlParser.get_platform(domain), "拼多多")
+
 
 class WebFetcherTest(unittest.TestCase):
     @staticmethod

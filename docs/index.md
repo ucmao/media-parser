@@ -2,7 +2,7 @@
 
 欢迎查阅 **Media Parser** 开发者文档与逆向工程知识库。
 
-本项目是一个高性能、模块化、支持 **35 个主流媒体与 AI 内容平台** 的无水印音视频、图文及 LivePhoto 结构化解析引擎。
+本项目是一个高性能、模块化、支持 **36 个主流媒体与 AI 内容平台** 的无水印音视频、图文及 LivePhoto 结构化解析引擎。
 
 ---
 
@@ -64,6 +64,7 @@
 | 33 | **梨视频** | 资讯短视频 | ✅ 支持 | 🟢 免配置 | 动态防盗链时间戳解密 | [查看指南](parsers/lishipin.md) |
 | 34 | **快影** | 模板视频 / 原声音乐 | ✅ 支持 | 🟢 免配置 | 快影 OpenAPI + 动态签名 | [查看指南](parsers/kwaiying.md) |
 | 35 | **微信公众号** | 视频 / 文章插图图集 / 音频 | ✅ 支持 | 🟢 免配置 | SSR 正文解析 + 1080P 视频流提取与原画升级 | [查看指南](parsers/wechat-mp.md) |
+| 36 | **拼多多** | 多多视频 / 商品图集 / 实物原图 | ✅ 支持 | 🟡 视频需 Cookie / 商品免配置 | anti-content 动态验签 + 307 素材提取 | [查看指南](parsers/pinduoduo.md) |
 
 ---
 
@@ -90,6 +91,9 @@ DOUBAO_COOKIE="sessionid_ss=your_doubao_sessionid_ss"
 
 # 3. 腾讯元宝 Cookie (可选，用于提取视频号原始流，涉及个人账号登录态，建议使用闲置小号)
 YUANBAO_COOKIE="hy_user=xxx; hy_token=yyy;"
+
+# 4. 拼多多 Cookie (可选，用于多多视频原画视频解析)
+PINDUODUO_COOKIE="PDDAccessToken=xxx;"
 ```
 
 ### 3. 运行服务

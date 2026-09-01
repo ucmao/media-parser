@@ -90,6 +90,11 @@ class ApiContractTest(unittest.TestCase):
                 "解析失败：该链接需要小红书登录 Cookie 校验，请在配置中提供有效 Cookie 后重试",
                 "XIAOHONGSHU_COOKIE_REQUIRED",
             ),
+            (
+                "https://mobile.yangkeduo.com/fyxmkief.html?feed_id=1",
+                "解析失败：该链接需要拼多多登录 Cookie 校验，请在配置中提供有效 Cookie 后重试",
+                "PINDUODUO_COOKIE_REQUIRED",
+            ),
         ]
         for url, message, error_code in cases:
             with self.subTest(url=url):

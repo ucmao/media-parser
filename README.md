@@ -3,7 +3,7 @@
 
 **基于 Python 的多平台媒体原生本地解析系统**
 
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Python Version](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/) [![Flask](https://img.shields.io/badge/Framework-Flask-000000?logo=flask&logoColor=white)](https://flask.palletsprojects.com/) [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](#-部署指南) [![Support](https://img.shields.io/badge/support-35%20Platforms-brightgreen.svg)](#-支持的平台矩阵)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Python Version](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/) [![Flask](https://img.shields.io/badge/Framework-Flask-000000?logo=flask&logoColor=white)](https://flask.palletsprojects.com/) [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](#-部署指南) [![Support](https://img.shields.io/badge/support-36%20Platforms-brightgreen.svg)](#-支持的平台矩阵)
 
 <p align="center">
 <a href="#-核心解析逻辑">解析逻辑</a> •
@@ -58,6 +58,7 @@
 | **夸克AI** | ✓ | ✓ | ✓ | ✓ | ✓ | | | |
 | **通义千问** | ✓ | ✓ | ✓ | ✓ | ✓ | | | |
 | **闲鱼** | | ✓ | ✓ | | ✓ | | | |
+| **拼多多** | ✓ | ✓ | ✓ | ✓ | ✓ | | | |
 | **Soul** | ✓ | ✓ | ✓ | ✓ | ✓ | | | |
 | **汽水音乐** | ✓ | ✓ | ✓ | ✓ | | ✓ | ✓ | |
 | **腾讯频道** | ✓ | ✓ | ✓ | ✓ | | | | |
@@ -95,11 +96,13 @@ cp .env.example .env
 然后在本地 `.env` 中按需填写对应配置：
 
 1. **抖音放映厅长视频 (`DOUYIN_COOKIE`)**：
-   * 日常 99% 的普通短视频、图文笔记、LivePhoto、原声音乐等**完全免 Cookie 匿名解析**；仅在解析放映厅/影视长片/演唱会大片（`/lvdetail/`）等强风控内容时才需要配置。该字段**不是个人账号登录信息**，也不包含个人账号隐私，仅为字节安全 SDK 的人机风控通行证。推荐精简配置：`s_v_web_id=verify_xxx; __ac_nonce=xxx;` 即可。
-2. **豆包视频无水印 (`DOUBAO_COOKIE`)**：
-   * 用于解密获取 1080P 原始纯净无水印视频（未配置时仍可解析公开图片与带水印预览切片）。建议至少包含 `sessionid_ss=xxx`。
-3. **微信视频号 (`YUANBAO_COOKIE`)**：
-   * 通过腾讯元宝接口提取视频号原始流。由于该接口绑定了腾讯元宝的账号会话（属于个人账号登录凭证），**强烈建议使用闲置小号**。建议至少包含 `hy_user=xxx; hy_token=xxx`。
+   * 仅在解析放映厅/影视长片/演唱会大片（`/lvdetail/`）等强风控内容时才需要配置。该字段**不是个人账号登录信息**，也不包含个人账号隐私，仅为字节安全 SDK 的人机风控通行证。推荐精简配置：`s_v_web_id=verify_xxx; __ac_nonce=xxx;` 即可。日常 99% 的普通短视频、图文笔记、LivePhoto、原声音乐等**完全免 Cookie 匿名解析**。
+2. **豆包视频 (`DOUBAO_COOKIE`)**：
+   * 用于解密获取 1080P 原始纯净无水印视频，推荐精简配置 `sessionid_ss=xxx`。未配置时仍可解析公开图片与带水印预览切片。
+3. **微信视频号视频 (`YUANBAO_COOKIE`)**：
+   * 通过腾讯元宝接口提取视频号原始流。由于该接口绑定了腾讯元宝的账号会话（属于个人账号登录凭证），**强烈建议使用闲置小号**。推荐精简配置 `hy_user=xxx; hy_token=xxx`。未配置时仅可获取除视频外的其他信息。
+4. **拼多多视频 (`PINDUODUO_COOKIE`)**：
+   * 用于多多视频原画解析。登录 `mobile.yangkeduo.com` 后，获取的完整 Cookie，推荐精简配置 `PDDAccessToken=xxx`。未配置时仍可免 Cookie 解析商品图与评价素材。
 
 ### Docker 部署（推荐）
 
@@ -143,17 +146,17 @@ media-parser/
 │   ├── architecture.md        # 系统分层架构与生命周期设计
 │   ├── reverse-guide.md       # 通用逆向方法论 (抓包/SSR/JS签名提取)
 │   ├── testing.md             # 完整测试规范与回归手册
-│   └── parsers/               # 35 个平台的独立逆向分析文档
+│   └── parsers/               # 35 份逆向分析文档，覆盖 36 个平台
 ├── src/                       # 核心业务逻辑
 │   ├── api/                   # RESTful API 路由 (/api/parse, /api/health)
 │   ├── web/                   # Demo 体验页与交互蓝图
-│   ├── parsers/               # 35 个平台解析器实现 (核心解析逻辑)
+│   ├── parsers/               # 35 个解析器模块，支持 36 个平台 (核心解析逻辑)
 │   └── parser_factory.py      # 工厂分发器 (解析器动态发现与自动注册)
 ├── utils/                     # 底层工具库与逆向支持
 │   ├── signer/                # JS 签名沙箱引擎 (a_bogus, x_bogus 等算法执行)
 │   └── web_fetcher.py         # 智能 URL 识别、重定向追踪与请求封装
 ├── tests/                     # 完备的双层测试体系
-│   ├── live_parser_samples.json # 35 平台真实多形态在线样本库
+│   ├── live_parser_samples.json # 36 平台真实多形态在线样本库
 │   ├── manual_verify_parsers.py # 命令行交互式冒烟与健康检查工具
 │   └── test_*_parser.py         # 各平台 Mock 自动化单元测试
 ├── static/ & templates/       # Web 演示页面前端静态资源
@@ -167,7 +170,7 @@ media-parser/
 * 🏗️ **[系统架构与生命周期设计](docs/architecture.md)**：分层设计、302 追踪与 `ParserFactory` 动态发现机制。
 * 🔍 **[通用逆向方法论](docs/reverse-guide.md)**：SSR 数据提取、H5 接口伪装、JS 签名沙箱及抓包 SOP。
 * 🧪 **[测试体系与回归验证](docs/testing.md)**：Pytest 单元测试、Mock 与线上真实样例回归。
-* 📚 **[平台逆向指南索引](docs/index.md)**：包含抖音、快手、小红书、B站等全部 35 个平台的独立技术文档。
+* 📚 **[平台逆向指南索引](docs/index.md)**：包含抖音、快手、小红书、B站等全部 36 个平台的技术文档。
 
 ---
 
@@ -176,7 +179,7 @@ media-parser/
 本项目拥有完备的测试体系，包括基础单元测试与基于真实样本库的在线回归测试：
 
 ### 1. 真实样本交互式验证
-样例测试库见 [`tests/live_parser_samples.json`](tests/live_parser_samples.json)，用于实时验证 35 个平台解析器的有效性与多形态覆盖：
+样例测试库见 [`tests/live_parser_samples.json`](tests/live_parser_samples.json)，用于实时验证 36 个平台的解析有效性与多形态覆盖：
 
 ```bash
 # 快速冒烟测试（每个平台测 1 条最具代表性的链接，极速完成健康检查）
