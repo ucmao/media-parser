@@ -1,5 +1,6 @@
 import importlib
 import pkgutil
+import threading
 from typing import Dict, Type
 import src.parsers
 from src.parsers.base_parser import BaseParser
@@ -8,6 +9,7 @@ from src.parsers.base_parser import BaseParser
 class ParserFactory:
     platform_to_parser: Dict[str, Type[BaseParser]] = {}
     _discovered = False
+    _lock = threading.Lock()
 
     @classmethod
     def register(cls, platform: str, parser_class: Type[BaseParser]):
@@ -16,14 +18,17 @@ class ParserFactory:
 
     @classmethod
     def _discover(cls):
-        """自动扫描并载入 src.parsers 下的所有解析器模块。"""
+        """自动扫描并载入 src.parsers 下的所有解析器模块（线程安全）。"""
         if cls._discovered:
             return
-        cls._discovered = True
-        package = src.parsers
-        for _, module_name, _ in pkgutil.iter_modules(package.__path__):
-            if module_name != "base_parser" and not module_name.startswith("_"):
-                importlib.import_module(f"src.parsers.{module_name}")
+        with cls._lock:
+            if cls._discovered:
+                return
+            package = src.parsers
+            for _, module_name, _ in pkgutil.iter_modules(package.__path__):
+                if module_name != "base_parser" and not module_name.startswith("_"):
+                    importlib.import_module(f"src.parsers.{module_name}")
+            cls._discovered = True
 
     @classmethod
     def get_parser_class(cls, platform: str):

@@ -291,7 +291,7 @@ class UrlParser:
                     preserved_params.append((key, value))
             if preserved_params:
                 address = f"{address}?{urlencode(preserved_params)}"
-        elif platform == "小云雀AI":
+        elif platform in ("红果短剧", "番茄短剧", "畅读短剧", "鱼跃短剧", "小云雀AI"):
             if parsed_url.query:
                 address = f"{address}?{parsed_url.query}"
         return address
@@ -302,6 +302,9 @@ class UrlParser:
             parsed_url = urlparse(url)
             query_params = parse_qs(parsed_url.query)
             # 尝试从查询参数中获取视频ID
+            match_vid = re.search(r'(?:["%22]|%22)?(?:vid|video_id|content_id|material_id)(?:["%22]|%22)?\s*(?:[:=]|%3A)\s*(?:["%22]|%22)?(\d{15,22})', url)
+            if match_vid:
+                return match_vid.group(1)
             params_share_id = query_params.get('shareId', [None])[0]
             if params_share_id:
                 return params_share_id

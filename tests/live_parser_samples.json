@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "description": "36 平台多形态全景自动化回归测试用例库 (涵盖短链/长链/图集/单视频/AI生成等)",
+  "description": "40 平台多形态全景自动化回归测试用例库 (涵盖短链/长链/图集/单视频/AI生成等)",
   "total_cases": 277,
   "cases": [
     {
@@ -34,7 +34,7 @@
     },
     {
       "platform": "今日头条",
-      "url": "https://m.toutiao.com/is/669xD9UIQfI/",
+      "url": "https://m.toutiao.com/is/fLrXD62Zo2U/",
       "media_types": [
         "video"
       ],
@@ -727,7 +727,7 @@
     },
     {
       "platform": "豆包",
-      "url": "https://www.doubao.com/thread/xnbBIGrn1n96FTExr",
+      "url": "https://www.doubao.com/thread/xQS14V3avgSHhYMUx",
       "pattern": "豆包其他页面 (thread/xnbBIGrn1n96FTExr)",
       "media_types": [
         "video"
@@ -1238,7 +1238,7 @@
     },
     {
       "platform": "闲鱼",
-      "url": "https://m.tb.cn/h.87xRPu7?tk=NTROTYyuVEO",
+      "url": "https://m.tb.cn/h.896PM0N?tk=5Vg4TdNSROA",
       "pattern": "闲鱼商品/分享短链 (m.tb.cn/h.87xRPu7)",
       "media_types": [
         "images"
@@ -1414,7 +1414,7 @@
     },
     {
       "platform": "皮皮虾",
-      "url": "https://h5.pipix.com/s/1kMlIILFkds/",
+      "url": "https://h5.pipix.com/s/2-kFjekOW5o/",
       "pattern": "h5.pipix.com 标准链接 (s/1kMlIILFkds)",
       "media_types": [
         "video"
@@ -4014,6 +4014,137 @@
         "author"
       ],
       "note": "2026-08 真实反馈验证: 《销量低的新能源，敢不敢买？》公众号视频"
+    },
+    {
+      "platform": "红果短剧",
+      "url": "https://novelquickapp.com/s/YlMu9l4vgE4/",
+      "pattern": "novelquickapp.com 短剧推广页",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title"
+      ],
+      "note": "2026-09 真实反馈验证: 番茄短剧推广页"
+    },
+    {
+      "platform": "畅读短剧",
+      "url": "https://changdunovel.com/t/byybBzZfKbg/",
+      "pattern": "changdunovel.com 短剧推广页",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title"
+      ],
+      "note": "2026-09 真实反馈验证: 畅读短剧推广页"
+    },
+    {
+      "platform": "鱼跃短剧",
+      "url": "https://kylin.hainanyuyue.com/s/bR1qzzEd1A0/",
+      "pattern": "kylin.hainanyuyue.com 短剧推广页",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title"
+      ],
+      "note": "2026-09 真实反馈验证: 鱼跃短剧推广页"
+    },
+    {
+      "platform": "番茄短剧",
+      "url": "https://zlink.fqnovel.com/dhVGe",
+      "pattern": "zlink.fqnovel.com 短剧/小说推广页",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "title"
+      ],
+      "note": "2026-09 真实反馈验证: 番茄短剧推广页"
+    },
+    {
+      "platform": "小红书",
+      "url": "https://www.xiaohongshu.com/discovery/item/6a74a4da000000003302c695?source=webshare&xhsshare=pc_web&xsec_token=ABLZYCRawSS5hFy9M-d8pm4LJgwD-S5NWsLB3i2OWgokE=&xsec_source=pc_share",
+      "pattern": "小红书视频笔记",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-09 用户补充: 小红书视频笔记"
+    },
+    {
+      "platform": "快手",
+      "url": "https://v.kuaishou.com/nnsTg7n9",
+      "pattern": "快手图文笔记",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "audio",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-09 用户补充: 快手图文笔记"
+    },
+    {
+      "platform": "快手",
+      "url": "https://v.kuaishou.com/KQEKHWoV",
+      "pattern": "快手实况素材",
+      "media_types": [
+        "images"
+      ],
+      "expected_fields": [
+        "images",
+        "audio",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-09 用户补充: 快手实况素材"
+    },
+    {
+      "platform": "视频号",
+      "url": "https://weixin.qq.com/sph/A6Sjrlfv6g",
+      "pattern": "视频号短链 (sph)",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-09 用户补充: 视频号短链"
+    },
+    {
+      "platform": "哔哩哔哩",
+      "url": "https://b23.tv/BV1GJ411x7h7",
+      "pattern": "B站 b23.tv/BV 短链",
+      "media_types": [
+        "video"
+      ],
+      "expected_fields": [
+        "video",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-09 用户补充: B站 b23.tv/BV 短链"
     }
   ]
 }

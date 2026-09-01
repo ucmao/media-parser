@@ -1,5 +1,12 @@
 {
   "DOMAIN_TO_NAME": {
+    "novelquickapp.com": "红果短剧",
+    "qznovel.com": "红果短剧",
+    "fqnovel.com": "番茄短剧",
+    "zlink.fqnovel.com": "番茄短剧",
+    "changdunovel.com": "畅读短剧",
+    "kylin.hainanyuyue.com": "鱼跃短剧",
+    "hainanyuyue.com": "鱼跃短剧",
     "www.xiaohongshu.com": "小红书",
     "xhslink.com": "小红书",
     "xhslink.cn": "小红书",
@@ -37,6 +44,8 @@
     "t.cn": "微博",
     "www.ixigua.com": "西瓜视频",
     "v.ixigua.com": "西瓜视频",
+    "m.ixigua.com": "西瓜视频",
+    "ixigua.com": "西瓜视频",
     "m.toutiao.com": "今日头条",
     "www.toutiao.com": "今日头条",
     "toutiao.com": "今日头条",

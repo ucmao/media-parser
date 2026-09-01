@@ -73,8 +73,8 @@ class WeiboParser(BaseParser):
             segment = match.group(1)
             return segment if segment.isdigit() else mid_to_id(segment)
             
-        # Mobile / PC status or detail URL, like: m.weibo.cn/status/4921612... or weibo.com/detail/5331959570240710
-        match = re.search(r'weibo\.(?:cn|com)/(?:status/|detail/|statuses/show\?id=)([a-zA-Z0-9]+)', self.real_url)
+        # Mobile / PC status or detail URL, like: m.weibo.cn/status/4921612... or weibo.com/detail/5331959570240710 or weibo.com/2/detail/5335826707778519
+        match = re.search(r'weibo\.(?:cn|com)/(?:\d+/)?(?:status/|detail/|statuses/show\?id=)([a-zA-Z0-9]+)', self.real_url)
         if match:
             segment = match.group(1)
             return segment if segment.isdigit() else mid_to_id(segment)

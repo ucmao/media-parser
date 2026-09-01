@@ -1,6 +1,7 @@
 """人工执行的真实链接解析验证工具；不参与 unittest 自动发现。"""
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import json
 from pathlib import Path
 import sys
@@ -71,10 +72,12 @@ def verify_case(case):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="一键多形态验证 34 平台真实分享链接")
+    ParserFactory._discover()
+    parser = argparse.ArgumentParser(description="一键多形态验证真实分享链接")
     parser.add_argument("--platform", action="append", help="仅验证指定平台；可重复传入")
     parser.add_argument("--list-missing", action="store_true", help="仅列出缺少链接的平台")
     parser.add_argument("--limit", type=int, default=0, help="限制每个平台运行的最大用例数 (默认全部)")
+    parser.add_argument("--workers", type=int, default=20, help="并发线程数 (默认 20，0 表示单线程顺序执行)")
     args = parser.parse_args()
 
     cases = load_cases()
@@ -87,7 +90,7 @@ def main():
     if args.list_missing:
         for case in cases:
             if not case.get("url"):
-                print(f"MISSING  {case['platform']}: {case['note']}")
+                print(f"MISSING  {case['platform']}: {case['note']}", flush=True)
         return
 
     if args.limit > 0:
@@ -100,22 +103,42 @@ def main():
                 limited_cases.append(case)
         cases = limited_cases
 
-    print(f"🧪 开始执行 34 平台自动化多形态链接验证 (共 {len(cases)} 条用例)...\n")
-    results = [verify_case(case) for case in cases]
-    for status, platform, pattern, detail, url in results:
-        status_tag = f"✅ {status}" if status == "PASSED" else (f"❌ {status}" if status == "FAILED" else f"⚪ {status}")
-        print(f"{status_tag:<10} [{platform:<6}] ({pattern[:25]}): {detail}")
+    platform_count = len(set(c["platform"] for c in cases))
+    print(f"🧪 开始执行 {platform_count} 平台自动化多形态链接验证 (共 {len(cases)} 条用例, 线程数: {args.workers if args.workers > 0 else 1})...\n", flush=True)
+    
+    results = []
+    if args.workers > 1:
+        with ThreadPoolExecutor(max_workers=args.workers) as executor:
+            future_to_case = {executor.submit(verify_case, case): case for case in cases}
+            for future in as_completed(future_to_case):
+                try:
+                    res = future.result()
+                except Exception as exc:
+                    c = future_to_case[future]
+                    res = ("FAILED", c["platform"], c.get("pattern", ""), f"{type(exc).__name__}: {exc}", c.get("url", ""))
+                results.append(res)
+                status, platform, pattern, detail, url = res
+                status_tag = f"✅ {status}" if status == "PASSED" else (f"❌ {status}" if status == "FAILED" else f"⚪ {status}")
+                print(f"{status_tag:<10} [{platform:<6}] ({pattern[:25]}): {detail}", flush=True)
+    else:
+        for case in cases:
+            res = verify_case(case)
+            results.append(res)
+            status, platform, pattern, detail, url = res
+            status_tag = f"✅ {status}" if status == "PASSED" else (f"❌ {status}" if status == "FAILED" else f"⚪ {status}")
+            print(f"{status_tag:<10} [{platform:<6}] ({pattern[:25]}): {detail}", flush=True)
 
     summary = {status: sum(1 for result in results if result[0] == status) for status in ("PASSED", "FAILED", "MISSING")}
-    print("\n" + "=" * 60)
-    print("📊 验证汇总：" + ", ".join(f"{key}={value}" for key, value in summary.items()))
+    print("\n" + "=" * 60, flush=True)
+    print("📊 验证汇总：" + ", ".join(f"{key}={value}" for key, value in summary.items()), flush=True)
     total = len(results)
     if total > 0:
         pass_rate = (summary['PASSED'] / total) * 100
-        print(f"🎯 整体通过率：{pass_rate:.1f}% ({summary['PASSED']}/{total})")
-    print("=" * 60)
+        print(f"🎯 整体通过率：{pass_rate:.1f}% ({summary['PASSED']}/{total})", flush=True)
+    print("=" * 60, flush=True)
 
 
 if __name__ == "__main__":
     main()
+
 
