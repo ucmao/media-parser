@@ -1,7 +1,10 @@
 import copy
 import json
 import os
+import random
 import re
+import threading
+import time
 import urllib.parse
 import urllib3
 import warnings
@@ -17,6 +20,44 @@ from utils.web_fetcher import UrlParser
 logger = get_logger(__name__)
 
 warnings.filterwarnings("ignore", category=urllib3.exceptions.InsecureRequestWarning)
+
+# 兜底 ttwid：动态申请失败时使用
+FALLBACK_TTWID = ('1%7CvDWCB8tYdKPbdOlqwNTkDPhizBaV9i91KjYLKJbqurg%7C1723536402'
+                  '%7C314e63000decb79f46b8ff255560b29f4d8c57352dad465b41977db4830b4c7e')
+
+# 抖音 /aweme/v1/web/ 系列接口位于 Argus 风控网关之后，会概率性返回
+# 403 "Blocked by ArgusSecurityPlugin Uifid Not Found"。实测同一个字节完全一致的请求
+# （相同 ttwid / msToken / a_bogus / Cookie / Session）也会在 200 与 403 之间随机跳变，
+# 历史样本中的单次通过率随时段波动；重试改善最终成功率，但不能证明已修复风控原因。
+# 这些观测也不能排除正确的服务端身份材料与签名的作用。
+def _get_env_int(key, default):
+    val = os.getenv(key, "").strip()
+    return int(val) if val.isdigit() else default
+
+
+def _get_env_float(key, default):
+    val = os.getenv(key, "").strip()
+    try:
+        return float(val) if val else default
+    except ValueError:
+        return default
+
+
+API_MAX_ATTEMPTS = max(1, _get_env_int("DOUYIN_API_MAX_ATTEMPTS", 8))
+# 请求过密会额外触发速率型拦截，重试之间使用紧凑的指数退避 + 随机抖动（单次上限 0.8s，避免图文重试总耗时过长）。
+RETRY_BASE_DELAY = _get_env_float("DOUYIN_RETRY_BASE_DELAY", 0.2)
+RETRY_MAX_DELAY = _get_env_float("DOUYIN_RETRY_MAX_DELAY", 0.8)
+
+# 移动端 Feed 核心接口配置：免 ArgusSecurityPlugin 门禁的主路径（常规视频测试中 0 次 403）
+ENABLE_MOBILE_FEED = (os.getenv("DOUYIN_ENABLE_MOBILE_FEED", "1") or "1").strip().lower() in ("1", "true", "yes", "on")
+MOBILE_FEED_ENDPOINTS = [
+    "https://api5-normal-c-hl.amemv.com/aweme/v1/feed/",
+    "https://aweme.snssdk.com/aweme/v1/feed/",
+]
+MOBILE_FEED_USER_AGENT = (
+    "com.ss.android.ugc.aweme/290101 (Linux; U; Android 10; zh_CN; Pixel 4; "
+    "Build/QQ3A.200805.001; Cronet/TTNetVersion:5f9037be 2023-01-13 QuicVersion:4668bb42 2022-11-21)"
+)
 
 
 @register_parser("抖音")
@@ -39,7 +80,7 @@ class DouyinParser(BaseParser):
         self.cookie = os.getenv("DOUYIN_COOKIE", "").strip()
         if self.cookie:
             self.headers['Cookie'] = self.cookie
-        self.ttwid = '1%7CvDWCB8tYdKPbdOlqwNTkDPhizBaV9i91KjYLKJbqurg%7C1723536402%7C314e63000decb79f46b8ff255560b29f4d8c57352dad465b41977db4830b4c7e'
+        self.ttwid = FALLBACK_TTWID
         self.webid = '7307457174287205926'
         self.is_music = bool(self.real_url and ('/music/' in self.real_url or '/share/music/' in self.real_url))
         self.is_collection = bool(self.real_url and ('/collection/' in self.real_url or '/mix/' in self.real_url or '/mix/detail/' in self.real_url))
@@ -51,7 +92,9 @@ class DouyinParser(BaseParser):
         self.album_id = q.get('album_id', [None])[0]
         if self.is_lvdetail and not self.ep_id and self.aweme_id:
             self.ep_id = self.aweme_id
-        self.fetch_html_content()
+        # 注意：不在此处预取网页 HTML。抖音 PC 端 /video/{id} 页面现已是纯客户端渲染的空壳
+        # （固定 72KB，不含 __UNIVERSAL_DATA_FOR_REHYDRATION__ / aweme_detail / 标题），
+        # 预取既拿不到数据，又多消耗一次请求配额并增加整体延迟。改为仅在 API 全部失败时惰性拉取。
         self.data = self.fetch_html_data()
 
     def fetch_html_content(self):
@@ -78,42 +121,153 @@ class DouyinParser(BaseParser):
             self.html_content = ""
 
     _TTWID_CACHE = None
+    _TTWID_LOCK = threading.Lock()
 
     def _get_cookie_header(self, ttwid=None):
-        """生成带自定义 Cookie 与 ttwid 的完整 Cookie 字符串"""
+        """
+        生成完整 Cookie 字符串：用户自配 Cookie + ttwid + Session 中已有的抖音 Cookie。
+
+        手工设置 Cookie 头会阻止 requests 自动合并 Session Cookie，因此这里显式把
+        Session 里已取得的 __ac_nonce 等补回去，避免丢掉服务端刚下发的会话状态。
+        """
+        parts = []
+        seen = set()
         if self.cookie:
-            if ttwid and 'ttwid=' not in self.cookie:
-                return f"{self.cookie}; ttwid={ttwid}"
-            return self.cookie
-        return f"ttwid={ttwid}" if ttwid else ""
+            parts.append(self.cookie)
+            seen = {kv.split('=', 1)[0].strip() for kv in self.cookie.split(';') if '=' in kv}
+        if ttwid and 'ttwid' not in seen:
+            parts.append(f"ttwid={ttwid}")
+            seen.add('ttwid')
+        for name in ('__ac_nonce', '__ac_signature', 's_v_web_id', 'msToken', 'UIFID'):
+            if name in seen:
+                continue
+            # 同名 Cookie 可来自不同域，不能直接 .get(name)（可能冲突或串域）。
+            value = next((c.value for c in self.session.cookies
+                          if c.name == name and not c.is_expired()
+                          and c.domain in ('', 'douyin.com', '.douyin.com', 'www.douyin.com')
+                          and c.path == '/'), None)
+            if value:
+                parts.append(f"{name}={value}")
+                seen.add(name)
+        return '; '.join(parts)
 
     def _get_ttwid(self):
         """
-        动态获取 ttwid，增加了类级别的缓存以减少重复请求
+        动态获取 ttwid，使用带锁的类级缓存以减少重复请求。
+
+        注意：不要在接口返回 403 时清空该缓存。实测更换 ttwid（乃至整个 Session）
+        对 Argus 概率性拦截没有可测量的影响，churn 只会额外浪费一次请求配额。
         """
         if DouyinParser._TTWID_CACHE:
             return DouyinParser._TTWID_CACHE
 
-        try:
-            url = "https://ttwid.bytedance.com/ttwid/union/register/"
-            data = {
-                "region": "cn",
-                "aid": 6383,
-                "need_t": 1,
-                "service": "www.douyin.com",
-                "migrate_priority": 0,
-                "cb_url_protocol": "https",
-                "domain": ".douyin.com"
-            }
-            # 使用 instance session
-            resp = self.session.post(url, data=json.dumps(data), timeout=5)
-            ttwid = resp.cookies.get('ttwid')
-            if ttwid:
-                DouyinParser._TTWID_CACHE = ttwid
-            return ttwid
-        except Exception as e:
-            logger.warning(f"Failed to get dynamic ttwid: {e}")
+        with DouyinParser._TTWID_LOCK:
+            if DouyinParser._TTWID_CACHE:
+                return DouyinParser._TTWID_CACHE
+            try:
+                url = "https://ttwid.bytedance.com/ttwid/union/register/"
+                data = {
+                    "region": "cn",
+                    "aid": 6383,
+                    "need_t": 1,
+                    "service": "www.douyin.com",
+                    "migrate_priority": 0,
+                    "cb_url_protocol": "https",
+                    "domain": ".douyin.com"
+                }
+                # 使用 instance session
+                resp = self.session.post(url, data=json.dumps(data), timeout=5)
+                ttwid = resp.cookies.get('ttwid')
+                if ttwid:
+                    DouyinParser._TTWID_CACHE = ttwid
+                return ttwid
+            except Exception as e:
+                logger.warning(f"Failed to get dynamic ttwid: {e}")
+                return None
+
+    def _request_api_with_retry(self, base_api, referer, validate, max_attempts=None):
+        """
+        带指数退避 + 抖动的抖音 Web 接口请求，用于抵御 Argus 网关的概率性 403。
+
+        base_api: 不含 msToken 与 a_bogus 的完整接口地址（已含 `?` 及其余查询参数）。
+        validate: 接收解析后的 JSON，返回 True 表示数据可用。
+        每次重试都会重新生成 msToken 与 a_bogus 签名。
+
+        注意不要往 base_api 里补"浏览器指纹"查询参数：实测整套指纹参数对通过率没有可测量
+        提升（n=32 时 59% vs 基线 66%），而其中的 webid 会让接口 100% 失败（0/16）。
+        """
+        attempts = API_MAX_ATTEMPTS if max_attempts is None else max_attempts
+        last_status = None
+        for attempt in range(attempts):
+            ttwid = self._get_ttwid() or FALLBACK_TTWID
+            headers = copy.deepcopy(self.headers)
+            headers['Referer'] = referer
+            headers['Cookie'] = self._get_cookie_header(ttwid)
+
+            api_url = f"{base_api}&msToken={self.signer.get_ms_token()}"
+            try:
+                api_url = f"{api_url}&a_bogus={self.signer.get_abogus(api_url, self.signer.user_agent)}"
+            except Exception as e:
+                logger.warning(f"生成 a_bogus 签名异常: {e}")
+                return None
+
+            try:
+                response = self.session.get(api_url, headers=headers, verify=False, timeout=8)
+                last_status = response.status_code
+                if last_status == 200 and response.text:
+                    data = response.json()
+                    if validate(data):
+                        return data
+            except Exception as e:
+                logger.debug(f"请求抖音接口异常 (第 {attempt + 1}/{attempts} 次): {e}")
+
+            if attempt < attempts - 1:
+                # 指数退避 + 抖动（抖动按退避时长等比缩放，便于测试中整体关闭）
+                delay = min(RETRY_BASE_DELAY * (2 ** attempt), RETRY_MAX_DELAY)
+                if delay > 0:
+                    time.sleep(delay * random.uniform(1.0, 1.5))
+
+        logger.warning(f"抖音接口重试 {attempts} 次仍未取得有效数据 "
+                       f"(last status={last_status}): {base_api.split('?')[0]}")
+        # 全部重试耗尽后才让下一次解析换一个 ttwid，避免正常路径上的无谓 churn
+        DouyinParser._TTWID_CACHE = None
+        return None
+
+    def _request_mobile_feed(self, aweme_id):
+        """
+        通过抖音移动端 Feed 核心接口获取作品详情。
+
+        该接口不经过 PC Web 端的 ArgusSecurityPlugin 门禁，无需 uifid、
+        a_bogus 签名与 Cookie，响应极快且对常规视频保持高可用（测试中 0 次 403）。
+        如果主节点异常或超时，自动尝试备用 snssdk 节点。
+        """
+        if not aweme_id or not ENABLE_MOBILE_FEED:
             return None
+
+        headers = {
+            'User-Agent': MOBILE_FEED_USER_AGENT,
+            'Accept': 'application/json, text/plain, */*',
+        }
+        params = {
+            'aweme_id': str(aweme_id),
+            'aid': '1128',
+        }
+
+        for endpoint in MOBILE_FEED_ENDPOINTS:
+            try:
+                resp = self.session.get(endpoint, params=params, headers=headers, timeout=4, verify=False)
+                if resp.status_code == 200 and resp.text:
+                    data = resp.json()
+                    aweme_list = data.get('aweme_list') or []
+                    matched = next((item for item in aweme_list if str(item.get('aweme_id')) == str(aweme_id)), None)
+                    if matched:
+                        logger.info(f"Successfully fetched Douyin video detail via mobile feed API: {aweme_id}")
+                        return {"aweme_detail": matched}
+            except Exception as e:
+                logger.debug(f"Mobile feed API failed on {endpoint}: {e}")
+                continue
+
+        return None
 
     @staticmethod
     def _find_music_info(data, target_id=None):
@@ -348,22 +502,15 @@ class DouyinParser(BaseParser):
         """
         # 0. 针对音乐 / 原声独立链接 (/music/)
         if self.is_music:
-            for attempt in range(2):
-                ttwid = self._get_ttwid() or '1%7CvDWCB8tYdKPbdOlqwNTkDPhizBaV9i91KjYLKJbqurg%7C1723536402%7C314e63000decb79f46b8ff255560b29f4d8c57352dad465b41977db4830b4c7e'
-                music_api = f"https://www.douyin.com/aweme/v1/web/music/detail/?music_id={self.aweme_id}&device_platform=webapp&aid=6383&channel=channel_pc_web&msToken={self.ms_token}"
-                new_headers = copy.deepcopy(self.headers)
-                new_headers['Referer'] = f"https://www.douyin.com/music/{self.aweme_id}"
-                new_headers['Cookie'] = f"ttwid={ttwid}"
-                try:
-                    abogus = self.signer.get_abogus(music_api, self.signer.user_agent)
-                    url = f"{music_api}&a_bogus={abogus}"
-                    response = self.session.get(url, headers=new_headers, verify=False, timeout=5)
-                    if response.status_code == 200 and response.text:
-                        data = response.json()
-                        if data.get('music_info'):
-                            return data
-                except Exception as e:
-                    logger.debug(f"抖音音乐 API 异常: {e}")
+            music_api = (f"https://www.douyin.com/aweme/v1/web/music/detail/?music_id={self.aweme_id}"
+                         "&device_platform=webapp&aid=6383&channel=channel_pc_web")
+            data = self._request_api_with_retry(
+                music_api,
+                referer=f"https://www.douyin.com/music/{self.aweme_id}",
+                validate=lambda d: bool(d.get('music_info')),
+            )
+            if data:
+                return data
 
             if not self.html_content:
                 self.fetch_html_content()
@@ -375,25 +522,18 @@ class DouyinParser(BaseParser):
 
         # 0. 针对合集链接 (/collection/ 或 /mix/)
         if self.is_collection:
-            for attempt in range(2):
-                ttwid = self._get_ttwid() or '1%7CvDWCB8tYdKPbdOlqwNTkDPhizBaV9i91KjYLKJbqurg%7C1723536402%7C314e63000decb79f46b8ff255560b29f4d8c57352dad465b41977db4830b4c7e'
-                mix_api = f"https://www.douyin.com/aweme/v1/web/mix/aweme/?mix_id={self.aweme_id}&cursor=0&count=20&device_platform=webapp&aid=6383&channel=channel_pc_web&msToken={self.ms_token}"
-                new_headers = copy.deepcopy(self.headers)
-                new_headers['Referer'] = f"https://www.douyin.com/collection/{self.aweme_id}"
-                new_headers['Cookie'] = self._get_cookie_header(ttwid)
-                try:
-                    abogus = self.signer.get_abogus(mix_api, self.signer.user_agent)
-                    url = f"{mix_api}&a_bogus={abogus}"
-                    response = self.session.get(url, headers=new_headers, verify=False, timeout=5)
-                    if response.status_code == 200 and response.text:
-                        data = response.json()
-                        aweme_list = data.get('aweme_list', [])
-                        if aweme_list or data.get('mix_info'):
-                            if 'aweme_detail' not in data and aweme_list:
-                                data['aweme_detail'] = aweme_list[0]
-                            return data
-                except Exception as e:
-                    logger.debug(f"抖音合集 API 异常: {e}")
+            mix_api = (f"https://www.douyin.com/aweme/v1/web/mix/aweme/?mix_id={self.aweme_id}"
+                       "&cursor=0&count=20&device_platform=webapp&aid=6383&channel=channel_pc_web")
+            data = self._request_api_with_retry(
+                mix_api,
+                referer=f"https://www.douyin.com/collection/{self.aweme_id}",
+                validate=lambda d: bool(d.get('aweme_list') or d.get('mix_info')),
+            )
+            if data:
+                aweme_list = data.get('aweme_list') or []
+                if 'aweme_detail' not in data and aweme_list:
+                    data['aweme_detail'] = aweme_list[0]
+                return data
 
             if not self.html_content:
                 self.fetch_html_content()
@@ -407,32 +547,26 @@ class DouyinParser(BaseParser):
         if self.is_lvdetail:
             ep_id = self.ep_id or self.aweme_id
             album_id = self.album_id or self.aweme_id
-            for attempt in range(2):
-                ttwid = self._get_ttwid() or '1%7CvDWCB8tYdKPbdOlqwNTkDPhizBaV9i91KjYLKJbqurg%7C1723536402%7C314e63000decb79f46b8ff255560b29f4d8c57352dad465b41977db4830b4c7e'
-                candidate_apis = [
-                    f"https://api5-normal-c-hl.amemv.com/aweme/v1/lvideo/detail/?episode_id={ep_id}&album_id={album_id}&aid=1128",
-                    f"https://www.douyin.com/aweme/v1/web/series/aweme/?series_id={album_id}&cursor=0&count=20&device_platform=webapp&aid=6383&channel=channel_pc_web&msToken={self.ms_token}",
-                    f"https://www.douyin.com/aweme/v1/web/lvideo/aweme/?episode_id={ep_id}&device_platform=webapp&aid=6383&channel=channel_pc_web&msToken={self.ms_token}"
-                ]
-                new_headers = copy.deepcopy(self.headers)
-                new_headers['Referer'] = f"https://www.douyin.com/lvdetail/{ep_id}"
-                new_headers['Cookie'] = self._get_cookie_header(ttwid)
+            referer = f"https://www.douyin.com/lvdetail/{ep_id}"
 
-                for api_url in candidate_apis:
-                    try:
-                        if 'douyin.com' in api_url:
-                            abogus = self.signer.get_abogus(api_url, self.signer.user_agent)
-                            final_url = f"{api_url}&a_bogus={abogus}"
-                        else:
-                            final_url = api_url
-                        response = self.session.get(final_url, headers=new_headers, verify=False, timeout=5)
-                        if response.status_code == 200 and response.text:
-                            data = response.json()
-                            if data.get('status_code') == 0:
-                                if data.get('lvideo_detail') or data.get('episode_info') or data.get('album_info') or data.get('aweme_list') or data.get('episode_list'):
-                                    return data
-                    except Exception as e:
-                        logger.debug(f"抖音长视频 API 异常: {e}")
+            def _lv_valid(d):
+                return d.get('status_code') == 0 and bool(
+                    d.get('lvideo_detail') or d.get('episode_info') or d.get('album_info')
+                    or d.get('aweme_list') or d.get('episode_list'))
+
+            candidate_apis = [
+                (f"https://www.douyin.com/aweme/v1/web/series/aweme/?series_id={album_id}"
+                 "&cursor=0&count=20&device_platform=webapp&aid=6383&channel=channel_pc_web"),
+                (f"https://www.douyin.com/aweme/v1/web/lvideo/aweme/?episode_id={ep_id}"
+                 "&device_platform=webapp&aid=6383&channel=channel_pc_web"),
+            ]
+            for api_url in candidate_apis:
+                # 多候选接口逐个尝试，单个接口分摊一半重试预算，避免最坏情况累积过长
+                data = self._request_api_with_retry(
+                    api_url, referer=referer, validate=_lv_valid,
+                    max_attempts=max(2, API_MAX_ATTEMPTS // 2))
+                if data:
+                    return data
 
             if not self.html_content:
                 self.fetch_html_content()
@@ -442,48 +576,24 @@ class DouyinParser(BaseParser):
                     return ssr_data
             return None
 
-        # 1. 尝试使用缓存的 ttwid 调用普通作品 API，并在失败时重试一次（刷新 ttwid）
-        for attempt in range(2):
-            ttwid = self._get_ttwid()
-            if not ttwid:
-                ttwid = '1%7CvDWCB8tYdKPbdOlqwNTkDPhizBaV9i91KjYLKJbqurg%7C1723536402%7C314e63000decb79f46b8ff255560b29f4d8c57352dad465b41977db4830b4c7e'
+        # 1. 优先尝试移动端 Feed 核心接口（主路径：免 Argus 门禁、零 403、响应毫秒级）
+        mobile_data = self._request_mobile_feed(self.aweme_id)
+        if mobile_data:
+            return mobile_data
 
-            referer_url = f"https://www.douyin.com/video/{self.aweme_id}?previous_page=web_code_link"
-            play_url = f"https://www.douyin.com/aweme/v1/web/aweme/detail/?device_platform=webapp&aid=6383&channel=channel_pc_web&aweme_id={self.aweme_id}&msToken={self.ms_token}"
-            
-            new_headers = copy.deepcopy(self.headers)
-            new_headers['Referer'] = referer_url
-            new_headers['Cookie'] = self._get_cookie_header(ttwid)
-            
-            try:
-                abogus = self.signer.get_abogus(play_url, self.signer.user_agent)
-                url = f"{play_url}&a_bogus={abogus}"
-            except Exception as e:
-                logger.warning(f"生成 a_bogus 签名异常: {e}")
-                break
+        # 2. 兜底路径：当为图文作品（Note）或移动端 Feed 未收录时，回退到 Web API 并进行退避重试
+        page_type = "note" if (self.real_url and ('/note/' in self.real_url or '/slides/' in self.real_url)) else "video"
+        detail_api = ("https://www.douyin.com/aweme/v1/web/aweme/detail/?device_platform=webapp"
+                      f"&aid=6383&channel=channel_pc_web&aweme_id={self.aweme_id}")
+        data = self._request_api_with_retry(
+            detail_api,
+            referer=f"https://www.douyin.com/{page_type}/{self.aweme_id}?previous_page=web_code_link",
+            validate=lambda d: bool(d.get('aweme_detail')),
+        )
+        if data:
+            return data
 
-            try:
-                response = self.session.get(url, headers=new_headers, verify=False, timeout=5)
-                if response.status_code == 200 and response.text:
-                    data = response.json()
-                    # 如果返回结果中包含核心字段，说明 API 抓取成功
-                    if data.get('aweme_detail'):
-                        return data
-                    if attempt == 0:
-                        DouyinParser._TTWID_CACHE = None
-                        continue
-                else:
-                    if attempt == 0:
-                        DouyinParser._TTWID_CACHE = None
-                        continue
-                    logger.warning(f"获取抖音视频详情失败: Status={response.status_code}")
-            except Exception as e:
-                logger.error(f"请求抖音详情接口异常: {e}")
-                if attempt == 0:
-                    DouyinParser._TTWID_CACHE = None
-                    continue
-
-        # 2. 多级容灾降级：当 API 失败时，从页面 SSR HTML 提取数据
+        # 3. 多级容灾降级：当 API 失败时，从页面 SSR HTML 提取数据
         logger.info(f"抖音 a_bogus API 未返回有效详情，触发 SSR HTML 兜底解析: {self.real_url}")
         if not self.html_content:
             self.fetch_html_content()
@@ -1098,5 +1208,4 @@ class DouyinParser(BaseParser):
         except Exception as e:
             logger.warning(f"Failed to parse image list: {e}")
             return []
-
 

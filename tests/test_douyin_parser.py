@@ -2,10 +2,20 @@ import json
 import unittest
 import urllib.parse
 from unittest.mock import Mock, patch
+from src.parsers import douyin_parser as douyin_module
 from src.parsers.douyin_parser import DouyinParser
 
 
 class DouyinParserTest(unittest.TestCase):
+    def setUp(self):
+        # 生产代码在 403 重试之间会退避 sleep；单测里去掉退避以免整个用例集变慢
+        no_backoff = patch.multiple(douyin_module, RETRY_BASE_DELAY=0, RETRY_MAX_DELAY=0)
+        no_backoff.start()
+        self.addCleanup(no_backoff.stop)
+        no_network = patch.object(DouyinParser, '_get_ttwid', return_value='test-ttwid')
+        no_network.start()
+        self.addCleanup(no_network.stop)
+
     def make_parser(self, data=None):
         with patch.object(DouyinParser, "fetch_html_content", return_value="<html></html>"):
             with patch.object(DouyinParser, "fetch_html_data", return_value=data or {}):
@@ -645,6 +655,70 @@ class DouyinParserTest(unittest.TestCase):
         self.assertEqual(parser.get_title_content(), "【放映厅】SSR放映厅电影 - 正片")
         self.assertEqual(parser.get_real_video_url(), "http://origin.douyin.com/ssr_movie.mp4")
         self.assertEqual(parser.get_cover_photo_url(), "http://origin.douyin.com/ssr_poster.jpg")
+
+    def test_mobile_feed_direct_success(self):
+        aweme_id = "7677522557314197114"
+        feed_payload = {
+            "status_code": 0,
+            "aweme_list": [
+                {
+                    "aweme_id": aweme_id,
+                    "desc": "移动端Feed测试视频",
+                    "video": {
+                        "bit_rate": [
+                            {"bit_rate": 2000000, "is_h265": 0, "play_addr": {"url_list": ["http://cdn.douyin.com/feed_v1.mp4"]}}
+                        ]
+                    }
+                }
+            ]
+        }
+        mock_resp = Mock(status_code=200, text=json.dumps(feed_payload))
+        mock_resp.json.return_value = feed_payload
+
+        with patch("requests.Session.get", return_value=mock_resp) as mock_get:
+            with patch.object(DouyinParser, "_request_api_with_retry") as mock_web_api:
+                parser = DouyinParser(f"https://www.douyin.com/video/{aweme_id}")
+                self.assertIsNotNone(parser.data)
+                self.assertIn("aweme_detail", parser.data)
+                self.assertEqual(parser.data["aweme_detail"]["desc"], "移动端Feed测试视频")
+                self.assertEqual(parser.get_real_video_url(), "http://cdn.douyin.com/feed_v1.mp4")
+                # 命中移动端 Feed 后，不应再调用 Web API
+                mock_web_api.assert_not_called()
+
+    def test_mobile_feed_failover_to_secondary(self):
+        aweme_id = "7677522557314197114"
+        feed_payload = {
+            "status_code": 0,
+            "aweme_list": [{"aweme_id": aweme_id, "desc": "备用节点视频"}]
+        }
+        fail_resp = Mock(status_code=502, text="Bad Gateway")
+        succ_resp = Mock(status_code=200, text=json.dumps(feed_payload))
+        succ_resp.json.return_value = feed_payload
+
+        with patch("requests.Session.get", side_effect=[fail_resp, succ_resp]) as mock_get:
+            parser = DouyinParser(f"https://www.douyin.com/video/{aweme_id}")
+            self.assertIsNotNone(parser.data)
+            self.assertEqual(parser.data["aweme_detail"]["desc"], "备用节点视频")
+            self.assertEqual(mock_get.call_count, 2)
+
+    def test_mobile_feed_fallback_to_web_api(self):
+        aweme_id = "7681860997179940209"
+        # 移动端 Feed 未包含目标 ID（如 Note 图文）
+        feed_payload = {"status_code": 0, "aweme_list": [{"aweme_id": "other_id"}]}
+        mock_feed_resp = Mock(status_code=200, text=json.dumps(feed_payload))
+        mock_feed_resp.json.return_value = feed_payload
+
+        web_detail_payload = {
+            "status_code": 0,
+            "aweme_detail": {"aweme_id": aweme_id, "desc": "Web API 兜底图文"}
+        }
+
+        with patch.object(DouyinParser, "_request_mobile_feed", return_value=None):
+            with patch.object(DouyinParser, "_request_api_with_retry", return_value=web_detail_payload) as mock_web_api:
+                parser = DouyinParser(f"https://www.douyin.com/note/{aweme_id}")
+                self.assertIsNotNone(parser.data)
+                self.assertEqual(parser.data["aweme_detail"]["desc"], "Web API 兜底图文")
+                mock_web_api.assert_called_once()
 
 
 if __name__ == "__main__":

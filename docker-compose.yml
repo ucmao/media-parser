@@ -15,8 +15,10 @@ services:
     volumes:
       # 将宿主机上的日志映射，便于容器重建后保留日志和排查问题
       - ./logs:/app/logs
-    # 设置容器内的时区为本地时区
+    # 设置容器内的时区为本地时区与各平台 Cookie
     environment:
       - TZ=Asia/Shanghai
+      - DOUYIN_COOKIE=${DOUYIN_COOKIE:-}
       - DOUBAO_COOKIE=${DOUBAO_COOKIE:-}
       - YUANBAO_COOKIE=${YUANBAO_COOKIE:-}
+      - PINDUODUO_COOKIE=${PINDUODUO_COOKIE:-}
