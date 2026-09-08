@@ -109,7 +109,7 @@ def export_logs():
     def generate():
         writer = csv.writer(_CsvRowBuffer())
         yield "\ufeff"
-        yield writer.writerow(("时间", "客户", "Key Prefix", "平台", "请求路径", "脱敏 URL", "状态码", "耗时（毫秒）", "错误码"))
+        yield writer.writerow(("时间", "客户", "Key", "平台", "请求路径", "请求 URL", "状态码", "耗时（毫秒）", "错误码"))
         cursor = get_db().execute(
             "SELECT l.*, u.username, k.key_prefix FROM request_logs l "
             "LEFT JOIN users u ON u.id=l.user_id LEFT JOIN api_keys k ON k.id=l.api_key_id "
@@ -119,7 +119,7 @@ def export_logs():
             for row in rows:
                 yield writer.writerow(tuple(_safe_csv_cell(value) for value in (
                     format_log_time(row["created_at"]), row["username"] or "在线体验",
-                    row["key_prefix"] or "", row["platform"] or "", row["path"],
+                    f"{row['key_prefix']}••••••••••••" if row["key_prefix"] else "", row["platform"] or "", row["path"],
                     row["input_url"] or "", row["status_code"], row["duration_ms"],
                     row["error_code"] or "",
                 )))
@@ -294,7 +294,7 @@ def create_key():
 
     raw_key = generate_api_key()
     key_hash = hash_api_key(raw_key)
-    key_prefix = raw_key[:7]
+    key_prefix = raw_key[:11]
 
     db.execute(
         "INSERT INTO api_keys(user_id, name, key_hash, key_prefix, qps_limit, created_at) VALUES(?,?,?,?,?,?)",

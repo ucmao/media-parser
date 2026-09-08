@@ -33,14 +33,26 @@
                 </div>
                 <div class="field">
                     <label>管理员密码 <span class="muted">(至少 8 位)</span></label>
-                    <input name="password" type="password" minlength="8" placeholder="请输入高强度管理员密码" required>
+                    <div class="password-group">
+                        <input name="password" type="password" minlength="8" placeholder="请输入高强度管理员密码" required>
+                        <button type="button" class="password-toggle-btn" aria-label="切换密码可见性" title="显示密码" onclick="togglePasswordVisibility(this)">
+                            <svg class="icon-eye" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <svg class="icon-eye-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                        </button>
+                    </div>
                 </div>
                 <div class="field">
                     <label>确认管理员密码</label>
-                    <input name="confirm_password" type="password" minlength="8" placeholder="请再次输入管理员密码" required>
+                    <div class="password-group">
+                        <input name="confirm_password" type="password" minlength="8" placeholder="请再次输入管理员密码" required>
+                        <button type="button" class="password-toggle-btn" aria-label="切换密码可见性" title="显示密码" onclick="togglePasswordVisibility(this)">
+                            <svg class="icon-eye" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <svg class="icon-eye-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                        </button>
+                    </div>
                 </div>
                 <div style="margin-top:24px">
-                    <button type="submit" class="btn btn-primary btn-block" style="height:40px;font-size:14px">立即创建超级管理员</button>
+                    <button type="submit" class="btn btn-primary btn-block" style="height:42px;font-size:14px">立即创建超级管理员</button>
                 </div>
             </form>
         </div>
@@ -53,4 +65,26 @@
         </div>
     </div>
 </main>
+
+<script>
+function togglePasswordVisibility(btn) {
+    const group = btn.closest('.password-group');
+    if (!group) return;
+    const input = group.querySelector('input');
+    const eye = btn.querySelector('.icon-eye');
+    const eyeOff = btn.querySelector('.icon-eye-off');
+    if (!input) return;
+    if (input.type === 'password') {
+        input.type = 'text';
+        if (eye) eye.style.display = 'none';
+        if (eyeOff) eyeOff.style.display = 'block';
+        btn.setAttribute('title', '隐藏密码');
+    } else {
+        input.type = 'password';
+        if (eye) eye.style.display = 'block';
+        if (eyeOff) eyeOff.style.display = 'none';
+        btn.setAttribute('title', '显示密码');
+    }
+}
+</script>
 {% endblock %}

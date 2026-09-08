@@ -275,11 +275,10 @@
                     <button type="button" class="btn btn-primary btn-small"
                         onclick="navigator.clipboard.writeText('{{ new_api_key }}'); showToast('已复制完整 API Key', 'success')">复制密钥</button>
                     <button type="button" class="btn btn-small"
-                        onclick="navigator.clipboard.writeText('{{ request.url_root }}api/v1/parse?key={{ new_api_key }}&url=YOUR_URL'); showToast('已复制测试 URL', 'success')">复制
-                        GET
-                        URL</button>
+                        onclick="navigator.clipboard.writeText((window.location.origin || '{{ api_base_url() }}').replace(/\/$/, '') + '/api/v1/parse?key={{ new_api_key }}&url=YOUR_URL'); showToast('已复制测试 URL', 'success')">复制
+                        GET URL</button>
                     <button type="button" class="btn btn-small"
-                        onclick="navigator.clipboard.writeText('curl -H &quot;Authorization: Bearer {{ new_api_key }}&quot; &quot;{{ request.url_root }}api/v1/parse?url=YOUR_URL&quot;'); showToast('已复制 cURL 命令', 'success')">复制
+                        onclick="navigator.clipboard.writeText('curl -H &quot;Authorization: Bearer {{ new_api_key }}&quot; &quot;' + (window.location.origin || '{{ api_base_url() }}').replace(/\/$/, '') + '/api/v1/parse?url=YOUR_URL&quot;'); showToast('已复制 cURL 命令', 'success')">复制
                         cURL 命令</button>
                 </div>
 
@@ -323,7 +322,7 @@
                     <thead>
                         <tr>
                             <th style="width:20%">密钥名称</th>
-                            <th style="width:28%">Key 前缀</th>
+                            <th style="width:28%">Key</th>
                             <th style="width:24%">最后使用时间</th>
                             <th style="width:12%">开关</th>
                             <th style="width:16%">操作</th>
@@ -468,6 +467,10 @@
                     if (e.target === em) closePortalEditKeyModal();
                 });
             }
+            const origin = (window.location.origin || '').replace(/\/$/, '') + '/';
+            document.querySelectorAll('.api-base-url').forEach(el => {
+                el.textContent = origin;
+            });
         });
     </script>
 
@@ -476,10 +479,10 @@
         <section class="card">
             <h2>开发者文档</h2>
             <p class="muted">推荐在正式生产项目中使用 Authorization 请求头传参。</p>
-            <pre class="code">GET {{ request.url_root }}api/v1/parse?url=YOUR_URL
+            <pre class="code">GET <span class="api-base-url">{{ api_base_url() }}</span>api/v1/parse?url=YOUR_URL
 Authorization: Bearer mp_xxxxxxxxx</pre>
             <p class="muted" style="font-size:13px;margin-top:14px">小白兼容写法（直接放入 URL 参数）：</p>
-            <pre class="code">{{ request.url_root }}api/v1/parse?key=mp_xxxxxxxxx&amp;url=YOUR_URL</pre>
+            <pre class="code"><span class="api-base-url">{{ api_base_url() }}</span>api/v1/parse?key=mp_xxxxxxxxx&amp;url=YOUR_URL</pre>
             <p class="muted" style="font-size:12px;margin-top:10px;display:flex;gap:6px;align-items:flex-start"><svg
                     class="app-icon" style="width:15px;height:15px;flex:none;margin-top:1px" aria-hidden="true">
                     <use href="{{ url_for('static', filename='icons.svg') }}#icon-lightbulb"></use>
@@ -495,7 +498,7 @@ Authorization: Bearer mp_xxxxxxxxx</pre>
             <div class="row between" style="align-items:center;margin-bottom:12px;gap:12px;flex-wrap:wrap">
                 <div>
                     <h2>请求日志</h2>
-                    <span class="muted">仅显示您的调用记录；链接中的敏感参数已脱敏，日志永久保存，CSV 可导出全部记录。</span>
+                    <span class="muted">仅显示您的调用记录，日志永久保存，CSV 可导出全部记录。</span>
                 </div>
                 <a class="btn btn-secondary" href="{{ url_for('portal.export_logs') }}">导出 CSV</a>
             </div>
@@ -505,9 +508,9 @@ Authorization: Bearer mp_xxxxxxxxx</pre>
                         <tr>
                             <th style="white-space:nowrap;width:160px">时间</th>
                             <th style="white-space:nowrap;width:100px">平台</th>
-                            <th>脱敏 URL</th>
-                            <th style="white-space:nowrap;width:70px">状态</th>
-                            <th style="white-space:nowrap;width:90px">耗时</th>
+                            <th>请求 URL</th>
+                            <th style="white-space:nowrap;width:80px;text-align:right">状态</th>
+                            <th style="white-space:nowrap;width:100px;text-align:right">耗时</th>
                             <th style="white-space:nowrap;min-width:160px">错误码</th>
                         </tr>
                     </thead>
@@ -522,9 +525,9 @@ Authorization: Bearer mp_xxxxxxxxx</pre>
                                     title="{{ log['input_url'] }}">{{ log['input_url'] }}</a>
                                 {% else %}-{% endif %}
                             </td>
-                            <td style="white-space:nowrap"><span class="badge {{ '' if log['status_code']<400 else 'off' }}">{{ log['status_code']
+                            <td style="white-space:nowrap;text-align:right"><span class="badge {{ '' if log['status_code']<400 else 'off' }}">{{ log['status_code']
                                     }}</span></td>
-                            <td style="white-space:nowrap">{{ log['duration_ms'] }} ms</td>
+                            <td style="white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums">{{ log['duration_ms'] }} ms</td>
                             <td style="white-space:nowrap">
                                 {% if log['error_code'] %}
                                 <code style="font-size:12px;font-weight:600;color:#dc2626;background:#fef2f2;padding:2px 6px;border-radius:4px;border:1px solid #fee2e2">{{ log['error_code'] }}</code>

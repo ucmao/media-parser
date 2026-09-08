@@ -8,12 +8,11 @@
                 <img src="{{ url_for('static', filename='images/logo-web.png') }}" alt="Media Parser Logo">
             </a>
             <h2>Media Parser 控制台</h2>
-            <p class="muted" style="font-size:13px;margin:4px 0 0">统一多平台媒体解析与开放 API 服务</p>
+            <p class="muted" style="font-size:13px;margin:4px 0 0">多平台媒体解析与开放 API</p>
         </div>
 
         <div class="card" style="box-shadow:var(--shadow-lg)">
-            <h1 class="title" style="font-size:20px;margin-bottom:4px">登录账号</h1>
-            <p class="subtitle" style="margin-bottom:20px">输入账号凭证以管理您的 API 密钥与调取监控。</p>
+            <h1 class="title" style="font-size:20px;margin-bottom:20px">登录账号</h1>
 
             {% for category, message in get_flashed_messages(with_categories=true) %}
             <div class="flash {{ category }}">
@@ -30,16 +29,23 @@
                 </div>
                 <div class="field">
                     <label>密码</label>
-                    <input name="password" type="password" placeholder="请输入账户密码" autocomplete="current-password" required>
+                    <div class="password-group">
+                        <input name="password" type="password" placeholder="请输入密码" autocomplete="current-password" required>
+                        <button type="button" class="password-toggle-btn" aria-label="切换密码可见性" title="显示密码" onclick="togglePasswordVisibility(this)">
+                            <svg class="icon-eye" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <svg class="icon-eye-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                        </button>
+                    </div>
                 </div>
                 <div style="margin-top:14px;display:flex;align-items:center;justify-content:space-between">
                     <label style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:var(--text-secondary);user-select:none">
                         <input type="checkbox" name="remember_me" value="1" checked style="accent-color:var(--brand);width:15px;height:15px;cursor:pointer;margin:0">
                         保持登录状态 (30天免登录)
                     </label>
+                    <a href="javascript:void(0)" onclick="document.getElementById('forgot-modal').style.display='flex'" style="font-size:13px;color:var(--brand);text-decoration:none;font-weight:500">忘记密码？</a>
                 </div>
                 <div style="margin-top:20px">
-                    <button type="submit" class="btn btn-primary btn-block" style="height:40px;font-size:14px">立即登录</button>
+                    <button type="submit" class="btn btn-primary btn-block" style="height:42px;font-size:14px">立即登录</button>
                 </div>
             </form>
 
@@ -60,4 +66,36 @@
         </div>
     </div>
 </main>
+
+<div id="forgot-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(2px)" onclick="if(event.target===this)this.style.display='none'">
+    <div class="card" style="width:min(400px,90vw);padding:24px;box-shadow:var(--shadow-lg);text-align:left;animation:modalIn 0.15s ease-out">
+        <h3 style="margin:0 0 10px;font-size:16px;font-weight:700;color:var(--ink)">重置密码提示</h3>
+        <p style="margin:0 0 20px;font-size:13.5px;line-height:1.6;color:var(--ink-secondary)">如遗忘账户密码，请联系<strong>系统超级管理员</strong>在控制台用户列表重置；如您是管理员且遗忘凭据，可在服务端通过重置脚本重新配置。</p>
+        <div style="display:flex;justify-content:flex-end">
+            <button type="button" class="btn btn-primary" style="height:36px;font-size:13px;padding:0 18px" onclick="document.getElementById('forgot-modal').style.display='none'">我知道了</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePasswordVisibility(btn) {
+    const group = btn.closest('.password-group');
+    if (!group) return;
+    const input = group.querySelector('input');
+    const eye = btn.querySelector('.icon-eye');
+    const eyeOff = btn.querySelector('.icon-eye-off');
+    if (!input) return;
+    if (input.type === 'password') {
+        input.type = 'text';
+        if (eye) eye.style.display = 'none';
+        if (eyeOff) eyeOff.style.display = 'block';
+        btn.setAttribute('title', '隐藏密码');
+    } else {
+        input.type = 'password';
+        if (eye) eye.style.display = 'block';
+        if (eyeOff) eyeOff.style.display = 'none';
+        btn.setAttribute('title', '显示密码');
+    }
+}
+</script>
 {% endblock %}

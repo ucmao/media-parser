@@ -82,7 +82,7 @@ def export_logs():
     def generate():
         writer = csv.writer(_CsvRowBuffer())
         yield "\ufeff"
-        yield writer.writerow(("时间", "平台", "请求路径", "脱敏 URL", "状态码", "耗时（毫秒）", "错误码"))
+        yield writer.writerow(("时间", "平台", "请求路径", "请求 URL", "状态码", "耗时（毫秒）", "错误码"))
         cursor = get_db().execute(
             "SELECT * FROM request_logs WHERE user_id=? ORDER BY id DESC",
             (g.user["id"],),

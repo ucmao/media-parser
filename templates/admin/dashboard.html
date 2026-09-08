@@ -103,7 +103,8 @@
                     {% for tick in chart_data['y_ticks'] %}
                     <line x1="45" y1="{{ tick['y'] }}" x2="675" y2="{{ tick['y'] }}" stroke="#f1f5f9" stroke-width="0.8"
                         stroke-dasharray="3 3" />
-                    <text x="38" y="{{ tick['y'] + 3.5 }}" text-anchor="end" font-size="9.5" fill="#94a3b8">{{ tick['val'] }}</text>
+                    <text x="38" y="{{ tick['y'] + 3.5 }}" text-anchor="end" font-size="9.5" fill="#94a3b8">{{
+                        tick['val'] }}</text>
                     {% endfor %}
 
                     <!-- X 轴基线 -->
@@ -132,7 +133,8 @@
                     <!-- X 轴刻度与交互节点 -->
                     {% for item in chart_data['trend'] %}
                     {% if item['show_label'] %}
-                    <text x="{{ item['x'] }}" y="198" text-anchor="middle" font-size="9.5" font-weight="450" fill="#94a3b8">{{ item['short_date'] }}</text>
+                    <text x="{{ item['x'] }}" y="198" text-anchor="middle" font-size="9.5" font-weight="450"
+                        fill="#94a3b8">{{ item['short_date'] }}</text>
                     {% endif %}
 
                     <!-- 透明列触控透明矩形 -->
@@ -175,20 +177,24 @@
                             <path d="{{ item['path_d'] }}" fill="{{ item['color'] }}" class="pie-slice"
                                 data-platform="{{ item['platform'] }}" data-calls="{{ item['calls_formatted'] }}"
                                 data-percent="{{ item['percentage'] }}%">
-                                <title>{{ item['platform'] }}: {{ item['calls_formatted'] }} 次 ({{ item['percentage'] }}%)</title>
+                                <title>{{ item['platform'] }}: {{ item['calls_formatted'] }} 次 ({{ item['percentage']
+                                    }}%)</title>
                             </path>
                             {% endfor %}
                         </svg>
                         <div class="pie-center-text">
                             <div class="pie-center-lbl" id="admin-pie-lbl">总解析量</div>
-                            <div class="pie-center-val" id="admin-pie-val">{{ pie_data['total_calls_formatted'] or pie_data['total_calls'] }} 次</div>
+                            <div class="pie-center-val" id="admin-pie-val">{{ pie_data['total_calls_formatted'] or
+                                pie_data['total_calls'] }} 次</div>
                         </div>
                     </div>
 
                     <!-- 下方自适应平铺胶囊图例网格 (支持50+平台) -->
                     <div class="pie-pill-grid">
                         {% for item in pie_data['items'] %}
-                        <div class="pie-pill-item" data-platform="{{ item['platform'] }}" data-calls="{{ item['calls_formatted'] }}" data-percent="{{ item['percentage'] }}%" title="{{ item['platform'] }}: {{ item['calls_formatted'] }} 次 ({{ item['percentage'] }}%)">
+                        <div class="pie-pill-item" data-platform="{{ item['platform'] }}"
+                            data-calls="{{ item['calls_formatted'] }}" data-percent="{{ item['percentage'] }}%"
+                            title="{{ item['platform'] }}: {{ item['calls_formatted'] }} 次 ({{ item['percentage'] }}%)">
                             <span class="pie-pill-dot" style="background:{{ item['color'] }}"></span>
                             <span class="pie-pill-name">{{ item['platform'] }}</span>
                         </div>
@@ -525,10 +531,10 @@
                     <button type="button" class="btn btn-primary btn-small"
                         onclick="navigator.clipboard.writeText('{{ new_api_key }}'); showToast('已复制完整 API Key', 'success')">复制密钥</button>
                     <button type="button" class="btn btn-small"
-                        onclick="navigator.clipboard.writeText('{{ request.url_root }}api/v1/parse?key={{ new_api_key }}&url=YOUR_URL'); showToast('已复制测试 URL', 'success')">复制
+                        onclick="navigator.clipboard.writeText((window.location.origin || '{{ api_base_url() }}').replace(/\/$/, '') + '/api/v1/parse?key={{ new_api_key }}&url=YOUR_URL'); showToast('已复制测试 URL', 'success')">复制
                         GET URL</button>
                     <button type="button" class="btn btn-small"
-                        onclick="navigator.clipboard.writeText('curl -H &quot;Authorization: Bearer {{ new_api_key }}&quot; &quot;{{ request.url_root }}api/v1/parse?url=YOUR_URL&quot;'); showToast('已复制 cURL 命令', 'success')">复制
+                        onclick="navigator.clipboard.writeText('curl -H &quot;Authorization: Bearer {{ new_api_key }}&quot; &quot;' + (window.location.origin || '{{ api_base_url() }}').replace(/\/$/, '') + '/api/v1/parse?url=YOUR_URL&quot;'); showToast('已复制 cURL 命令', 'success')">复制
                         cURL 命令</button>
                 </div>
 
@@ -574,7 +580,7 @@
                         <tr>
                             <th style="width:12%">所属账号</th>
                             <th style="width:14%">密钥名称</th>
-                            <th style="width:22%">Key 前缀</th>
+                            <th style="width:22%">Key</th>
                             <th style="width:20%">最后使用时间</th>
                             <th style="width:11%">QPS 覆盖</th>
                             <th style="width:8%">开关</th>
@@ -689,7 +695,7 @@
                         <h2 style="margin:0">运行日志</h2>
                         <span class="badge" style="font-weight:600">{{ log_storage['count'] }} 条记录</span>
                     </div>
-                    <span class="muted" style="display:block;margin-top:6px;font-size:13px">链接中的密钥、令牌和签名参数会自动脱敏</span>
+                    <span class="muted" style="display:block;margin-top:6px;font-size:13px">记录用户请求的完整链接，日志永久保存，CSV 可导出全部记录</span>
                 </div>
                 <div class="row" style="gap:8px">
                     <a class="btn btn-secondary" href="{{ url_for('admin.export_logs') }}">导出 CSV</a>
@@ -698,42 +704,61 @@
                 </div>
             </div>
             <div class="table-wrap">
-                <table style="width:100%;min-width:1080px">
+                <table style="width:100%;min-width:1060px">
                     <thead>
                         <tr>
                             <th style="white-space:nowrap;width:150px">时间</th>
-                            <th style="white-space:nowrap;width:140px">客户 / Key Prefix</th>
+                            <th style="white-space:nowrap;width:130px">客户</th>
+                            <th style="white-space:nowrap;width:140px">调用 Key</th>
                             <th style="white-space:nowrap;width:90px">平台</th>
-                            <th>脱敏 URL</th>
-                            <th style="white-space:nowrap;width:70px">状态</th>
-                            <th style="white-space:nowrap;width:90px">耗时</th>
-                            <th style="white-space:nowrap;min-width:160px">错误码</th>
+                            <th>请求 URL</th>
+                            <th style="white-space:nowrap;width:80px;text-align:right">状态</th>
+                            <th style="white-space:nowrap;width:100px;text-align:right">耗时</th>
+                            <th style="white-space:nowrap;min-width:140px">错误码</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for log in logs %}
                         <tr>
                             <td style="white-space:nowrap">{{ format_log_time(log['created_at']) }}</td>
-                            <td style="white-space:nowrap">{{ log['username'] or '在线体验' }} {{ log['key_prefix'] or '' }}</td>
+                            <td style="white-space:nowrap">
+                                {% if log['username'] %}
+                                <span style="display:inline-flex;align-items:center;gap:5px">
+                                    <span class="muted" style="font-size:12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;opacity:0.75">#{{ log['user_id'] }}</span>
+                                    <strong>{{ log['username'] }}</strong>
+                                </span>
+                                {% else %}
+                                <span class="muted">在线体验</span>
+                                {% endif %}
+                            </td>
+                            <td style="white-space:nowrap">
+                                {% if log['key_prefix'] %}
+                                <span class="key" style="font-size:11px;padding:0 5px;line-height:18px" title="{{ log['key_prefix'] }}••••••••••••">{{ log['key_prefix'] }}...</span>
+                                {% else %}
+                                <span class="muted" style="font-size:12px;opacity:0.65">Web 免鉴权</span>
+                                {% endif %}
+                            </td>
                             <td style="white-space:nowrap">{{ log['platform'] or '-' }}</td>
-                            <td style="max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                            <td style="max-width:380px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
                                 {% if log['input_url'] %}
                                 <a href="{{ log['input_url'] }}" target="_blank" rel="noopener noreferrer"
                                     title="{{ log['input_url'] }}">{{ log['input_url'] }}</a>
                                 {% else %}-{% endif %}
                             </td>
-                            <td style="white-space:nowrap"><span class="badge {{ '' if log['status_code']<400 else 'off' }}">{{ log['status_code']
+                            <td style="white-space:nowrap;text-align:right"><span
+                                    class="badge {{ '' if log['status_code']<400 else 'off' }}">{{ log['status_code']
                                     }}</span></td>
-                            <td style="white-space:nowrap">{{ log['duration_ms'] }} ms</td>
+                            <td style="white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums">{{ log['duration_ms'] }} ms</td>
                             <td style="white-space:nowrap">
                                 {% if log['error_code'] %}
-                                <code style="font-size:12px;font-weight:600;color:#dc2626;background:#fef2f2;padding:2px 6px;border-radius:4px;border:1px solid #fee2e2">{{ log['error_code'] }}</code>
+                                <code
+                                    style="font-size:12px;font-weight:600;color:#dc2626;background:#fef2f2;padding:2px 6px;border-radius:4px;border:1px solid #fee2e2">{{ log['error_code'] }}</code>
                                 {% else %}-{% endif %}
                             </td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="7" class="muted">暂无日志</td>
+                            <td colspan="8" class="muted">暂无日志</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -858,7 +883,7 @@
 
             <div
                 style="background:#fef2f2;border:1px solid #fee2e2;border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:13px;line-height:1.5;color:#991b1b">
-                <strong>风险提示：</strong>日志清理后无法恢复，且会影响对应历史区间的统计图表。<br>
+                日志清理后无法恢复，且会影响对应历史区间的统计图表。<br>
                 建议在清理前先 <a href="{{ url_for('admin.export_logs') }}" target="_blank"
                     style="color:#b91c1c;font-weight:600;text-decoration:underline">导出 CSV 归档备份</a>。
             </div>

@@ -647,13 +647,13 @@ a {
 
 input, select, textarea {
   width: 100%;
-  height: 38px;
+  height: 42px;
   border: 1px solid #cbd5e1;
   border-radius: var(--radius-md);
-  padding: 0 12px;
+  padding: 0 14px;
   background: var(--bg-card);
   color: var(--ink);
-  font-size: 13.5px;
+  font-size: 14px;
   font-family: inherit;
   transition: all 0.15s ease;
 }
@@ -665,7 +665,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 input::placeholder {
-  color: #94a3b8;
+  color: #64748b;
 }
 
 /* Buttons */
@@ -1334,7 +1334,7 @@ table input[type="number"] {
   top: 20px;
   left: calc(50% + var(--sidebar-width) / 2);
   transform: translateX(-50%);
-  z-index: 9999;
+  z-index: 11000;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1558,11 +1558,14 @@ table input[type="number"] {
 }
 
 .auth-brand img {
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-lg);
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.04);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  background: #ffffff;
   margin-bottom: 12px;
+  object-fit: contain;
 }
 
 .auth-brand h2 {
@@ -1570,6 +1573,53 @@ table input[type="number"] {
   font-size: 18px;
   font-weight: 800;
   color: var(--ink);
+}
+
+/* Password Input Group with Toggle Button */
+.password-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.password-group input {
+  padding-right: 42px !important;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s ease, background 0.15s ease;
+  line-height: 1;
+  user-select: none;
+}
+
+.password-toggle-btn:hover {
+  color: var(--ink);
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.password-toggle-btn:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 1px;
+}
+
+.password-toggle-btn svg {
+  width: 16px;
+  height: 16px;
+  display: block;
 }
 
 .flash {

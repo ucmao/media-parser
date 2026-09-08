@@ -2,7 +2,6 @@ import random
 import re
 import sys
 import time
-from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from flask import current_app, has_app_context, request
 
@@ -65,46 +64,16 @@ rate_limiter = SQLiteRateLimiter()
 
 
 _URL_PATTERN = re.compile(r"https?://[^\s<>\"']+", re.IGNORECASE)
-_SENSITIVE_QUERY_KEYS = {
-    "api_key", "apikey", "auth", "authorization", "cookie", "key",
-    "passwd", "password", "secret", "session", "session_id", "sessionid",
-    "sid", "sign", "signature", "token",
-}
 
 
 def sanitize_log_url(value):
-    """提取并脱敏用户提交的链接，供运行日志持久化。"""
+    """提取用户提交的原始链接，供运行日志持久化。"""
     if not isinstance(value, str):
         return None
     match = _URL_PATTERN.search(value.strip())
     if not match:
         return None
-    raw_url = match.group(0).rstrip(".,;:!?)]}，。；：！？）】》")[:4096]
-    try:
-        parsed = urlsplit(raw_url)
-        if parsed.scheme.lower() not in ("http", "https") or not parsed.netloc:
-            return None
-        # URL 中的 user:password@host 也属于凭证，日志只保留主机部分。
-        safe_netloc = parsed.netloc.rsplit("@", 1)[-1]
-        sanitized_query = []
-        for key, item_value in parse_qsl(parsed.query, keep_blank_values=True):
-            normalized_key = key.casefold().replace("-", "_")
-            sensitive = (
-                normalized_key in _SENSITIVE_QUERY_KEYS
-                or normalized_key.endswith("_token")
-                or normalized_key.endswith("_secret")
-                or normalized_key.endswith("_signature")
-            )
-            sanitized_query.append((key, "[REDACTED]" if sensitive else item_value))
-        return urlunsplit((
-            parsed.scheme.lower(),
-            safe_netloc,
-            parsed.path,
-            urlencode(sanitized_query, doseq=True),
-            "",
-        ))[:4096]
-    except (TypeError, ValueError):
-        return None
+    return match.group(0).rstrip(".,;:!?)]}，。；：！？）】》")[:4096]
 
 
 def _request_log_url():

@@ -300,9 +300,26 @@ def format_local_date(value):
         return str(value)[:10]
 
 
+def api_base_url():
+    """获取对外 API 基础根地址，智能识别反向代理协议（如 Nginx X-Forwarded-Proto）并自适应环境。"""
+    import os
+    env_base = os.getenv("API_BASE_URL") or os.getenv("BASE_URL")
+    if env_base:
+        return env_base.rstrip("/") + "/"
+    try:
+        if not request:
+            return "http://localhost:8051/"
+        proto = request.headers.get("X-Forwarded-Proto", request.scheme)
+        host = request.headers.get("X-Forwarded-Host", request.host)
+        return f"{proto}://{host}/"
+    except RuntimeError:
+        return "http://localhost:8051/"
+
+
 def register_template_helpers(app):
     app.jinja_env.globals["csrf_token"] = csrf_token
     app.jinja_env.globals["user_is_expired"] = user_is_expired
     app.jinja_env.globals["format_user_expiry"] = format_user_expiry
     app.jinja_env.globals["format_log_time"] = format_log_time
     app.jinja_env.globals["format_local_date"] = format_local_date
+    app.jinja_env.globals["api_base_url"] = api_base_url

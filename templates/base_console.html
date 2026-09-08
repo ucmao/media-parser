@@ -316,7 +316,7 @@ function initToasts() {
     });
 }
 
-window.showToast = function(message, type = 'success', duration = 3500) {
+window.showToast = function(message, type = 'success', duration = 3000) {
     let container = document.getElementById('toast-container');
     if (!container) {
         container = document.createElement('div');
@@ -324,6 +324,32 @@ window.showToast = function(message, type = 'success', duration = 3500) {
         container.className = 'toast-container';
         document.body.appendChild(container);
     }
+
+    // 1. 重复内容防连击：若已有完全相同的提示，则刷新其倒计时与动画，不再重复新增
+    const activeToasts = Array.from(container.querySelectorAll('.toast-bubble:not(.toast-hiding)'));
+    const duplicate = activeToasts.find(t => {
+        const content = t.querySelector('.toast-content');
+        return content && content.textContent.trim() === (message || '').trim();
+    });
+
+    if (duplicate) {
+        duplicate.style.animation = 'none';
+        void duplicate.offsetHeight;
+        duplicate.style.animation = 'toastSlideIn 0.22s var(--ease-out) forwards';
+        if (duplicate._timer) clearTimeout(duplicate._timer);
+        duplicate._timer = setTimeout(() => dismissToast(duplicate), duration);
+        return;
+    }
+
+    // 2. 数量上限控制（大厂标准最多展示 3 个，超出时自动顶替最早的一条）
+    const MAX_TOASTS = 3;
+    if (activeToasts.length >= MAX_TOASTS) {
+        const toRemove = activeToasts.length - MAX_TOASTS + 1;
+        for (let i = 0; i < toRemove; i++) {
+            dismissToast(activeToasts[i]);
+        }
+    }
+
     const bubble = document.createElement('div');
     bubble.className = `toast-bubble toast-${type}`;
     bubble.setAttribute('role', 'alert');
@@ -345,10 +371,10 @@ window.showToast = function(message, type = 'success', duration = 3500) {
     bubble.querySelector('.toast-content').textContent = message;
     bubble.querySelector('.toast-close').onclick = () => dismissToast(bubble);
     
-    let timer = setTimeout(() => dismissToast(bubble), duration);
-    bubble.addEventListener('mouseenter', () => clearTimeout(timer));
+    bubble._timer = setTimeout(() => dismissToast(bubble), duration);
+    bubble.addEventListener('mouseenter', () => clearTimeout(bubble._timer));
     bubble.addEventListener('mouseleave', () => {
-        timer = setTimeout(() => dismissToast(bubble), 1500);
+        bubble._timer = setTimeout(() => dismissToast(bubble), 1500);
     });
     
     container.appendChild(bubble);

@@ -354,11 +354,11 @@ class ManagementTest(unittest.TestCase):
         )
         self.assertEqual(
             value,
-            "https://example.com/video/1?share_id=42&token=%5BREDACTED%5D&sign=%5BREDACTED%5D",
+            "https://example.com/video/1?share_id=42&token=secret&sign=abc#private",
         )
         self.assertEqual(
             sanitize_log_url("https://user:password@example.com/private"),
-            "https://example.com/private",
+            "https://user:password@example.com/private",
         )
 
     def test_admin_can_export_logs_as_csv(self):
@@ -377,7 +377,7 @@ class ManagementTest(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("text/csv", response.content_type)
         body = response.get_data(as_text=True)
-        self.assertIn("脱敏 URL", body)
+        self.assertIn("请求 URL", body)
         self.assertIn("https://example.com/video/1", body)
         self.assertIn("MEDIA_NOT_FOUND", body)
 
