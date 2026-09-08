@@ -202,6 +202,7 @@ def login():
             else:
                 session.clear()
                 session["user_id"] = user["id"]
+                session.permanent = request.form.get("remember_me") in {"1", "on", "true"}
                 target = request.args.get("next", "")
                 if not target.startswith("/") or target.startswith("//"):
                     target = url_for("admin.dashboard") if user["role"] == "admin" else url_for("portal.dashboard")

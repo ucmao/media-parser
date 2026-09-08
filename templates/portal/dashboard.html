@@ -503,29 +503,33 @@ Authorization: Bearer mp_xxxxxxxxx</pre>
                 <table style="width:100%;min-width:920px">
                     <thead>
                         <tr>
-                            <th style="width:28%">时间</th>
-                            <th>平台</th>
+                            <th style="white-space:nowrap;width:160px">时间</th>
+                            <th style="white-space:nowrap;width:100px">平台</th>
                             <th>脱敏 URL</th>
-                            <th>状态</th>
-                            <th>耗时</th>
-                            <th>错误码</th>
+                            <th style="white-space:nowrap;width:70px">状态</th>
+                            <th style="white-space:nowrap;width:90px">耗时</th>
+                            <th style="white-space:nowrap;min-width:160px">错误码</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for log in logs %}
                         <tr>
-                            <td>{{ format_log_time(log['created_at']) }}</td>
-                            <td>{{ log['platform'] or '-' }}</td>
+                            <td style="white-space:nowrap">{{ format_log_time(log['created_at']) }}</td>
+                            <td style="white-space:nowrap">{{ log['platform'] or '-' }}</td>
                             <td style="max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
                                 {% if log['input_url'] %}
                                 <a href="{{ log['input_url'] }}" target="_blank" rel="noopener noreferrer"
                                     title="{{ log['input_url'] }}">{{ log['input_url'] }}</a>
                                 {% else %}-{% endif %}
                             </td>
-                            <td><span class="badge {{ '' if log['status_code']<400 else 'off' }}">{{ log['status_code']
+                            <td style="white-space:nowrap"><span class="badge {{ '' if log['status_code']<400 else 'off' }}">{{ log['status_code']
                                     }}</span></td>
-                            <td>{{ log['duration_ms'] }} ms</td>
-                            <td>{{ log['error_code'] or '-' }}</td>
+                            <td style="white-space:nowrap">{{ log['duration_ms'] }} ms</td>
+                            <td style="white-space:nowrap">
+                                {% if log['error_code'] %}
+                                <code style="font-size:12px;font-weight:600;color:#dc2626;background:#fef2f2;padding:2px 6px;border-radius:4px;border:1px solid #fee2e2">{{ log['error_code'] }}</code>
+                                {% else %}-{% endif %}
+                            </td>
                         </tr>
                         {% else %}
                         <tr>

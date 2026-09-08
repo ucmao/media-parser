@@ -1,6 +1,7 @@
 import os
 import secrets
 import fcntl
+from datetime import timedelta
 from flask import Flask
 from src.api.parse import bp as api_bp
 from src.web.views import bp as web_bp
@@ -43,6 +44,7 @@ def create_app(config=None):
         'DATABASE_PATH', os.path.join(app.instance_path, 'media_parser.db')
     )
     app.config['MAX_CONTENT_LENGTH'] = 32 * 1024
+    app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
     app.config['JSON_SORT_KEYS'] = False
     app.config['TRUST_PROXY_HEADERS'] = os.getenv(
         'TRUST_PROXY_HEADERS', ''

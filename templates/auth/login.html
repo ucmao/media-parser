@@ -32,7 +32,13 @@
                     <label>密码</label>
                     <input name="password" type="password" placeholder="请输入账户密码" autocomplete="current-password" required>
                 </div>
-                <div style="margin-top:24px">
+                <div style="margin-top:14px;display:flex;align-items:center;justify-content:space-between">
+                    <label style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:var(--text-secondary);user-select:none">
+                        <input type="checkbox" name="remember_me" value="1" checked style="accent-color:var(--brand);width:15px;height:15px;cursor:pointer;margin:0">
+                        保持登录状态 (30天免登录)
+                    </label>
+                </div>
+                <div style="margin-top:20px">
                     <button type="submit" class="btn btn-primary btn-block" style="height:40px;font-size:14px">立即登录</button>
                 </div>
             </form>

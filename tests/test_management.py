@@ -79,6 +79,29 @@ class ManagementTest(unittest.TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertTrue(response.location.endswith("/admin"))
 
+    def test_login_remember_me_controls_session_permanence(self):
+        self.client.post(
+            "/auth/setup",
+            data={"csrf_token": self.csrf(), "username": "admin", "password": "password123", "confirm_password": "password123"},
+        )
+        # Without remember_me
+        with self.client:
+            self.client.post(
+                "/auth/login",
+                data={"csrf_token": self.csrf(), "username": "admin", "password": "password123"},
+            )
+            from flask import session
+            self.assertFalse(session.permanent)
+
+        # With remember_me
+        with self.client:
+            self.client.post(
+                "/auth/login",
+                data={"csrf_token": self.csrf(), "username": "admin", "password": "password123", "remember_me": "1"},
+            )
+            from flask import session
+            self.assertTrue(session.permanent)
+
     def test_setup_rejects_missing_csrf_token(self):
         response = self.client.post(
             "/auth/setup",

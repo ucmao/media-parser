@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "description": "50 平台多形态全景自动化回归测试用例库 (涵盖短链/长链/图集/单视频/AI生成等)",
-  "total_cases": 308,
+  "total_cases": 310,
   "cases": [
     {
       "platform": "网易云音乐",
@@ -412,6 +412,23 @@
       ],
       "note": "2026-08-28 已验证",
       "pattern": "基础标准样例"
+    },
+    {
+      "platform": "小红书",
+      "url": "http://xhslink.com/o/5EY4JTCKXTr",
+      "pattern": "App 分享短链与 LivePhoto 实况图文",
+      "media_types": [
+        "images",
+        "live_media"
+      ],
+      "expected_fields": [
+        "images",
+        "live_media",
+        "cover",
+        "title",
+        "author"
+      ],
+      "note": "2026-09 已验证: App 端分享短链，含 6 张高清图集与 LivePhoto 实况动图流"
     },
     {
       "platform": "视频号",

@@ -106,20 +106,39 @@
                         <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
                             <h4 class="text-sm font-semibold text-slate-900 flex items-center gap-2">{{ icon('video', 'w-4 h-4 text-slate-500') }} 视频文件预览 (<span id="videoCount">0</span>)</h4>
                             <div class="flex items-center gap-2">
+                                <a id="videoOpenDirectLink" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:border-indigo-300 hover:text-brand transition shadow-sm" title="在新窗口中打开当前视频">{{ icon('link', 'w-3.5 h-3.5') }}新窗口打开</a>
+                                <button type="button" onclick="copyCurrentVideoUrl()" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:border-indigo-300 hover:text-brand transition shadow-sm" title="复制当前视频直链">{{ icon('clipboard', 'w-3.5 h-3.5') }}复制直链</button>
                                 <button id="previousVideoBtn" type="button" onclick="stepVideo(-1)" class="hidden rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:border-indigo-300 hover:text-brand disabled:cursor-not-allowed disabled:opacity-40 transition">← 上一个</button>
                                 <button id="nextVideoBtn" type="button" onclick="stepVideo(1)" class="hidden rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:border-indigo-300 hover:text-brand disabled:cursor-not-allowed disabled:opacity-40 transition">下一个 →</button>
                             </div>
                         </div>
-                        <div class="relative aspect-video w-full max-h-[460px] overflow-hidden rounded-2xl bg-slate-950 shadow-sm">
+                        <div class="relative aspect-video w-full overflow-hidden rounded-2xl bg-slate-950 shadow-sm">
+                            <!-- 原生视频播放器 -->
                             <video id="videoPlayer" controls playsinline preload="metadata" referrerpolicy="no-referrer" class="absolute inset-0 h-full w-full bg-black object-contain"></video>
-                            <img id="videoPlaceholder" src="{{ url_for('static', filename='images/video-placeholder.svg') }}" alt="已成功解析视频，但当前浏览器无法预览" class="absolute inset-0 hidden h-full w-full object-contain">
-                            <div class="group absolute inset-x-0 top-0 bottom-32">
-                                <div class="pointer-events-none absolute inset-x-0 top-0 -bottom-32 flex items-center justify-center bg-slate-950/45 opacity-0 transition duration-200 group-hover:opacity-100 group-focus-within:opacity-100">
-                                    <div class="pointer-events-auto flex items-center gap-2 p-4">
-                                        <a id="videoOpenDirectLink" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer" class="inline-flex items-center gap-1.5 rounded-xl bg-white/95 px-3.5 py-2 text-xs font-bold text-slate-800 shadow-lg hover:bg-white transition">{{ icon('link', 'w-3.5 h-3.5') }}打开浏览器播放</a>
-                                        <button type="button" onclick="copyCurrentVideoUrl()" class="inline-flex items-center gap-1.5 rounded-xl bg-white/95 px-3.5 py-2 text-xs font-bold text-slate-800 shadow-lg hover:bg-white transition">{{ icon('clipboard', 'w-3.5 h-3.5') }}复制链接</button>
+
+                            <!-- 播放受限 / 降级封面与占位容器 (极简现代风) -->
+                            <div id="videoFallbackContainer" class="absolute inset-0 hidden select-none overflow-hidden bg-slate-950 group/fallback">
+                                <!-- 封面图背景高斯模糊（填满 16:9 比例） -->
+                                <img id="videoCoverBg" src="" alt="" aria-hidden="true" referrerpolicy="no-referrer" class="absolute inset-0 hidden h-full w-full object-cover scale-125 blur-2xl opacity-35 brightness-75 pointer-events-none">
+                                
+                                <!-- 居中封面主体（保持原比例不失真） -->
+                                <img id="videoCoverImg" src="" alt="视频封面" referrerpolicy="no-referrer" class="absolute inset-0 z-10 hidden h-full w-full object-contain pointer-events-none drop-shadow-2xl">
+                                
+                                <!-- 兜底通用占位图（无封面或封面加载失败时） -->
+                                <img id="videoDefaultPlaceholder" src="{{ url_for('static', filename='images/video-placeholder.svg') }}" alt="已成功解析视频，但当前浏览器无法预览" class="absolute inset-0 z-10 hidden h-full w-full object-cover pointer-events-none">
+
+                                <!-- 半透明暗色微遮罩层 -->
+                                <div class="absolute inset-0 z-20 bg-slate-950/30 backdrop-blur-[0.5px] pointer-events-none transition duration-300 group-hover/fallback:bg-slate-950/40"></div>
+
+                                <!-- 中央核心交互区：大播放按钮 + 极简轻量文案 (点击整块区域在新窗口播放) -->
+                                <a id="videoFallbackPlayBtn" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer" class="group/btn absolute inset-0 z-30 flex flex-col items-center justify-center p-4 text-center cursor-pointer text-white no-underline" title="在新窗口中播放视频" aria-label="在新窗口中播放视频">
+                                    <div class="flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/25 backdrop-blur-md border border-white/40 shadow-2xl text-white transition-all duration-300 group-hover/btn:scale-110 group-hover/btn:bg-white/35 active:scale-95 mb-2.5">
+                                        <svg class="w-7 h-7 sm:w-8 sm:h-8 translate-x-0.5 fill-white drop-shadow" viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
                                     </div>
-                                </div>
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/20 px-3.5 py-1 text-xs font-medium text-white/95 shadow drop-shadow-sm group-hover/btn:bg-black/60 transition">
+                                        点击在新窗口播放 {{ icon('link', 'w-3 h-3') }}
+                                    </span>
+                                </a>
                             </div>
                         </div>
                         <div id="videoStrip" class="hidden mt-3 overflow-x-auto custom-scroll scroll-smooth snap-x snap-mandatory pb-2">
@@ -332,6 +351,7 @@
         let lastParsedData = null;
         let activeLightboxUrl = '';
         let currentVideoUrls = [];
+        let currentCoverUrl = '';
         let activeVideoIndex = 0;
         const iconMarkup = (name, className) => `<svg class="${className}" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-${name}"></use></svg>`;
 
@@ -502,22 +522,58 @@
             if(url) copyText(url, '已复制当前视频链接');
         }
 
+        function showVideoFallback(selectedUrl){
+            const videoPlayer = document.getElementById('videoPlayer');
+            const videoFallbackContainer = document.getElementById('videoFallbackContainer');
+            const videoCoverBg = document.getElementById('videoCoverBg');
+            const videoCoverImg = document.getElementById('videoCoverImg');
+            const videoDefaultPlaceholder = document.getElementById('videoDefaultPlaceholder');
+            const videoFallbackPlayBtn = document.getElementById('videoFallbackPlayBtn');
+
+            videoPlayer.pause();
+            videoPlayer.classList.add('hidden');
+            videoFallbackContainer.classList.remove('hidden');
+
+            if(videoFallbackPlayBtn) videoFallbackPlayBtn.href = selectedUrl;
+
+            if(currentCoverUrl){
+                videoDefaultPlaceholder.classList.add('hidden');
+                videoCoverImg.onload = () => {
+                    videoCoverImg.classList.remove('hidden');
+                    videoCoverBg.classList.remove('hidden');
+                };
+                videoCoverImg.onerror = () => {
+                    videoCoverImg.classList.add('hidden');
+                    videoCoverBg.classList.add('hidden');
+                    videoDefaultPlaceholder.classList.remove('hidden');
+                };
+                videoCoverImg.src = currentCoverUrl;
+                videoCoverBg.src = currentCoverUrl;
+                if(videoCoverImg.complete && videoCoverImg.naturalWidth > 0){
+                    videoCoverImg.classList.remove('hidden');
+                    videoCoverBg.classList.remove('hidden');
+                }
+            } else {
+                videoCoverImg.classList.add('hidden');
+                videoCoverBg.classList.add('hidden');
+                videoDefaultPlaceholder.classList.remove('hidden');
+            }
+        }
+
         function selectVideo(index, autoplay = false){
             if(index < 0 || index >= currentVideoUrls.length) return;
             activeVideoIndex = index;
             const videoPlayer = document.getElementById('videoPlayer');
-            const videoPlaceholder = document.getElementById('videoPlaceholder');
+            const videoFallbackContainer = document.getElementById('videoFallbackContainer');
             const videoOpenDirectLink = document.getElementById('videoOpenDirectLink');
             const selectedUrl = currentVideoUrls[index];
 
-            videoPlaceholder.classList.add('hidden');
+            videoFallbackContainer.classList.add('hidden');
             videoPlayer.classList.remove('hidden');
-            videoOpenDirectLink.href = selectedUrl;
+            if(videoOpenDirectLink) videoOpenDirectLink.href = selectedUrl;
             videoPlayer.onerror = () => {
                 if(currentVideoUrls[activeVideoIndex] !== selectedUrl) return;
-                videoPlayer.pause();
-                videoPlayer.classList.add('hidden');
-                videoPlaceholder.classList.remove('hidden');
+                showVideoFallback(selectedUrl);
             };
             videoPlayer.src = selectedUrl;
             videoPlayer.load();
@@ -632,12 +688,16 @@
                 authorAvatar.classList.add('hidden');
             }
 
+            currentCoverUrl = (typeof data.cover_url === 'string' && data.cover_url.trim())
+                || (typeof data.cover === 'string' && data.cover.trim())
+                || (Array.isArray(data.image_list) && data.image_list.length > 0 && typeof data.image_list[0] === 'string' ? data.image_list[0].trim() : '')
+                || '';
             currentVideoUrls = uniqueMediaUrls([data.video_url, ...(data.video_list || [])]);
 
             // 1. 视频渲染
             const videoContainer = document.getElementById('videoContainer');
             const videoPlayer = document.getElementById('videoPlayer');
-            const videoPlaceholder = document.getElementById('videoPlaceholder');
+            const videoFallbackContainer = document.getElementById('videoFallbackContainer');
             const videoStrip = document.getElementById('videoStrip');
             const videoTrack = document.getElementById('videoTrack');
             const previousVideoBtn = document.getElementById('previousVideoBtn');
@@ -668,7 +728,7 @@
                 videoPlayer.removeAttribute('src');
                 videoPlayer.load();
                 videoPlayer.classList.remove('hidden');
-                videoPlaceholder.classList.add('hidden');
+                videoFallbackContainer.classList.add('hidden');
                 document.getElementById('videoOpenDirectLink').removeAttribute('href');
                 videoStrip.classList.add('hidden');
                 previousVideoBtn.classList.add('hidden');

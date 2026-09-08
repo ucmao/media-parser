@@ -20,4 +20,5 @@
   <symbol id="icon-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
   <symbol id="icon-tag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.6 13.6 20.6a2 2 0 0 1-2.8 0L3.4 13.2V4h9.2l8 8a1.1 1.1 0 0 1 0 1.6Z"/><circle cx="8" cy="8" r="1"/></symbol>
   <symbol id="icon-lightbulb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4"/><path d="M8.2 14.2A6 6 0 1 1 16 14.2c-.7.6-1 1.2-1 2.1H9.2c0-.9-.3-1.5-1-2.1Z"/></symbol>
+  <symbol id="icon-play" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"></polygon></symbol>
 </svg>

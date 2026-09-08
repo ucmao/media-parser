@@ -172,9 +172,13 @@ class UrlParser:
                 address = f"{address}?id={vid}"
         elif platform == "小红书":
             query_params = parse_qs(parsed_url.query)
-            xsec_token = query_params.get('xsec_token', [None])[0]  # 使用 get 方法避免 KeyError
-            if xsec_token:
-                address = f"{address}?xsec_token={xsec_token}"
+            preserved_params = []
+            for key in ('xsec_token', 'xsec_source', 'source', 'xhsshare', 'app_platform'):
+                value = query_params.get(key, [None])[0]
+                if value is not None:
+                    preserved_params.append((key, value))
+            if preserved_params:
+                address = f"{address}?{urlencode(preserved_params)}"
         elif platform == "快手":
             address = address.replace('http://', 'https://')
         elif platform == "抖音":
