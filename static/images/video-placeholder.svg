@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
-  <title id="title">视频暂时无法预览</title>
-  <desc id="desc">深色渐变背景上的视频播放占位图</desc>
+  <title id="title">已成功解析视频，但当前浏览器无法预览</title>
+  <desc id="desc">深色渐变背景上的视频预览不可用提示</desc>
   <defs>
     <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#111827"/>
@@ -19,8 +19,8 @@
     <path d="M160 0v720M320 0v720M480 0v720M640 0v720M800 0v720M960 0v720M1120 0v720"/>
   </g>
   <g transform="translate(640 305)">
-    <circle r="86" fill="#fff" fill-opacity=".1" stroke="#c7d2fe" stroke-opacity=".32" stroke-width="2"/>
-    <path d="M-22-38 48 0-22 38Z" fill="#e0e7ff"/>
+    <circle r="60" fill="#fff" fill-opacity=".1" stroke="#c7d2fe" stroke-opacity=".32" stroke-width="2"/>
+    <path d="M-16-27 35 0-16 27Z" fill="#e0e7ff"/>
   </g>
-  <text x="640" y="446" text-anchor="middle" fill="#f8fafc" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif" font-size="30" font-weight="600">视频暂时无法预览</text>
+  <text x="640" y="424" text-anchor="middle" fill="#c7d2fe" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif" font-size="26" font-weight="600">已成功解析视频，但当前浏览器无法预览</text>
 </svg>

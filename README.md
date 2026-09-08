@@ -129,7 +129,6 @@ docker compose up -d --build
 
 # 3. 查看日志与运行状态
 docker compose logs -f web
-# （注：如为旧版本 Docker V1 环境，请使用 docker-compose up -d --build）
 ```
 
 服务默认监听 `8051` 端口，启动后直接访问 [http://localhost:8051](http://localhost:8051)。

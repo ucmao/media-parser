@@ -1,5 +1,6 @@
 import base64
 import json
+import re
 import urllib.parse
 from bs4 import BeautifulSoup
 
@@ -22,6 +23,29 @@ class ToutiaoParser(DouyinParser):
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "zh-CN,zh-Hans;q=0.9",
     }
+
+    @staticmethod
+    def _clean_description(content):
+        """将头条 SSR 返回的富文本正文转换为保留段落的纯文本。"""
+        if not isinstance(content, str):
+            return None
+
+        soup = BeautifulSoup(content, "html.parser")
+        for tag in soup.find_all(["script", "style", "template"]):
+            tag.decompose()
+        for tag in soup.find_all("br"):
+            tag.replace_with("\n")
+        for tag in soup.find_all(
+            ["address", "article", "blockquote", "div", "h1", "h2", "h3", "h4", "h5", "h6", "li", "p", "section"]
+        ):
+            tag.append("\n")
+
+        lines = []
+        for line in soup.get_text().replace("\xa0", " ").splitlines():
+            normalized = re.sub(r"[\t\f\v ]+", " ", line).strip()
+            if normalized:
+                lines.append(normalized)
+        return "\n".join(lines) or None
 
     def _fetch_toutiao_mobile_ssr(self, item_id: str):
         """通过今日头条移动端 SSR 渲染数据及 VOD 接口提取视频详情。"""
@@ -114,7 +138,8 @@ class ToutiaoParser(DouyinParser):
 
     def get_description(self):
         if self.data and isinstance(self.data, dict) and "toutiao_article_info" in self.data:
-            return self.data["toutiao_article_info"].get("content") or None
+            content = self.data["toutiao_article_info"].get("content")
+            return self._clean_description(content)
         return super().get_description()
 
     def get_cover_photo_url(self):

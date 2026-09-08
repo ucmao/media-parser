@@ -75,20 +75,21 @@
                     <div class="flex flex-wrap items-center justify-between gap-3">
                         <div class="flex items-center gap-2.5 flex-wrap min-w-0">
                             <span id="resultPlatform" class="inline-flex rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-brand border border-indigo-100/80"></span>
+                            <img id="resultAuthorAvatar" src="" alt="" referrerpolicy="no-referrer" class="hidden h-7 w-7 shrink-0 rounded-full border border-slate-200 bg-slate-100 object-cover">
                             <span id="resultAuthor" class="text-xs font-medium text-slate-500"></span>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
                             <button onclick="copyCurrentJson()" class="whitespace-nowrap shrink-0 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-indigo-300 hover:text-brand transition shadow-sm flex items-center gap-1.5">
                                 {{ icon('clipboard', 'w-4 h-4') }} 复制完整 JSON
                             </button>
-                            <button onclick="copyAllLinks()" class="whitespace-nowrap shrink-0 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-indigo-300 hover:text-brand transition shadow-sm flex items-center gap-1.5">
-                                {{ icon('link', 'w-4 h-4') }} 复制全部直链
+                            <button onclick="copyFormattedResult()" class="whitespace-nowrap shrink-0 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-indigo-300 hover:text-brand transition shadow-sm flex items-center gap-1.5">
+                                {{ icon('clipboard', 'w-4 h-4') }} 格式化复制
                             </button>
                         </div>
                     </div>
                     <div>
                         <h3 id="resultTitle" class="text-base font-semibold leading-relaxed text-slate-900 break-words max-h-40 overflow-y-auto custom-scroll"></h3>
-                        <div id="resultDesc" class="hidden mt-3 border-l-2 border-indigo-200 pl-3 text-sm leading-6 text-slate-600 break-words whitespace-pre-wrap max-h-40 overflow-y-auto custom-scroll"><span class="mr-2 text-xs font-semibold text-slate-400">正文</span><span id="resultDescText"></span></div>
+                        <div id="resultDesc" class="hidden mt-3 border-l-2 border-indigo-200 pl-3 text-sm leading-6 text-slate-600 break-words whitespace-pre-wrap max-h-40 overflow-y-auto custom-scroll"><span id="resultDescText"></span></div>
                     </div>
                 </div>
 
@@ -109,9 +110,9 @@
                                 <button id="nextVideoBtn" type="button" onclick="stepVideo(1)" class="hidden rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:border-indigo-300 hover:text-brand disabled:cursor-not-allowed disabled:opacity-40 transition">下一个 →</button>
                             </div>
                         </div>
-                        <div class="relative overflow-hidden rounded-2xl bg-slate-950 shadow-sm">
-                            <video id="videoPlayer" controls playsinline preload="metadata" referrerpolicy="no-referrer" class="w-full max-h-[460px] bg-black"></video>
-                            <img id="videoPlaceholder" src="{{ url_for('static', filename='images/video-placeholder.svg') }}" alt="视频暂时无法预览" class="hidden w-full max-h-[460px] object-cover">
+                        <div class="relative aspect-video w-full max-h-[460px] overflow-hidden rounded-2xl bg-slate-950 shadow-sm">
+                            <video id="videoPlayer" controls playsinline preload="metadata" referrerpolicy="no-referrer" class="absolute inset-0 h-full w-full bg-black object-contain"></video>
+                            <img id="videoPlaceholder" src="{{ url_for('static', filename='images/video-placeholder.svg') }}" alt="已成功解析视频，但当前浏览器无法预览" class="absolute inset-0 hidden h-full w-full object-contain">
                             <div class="group absolute inset-x-0 top-0 bottom-32">
                                 <div class="pointer-events-none absolute inset-x-0 top-0 -bottom-32 flex items-center justify-center bg-slate-950/45 opacity-0 transition duration-200 group-hover:opacity-100 group-focus-within:opacity-100">
                                     <div class="pointer-events-auto flex items-center gap-2 p-4">
@@ -131,6 +132,14 @@
                         <h4 class="text-sm font-semibold text-slate-900 mb-2 flex items-center gap-2">{{ icon('music', 'w-4 h-4 text-slate-500') }} 背景音频</h4>
                         <audio id="audioPlayer" controls referrerpolicy="no-referrer" class="w-full rounded-xl"></audio>
                         <p id="audioPreviewNotice" class="hidden mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-5 text-amber-800"></p>
+                    </div>
+
+                    <!-- 平台字幕或歌词 -->
+                    <div id="subtitleContainer" class="hidden scroll-mt-24">
+                        <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
+                            <h4 class="text-sm font-semibold text-slate-900 flex items-center gap-2">{{ icon('scroll', 'w-4 h-4 text-slate-500') }} 字幕/歌词 (<span id="subtitleCount">0</span>)</h4>
+                        </div>
+                        <div id="subtitleList" class="max-h-72 space-y-2 overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50 p-3 custom-scroll"></div>
                     </div>
 
                     <!-- 高清图集网格 -->
@@ -400,26 +409,92 @@
             return [...new Set(urls.filter(url => typeof url === 'string' && url.trim()).map(url => url.trim()))];
         }
 
-        function copyAllLinks(){
+        function formatCopyValue(value, fallback = '未获取到'){
+            if(typeof value === 'number' && Number.isFinite(value)) return String(value);
+            if(typeof value !== 'string') return fallback;
+            const normalized = value.replace(/\s+/g, ' ').trim();
+            return normalized || fallback;
+        }
+
+        function formatCopyMultilineValue(value){
+            return typeof value === 'string' ? value.trim() : '';
+        }
+
+        function formatCopyLink(url){
+            const normalized = formatCopyValue(url, '');
+            return normalized ? `[${normalized}]` : '未获取到';
+        }
+
+        function formatCopySubtitle(subtitle){
+            if(!subtitle || typeof subtitle.text !== 'string') return '';
+            const text = formatCopyMultilineValue(subtitle.text);
+            if(!text) return '';
+            const start = Number(subtitle.start);
+            const end = Number(subtitle.end);
+            if(!Number.isFinite(start) || start < 0) return `- ${text}`;
+            const timeRange = Number.isFinite(end) && end >= start
+                ? `${formatSubtitleTime(start)} - ${formatSubtitleTime(end)}`
+                : formatSubtitleTime(start);
+            return `- ${timeRange} ${text}`;
+        }
+
+        function copyFormattedResult(){
             if(!lastParsedData) return;
-            const links = [];
-            if(lastParsedData.video_url) links.push(lastParsedData.video_url);
-            (lastParsedData.video_list||[]).forEach(u=>links.push(u));
-            if(lastParsedData.audio_url) links.push(lastParsedData.audio_url);
-            if(lastParsedData.cover_url) links.push(lastParsedData.cover_url);
-            (lastParsedData.image_list||[]).forEach(item=>{
-                if(typeof item === 'string') links.push(item);
-                else if(item && item.url) {
-                    links.push(item.url);
-                    if(item.live_photo_url) links.push(item.live_photo_url);
-                }
-            });
-            const uniqueLinks = uniqueMediaUrls(links);
-            if(uniqueLinks.length > 0){
-                copyText(uniqueLinks.join('\n'), `已复制全部 ${uniqueLinks.length} 个媒体直链！`);
-            } else {
-                showToast('未找到可复制的媒体链接', 'warning');
+            const author = lastParsedData.author || {};
+            const authorName = author.nickname || author.author_id;
+            const primaryVideoUrl = lastParsedData.video_url
+                || (lastParsedData.video_list || []).find(url => typeof url === 'string' && url.trim());
+            const formattedContent = [
+                `标题：${formatCopyValue(lastParsedData.title)}`,
+                `平台：${formatCopyValue(lastParsedData.platform)}`,
+                `作者：${formatCopyValue(authorName)}`,
+                `封面：${formatCopyLink(lastParsedData.cover_url)}`,
+                `视频：${formatCopyLink(primaryVideoUrl)}`,
+                `音乐：${formatCopyLink(lastParsedData.audio_url)}`,
+            ];
+
+            if(lastParsedData.video_id){
+                formattedContent.push(`作品 ID：${formatCopyValue(lastParsedData.video_id)}`);
             }
+            const desc = formatCopyMultilineValue(lastParsedData.desc);
+            if(desc && desc !== formatCopyMultilineValue(lastParsedData.title)){
+                formattedContent.push(`正文：${desc}`);
+            }
+            if(author.author_id && author.author_id !== authorName){
+                formattedContent.push(`作者 ID：${formatCopyValue(author.author_id)}`);
+            }
+            if(author.avatar){
+                formattedContent.push(`作者头像：${formatCopyLink(author.avatar)}`);
+            }
+
+            const videoList = uniqueMediaUrls(lastParsedData.video_list || []);
+            if(videoList.length){
+                formattedContent.push('视频列表：');
+                videoList.forEach((url, index) => formattedContent.push(`- 视频 ${index + 1}：${formatCopyLink(url)}`));
+            }
+
+            const imageList = Array.isArray(lastParsedData.image_list) ? lastParsedData.image_list : [];
+            const formattedImages = imageList.flatMap((item, index) => {
+                if(typeof item === 'string' && item.trim()) return [`- 图片 ${index + 1}：${formatCopyLink(item)}`];
+                if(!item || typeof item !== 'object') return [];
+                const entries = [];
+                if(item.url) entries.push(`- 图片 ${index + 1}：${formatCopyLink(item.url)}`);
+                if(item.live_photo_url) entries.push(`- Live Photo ${index + 1}：${formatCopyLink(item.live_photo_url)}`);
+                return entries;
+            });
+            if(formattedImages.length){
+                formattedContent.push('图集：', ...formattedImages);
+            }
+
+            const formattedSubtitles = (Array.isArray(lastParsedData.subtitles) ? lastParsedData.subtitles : [])
+                .map(formatCopySubtitle)
+                .filter(Boolean);
+            if(formattedSubtitles.length){
+                formattedContent.push('字幕/歌词：', ...formattedSubtitles);
+            }
+
+            formattedContent.push('【使用声明】上述内容及素材版权均归原平台及创作者所有。请尊重原创，仅供个人学习、赏析使用，严禁用于任何商业牟利或非法用途。');
+            copyText(formattedContent.join('\n'), '已格式化复制解析结果');
         }
 
         function copyCurrentVideoUrl(){
@@ -499,6 +574,30 @@
             document.getElementById('lightboxImg').src = '';
         }
 
+        function formatSubtitleTime(seconds){
+            if(!Number.isFinite(seconds) || seconds < 0) return '';
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds - minutes * 60;
+            return `${String(minutes).padStart(2, '0')}:${remainingSeconds.toFixed(3).padStart(6, '0')}`;
+        }
+
+        function normalizeSubtitles(subtitles){
+            if(!Array.isArray(subtitles)) return [];
+            return subtitles.flatMap(subtitle => {
+                if(!subtitle || typeof subtitle.text !== 'string') return [];
+                const text = subtitle.text.trim();
+                const start = Number(subtitle.start);
+                const end = Number(subtitle.end);
+                if(!text) return [];
+                const hasStart = Number.isFinite(start) && start >= 0;
+                return [{
+                    text,
+                    start: hasStart ? start : null,
+                    end: hasStart && Number.isFinite(end) && end >= start ? end : null,
+                }];
+            });
+        }
+
         function copyLightboxUrl(){
             if(activeLightboxUrl){
                 copyText(activeLightboxUrl, '已复制大图链接');
@@ -513,8 +612,25 @@
             document.getElementById('resultDescText').textContent = desc;
             const title = typeof data.title === 'string' ? data.title.trim() : '';
             document.getElementById('resultDesc').classList.toggle('hidden', !desc || desc === title);
-            const author = data.author && (data.author.nickname || data.author.author_id);
-            document.getElementById('resultAuthor').textContent = author ? `作者：${data.author.nickname || data.author.author_id}` : '';
+            const author = data.author && typeof data.author === 'object' ? data.author : {};
+            const authorName = author.nickname || author.author_id || '';
+            document.getElementById('resultAuthor').textContent = authorName;
+            const authorAvatar = document.getElementById('resultAuthorAvatar');
+            const avatarUrl = typeof author.avatar === 'string' ? author.avatar.trim() : '';
+            if(avatarUrl){
+                authorAvatar.alt = authorName ? `${authorName}的头像` : '作者头像';
+                authorAvatar.onerror = () => {
+                    authorAvatar.classList.add('hidden');
+                    authorAvatar.removeAttribute('src');
+                };
+                authorAvatar.src = avatarUrl;
+                authorAvatar.classList.remove('hidden');
+            } else {
+                authorAvatar.onerror = null;
+                authorAvatar.removeAttribute('src');
+                authorAvatar.alt = '';
+                authorAvatar.classList.add('hidden');
+            }
 
             currentVideoUrls = uniqueMediaUrls([data.video_url, ...(data.video_list || [])]);
 
@@ -579,7 +695,39 @@
                 audioContainer.classList.add('hidden');
             }
 
-            // 3. 图片网格渲染
+            // 3. 字幕/歌词渲染
+            const subtitleContainer = document.getElementById('subtitleContainer');
+            const subtitleList = document.getElementById('subtitleList');
+            const subtitles = normalizeSubtitles(data.subtitles);
+            subtitleList.replaceChildren();
+            document.getElementById('subtitleCount').textContent = subtitles.length;
+            if(subtitles.length){
+                subtitles.forEach((subtitle, index) => {
+                    const row = document.createElement('div');
+                    row.className = 'flex items-start gap-3 rounded-xl bg-white px-3 py-2.5 text-sm shadow-sm ring-1 ring-slate-200/70';
+
+                    const time = document.createElement('span');
+                    time.className = 'shrink-0 font-mono text-xs leading-5 text-indigo-600';
+                    time.textContent = subtitle.start === null
+                        ? '未标注时间'
+                        : subtitle.end === null
+                            ? formatSubtitleTime(subtitle.start)
+                            : `${formatSubtitleTime(subtitle.start)} - ${formatSubtitleTime(subtitle.end)}`;
+
+                    const text = document.createElement('p');
+                    text.className = 'min-w-0 flex-1 leading-5 text-slate-700 whitespace-pre-wrap break-words';
+                    text.textContent = subtitle.text;
+                    text.setAttribute('aria-label', `第 ${index + 1} 条字幕`);
+
+                    row.append(time, text);
+                    subtitleList.appendChild(row);
+                });
+                subtitleContainer.classList.remove('hidden');
+            } else {
+                subtitleContainer.classList.add('hidden');
+            }
+
+            // 4. 图片网格渲染
             const imageContainer = document.getElementById('imageContainer');
             const imageGrid = document.getElementById('imageGrid');
             const imageCount = document.getElementById('imageCount');
@@ -644,7 +792,7 @@
                 imageContainer.classList.add('hidden');
             }
 
-            // 4. 无资源提示
+            // 5. 无资源提示
             const emptyNotice = document.getElementById('emptyMediaNotice');
             if(currentVideoUrls.length === 0 && !data.audio_url && uniqueImageList.length === 0){
                 emptyNotice.classList.remove('hidden');
@@ -652,7 +800,7 @@
                 emptyNotice.classList.add('hidden');
             }
 
-            // 5. JSON 数据渲染
+            // 6. JSON 数据渲染
             document.getElementById('jsonCode').textContent = JSON.stringify(data, null, 2);
 
             // 显示结果区并默认显示视觉预览 Tab

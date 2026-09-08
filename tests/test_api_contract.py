@@ -28,6 +28,16 @@ class ApiContractTest(unittest.TestCase):
         self.assertNotIn("绝对保证", response.get_data(as_text=True))
         self.assertNotIn("小程序", response.get_data(as_text=True))
         self.assertNotIn("qr_code", response.get_data(as_text=True))
+        self.assertIn('id="subtitleContainer"', response.get_data(as_text=True))
+        self.assertIn('id="resultAuthorAvatar"', response.get_data(as_text=True))
+        self.assertNotIn('>正文</span><span id="resultDescText"', response.get_data(as_text=True))
+        self.assertIn("normalizeSubtitles", response.get_data(as_text=True))
+        self.assertIn("copyFormattedResult", response.get_data(as_text=True))
+        self.assertIn("格式化复制", response.get_data(as_text=True))
+        self.assertIn("视频列表：", response.get_data(as_text=True))
+        self.assertIn("图集：", response.get_data(as_text=True))
+        self.assertIn("字幕/歌词：", response.get_data(as_text=True))
+        self.assertIn("【使用声明】上述内容及素材版权均归原平台及创作者所有。", response.get_data(as_text=True))
 
     @staticmethod
     def parser(**overrides):
@@ -40,6 +50,7 @@ class ApiContractTest(unittest.TestCase):
             "author": None,
             "image_list": [],
             "audio_url": None,
+            "subtitles": None,
         }
         values.update(overrides)
         parser = Mock()
@@ -51,6 +62,7 @@ class ApiContractTest(unittest.TestCase):
         parser.get_author_info.return_value = values["author"]
         parser.get_image_list.return_value = values["image_list"]
         parser.get_audio_url.return_value = values["audio_url"]
+        parser.get_subtitles.return_value = values["subtitles"]
         return parser
 
     def post_with_parser(self, parser, redirect_url="https://www.douyin.com/video/123"):
@@ -157,6 +169,17 @@ class ApiContractTest(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIsNone(response.get_json()["data"]["desc"])
+
+    def test_response_exposes_subtitles(self):
+        subtitles = [
+            {"start": 1.25, "end": 3.5, "text": "第一句字幕"},
+            {"start": 4, "text": "第二句歌词"},
+            {"text": "未带时间的歌词"},
+        ]
+        response = self.post_with_parser(self.parser(subtitles=subtitles))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json()["data"]["subtitles"], subtitles)
 
     def test_response_uses_description_as_legacy_title_fallback(self):
         response = self.post_with_parser(self.parser(title="同一段文案", desc="同一段文案"))

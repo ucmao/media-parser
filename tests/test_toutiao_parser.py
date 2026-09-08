@@ -64,6 +64,29 @@ class ToutiaoParserTest(unittest.TestCase):
             self.assertEqual(parser.get_real_video_url(), "https://v26.toutiaovod.com/video_720p.mp4")
             self.assertEqual(parser.get_video_list(), ["https://v26.toutiaovod.com/video_720p.mp4"])
 
+    @patch("src.parsers.douyin_parser.DouyinParser.fetch_html_data")
+    def test_description_strips_html_and_preserves_paragraphs(self, mock_douyin_fetch):
+        mock_douyin_fetch.return_value = None
+
+        with patch.object(ToutiaoParser, "_fetch_toutiao_mobile_ssr") as mock_ssr:
+            mock_ssr.return_value = {
+                "toutiao_article_info": {
+                    "content": (
+                        "<p>第一段&nbsp;<strong>重点</strong></p>"
+                        "<p>第二段<br>换行 &amp; 更多</p>"
+                        "<script>alert('不应返回')</script>"
+                    )
+                },
+                "vod_data": None,
+            }
+            parser = ToutiaoParser("https://www.toutiao.com/video/7680960670263493172")
+
+            self.assertEqual(parser.get_description(), "第一段 重点\n第二段\n换行 & 更多")
+
+    def test_description_returns_none_for_empty_or_non_string_content(self):
+        self.assertIsNone(ToutiaoParser._clean_description("<p> &nbsp; </p>"))
+        self.assertIsNone(ToutiaoParser._clean_description(None))
+
 
 if __name__ == "__main__":
     unittest.main()
