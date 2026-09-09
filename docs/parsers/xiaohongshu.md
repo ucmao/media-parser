@@ -84,6 +84,8 @@ if match:
    * *解法*：在 [utils/web_fetcher.py](file:///Users/leo/Projects/media-parser/utils/web_fetcher.py) 的 `UrlParser.extract_video_address` 中完整保留 `xsec_token`, `xsec_source`, `source`, `xhsshare`, `app_platform` 等核心参数。
 3. **字符转义与 `undefined` 序列化**：
    * HTML 内嵌的 JS 对象常包含 `:undefined`，直接 `json.loads` 会抛出异常，需统一正则替换为 `:null`。
+4. **已删除 / 私密笔记识别 (`MEDIA_DELETED_OR_PRIVATE`)**：
+   * 当笔记被作者删除或设置为私密不可见时，小红书 SSR 仍会返回 HTML，但 `noteDetailMap[firstNoteId]['note']` 实体为空对象 `{}`，或直接跳转官方 404 拦截路由。解析器已对此类终态进行精准捕获并透传 `MEDIA_DELETED_OR_PRIVATE` 状态码，避免误判。
 
 ---
 

@@ -34,15 +34,23 @@ class XiaohongshuParser(BaseParser):
             }
             try:
                 resp = self.session.get(self.real_url, headers=headers, timeout=6)
+                if resp.status_code == 404:
+                    self.terminal_error = {"detail_msg": "该小红书笔记已被作者删除或不存在"}
+                    return
                 if resp.status_code != 200:
                     continue
-                if "xiaohongshu.com/login" in resp.url or "xiaohongshu.com/404" in resp.url or "undertake_note_error" in resp.url:
+                if "xiaohongshu.com/404" in resp.url or "undertake_note_error" in resp.url:
+                    self.terminal_error = {"detail_msg": "该小红书笔记已被作者删除或不存在"}
+                    return
+                if "xiaohongshu.com/login" in resp.url:
                     continue
 
                 self.html_content = resp.text
                 note = self._extract_note_from_html(self.html_content)
                 if note:
                     self.note_data = note
+                    return
+                if self.terminal_error:
                     return
             except requests.RequestException as e:
                 logger.warning(f"小红书请求失败 (UA: {ua[:30]}...): {e}")
@@ -51,7 +59,7 @@ class XiaohongshuParser(BaseParser):
                 logger.error(f"解析小红书页面异常: {e}")
                 continue
 
-        if not self.note_data:
+        if not self.note_data and not self.terminal_error:
             logger.error(f"未能解析出小红书笔记数据: {self.real_url}")
 
     def _extract_note_from_html(self, html_content):
@@ -76,9 +84,14 @@ class XiaohongshuParser(BaseParser):
         # 1. PC 端结构: full_data['note']['noteDetailMap'][first_note_id]['note']
         first_note_id = full_data.get('note', {}).get('firstNoteId')
         if first_note_id:
-            note = full_data.get('note', {}).get('noteDetailMap', {}).get(first_note_id, {}).get('note', {})
-            if note:
-                return note
+            note_item = full_data.get('note', {}).get('noteDetailMap', {}).get(first_note_id)
+            if isinstance(note_item, dict):
+                note = note_item.get('note')
+                if isinstance(note, dict) and note:
+                    return note
+                if note == {}:
+                    self.terminal_error = {"detail_msg": "该小红书笔记已被作者删除或设置为私密不可见"}
+                    return None
 
         # 2. 移动端 H5 结构: full_data['noteData']['data']['noteData']
         note = full_data.get('noteData', {}).get('data', {}).get('noteData', {})

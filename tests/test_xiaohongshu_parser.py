@@ -28,5 +28,15 @@ class XiaohongshuParserTest(unittest.TestCase):
         self.assertEqual(images[0]["live_photo_url"], "http://live.mp4")
 
 
+    def test_extract_deleted_or_private_note_sets_terminal_error(self):
+        html = '<script>window.__INITIAL_STATE__ = {"note": {"firstNoteId": "note_deleted", "noteDetailMap": {"note_deleted": {"note": {}}}}}</script>'
+        parser = XiaohongshuParser.__new__(XiaohongshuParser)
+        parser.terminal_error = None
+        note = parser._extract_note_from_html(html)
+        self.assertIsNone(note)
+        self.assertIsNotNone(parser.terminal_error)
+        self.assertIn("私密", parser.terminal_error["detail_msg"])
+
+
 if __name__ == "__main__":
     unittest.main()
