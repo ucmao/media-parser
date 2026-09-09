@@ -188,7 +188,7 @@
                 <div class="batch-toolbar-divider"></div>
                 <button type="button" class="batch-btn batch-btn-primary" onclick="executeBatchAction('keys-table', '/console/keys/batch', 'enable')">批量启用</button>
                 <button type="button" class="batch-btn" onclick="executeBatchAction('keys-table', '/console/keys/batch', 'disable')">批量停用</button>
-                <button type="button" class="batch-btn batch-btn-danger" onclick="executeBatchAction('keys-table', '/console/keys/batch', 'delete', {}, '确定要彻底删除选中的 API Key 吗？此操作无法恢复！')">删除 Key</button>
+                <button type="button" class="batch-btn batch-btn-danger" onclick="executeBatchAction('keys-table', '/console/keys/batch', 'delete', {}, '确定要彻底删除选中的 API Key 吗？此操作无法恢复！', '删除密钥确认', 'danger')">删除 Key</button>
                 <div class="batch-toolbar-divider"></div>
                 <button type="button" class="batch-btn batch-btn-clear" onclick="clearTableSelection('keys-table')" title="取消选择">&times; 清空</button>
             </div>

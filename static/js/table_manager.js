@@ -3,6 +3,9 @@
  * 通用后台数据表格交互核心逻辑：排序、动态筛选、批量勾选/跨页全选、分页及条数切换、导出。
  */
 function initAll() {
+    // 初始化页面自定义下拉组件
+    initCustomSelects();
+
     // 监听全选框与单选框联动
     initTableSelection();
 
@@ -301,7 +304,7 @@ function setSelectAllFilteredMode(tableId, totalCount) {
 /**
  * 核心批量操作提交接口
  */
-function executeBatchAction(tableId, targetUrl, action, extraPayload = {}, confirmPrompt = '') {
+async function executeBatchAction(tableId, targetUrl, action, extraPayload = {}, confirmPrompt = '', confirmTitle = '操作确认', confirmType = 'danger') {
     const table = document.getElementById(tableId);
     if (!table) return;
 
@@ -310,12 +313,24 @@ function executeBatchAction(tableId, targetUrl, action, extraPayload = {}, confi
     const values = Array.from(checkedBoxes).map(cb => cb.value);
 
     if (!isAllMode && values.length === 0) {
-        alert('请先勾选需要批量操作的行！');
+        if (window.showToast) {
+            window.showToast('请先勾选需要批量操作的行！', 'warning');
+        }
         return;
     }
 
-    if (confirmPrompt && !confirm(confirmPrompt)) {
-        return;
+    if (confirmPrompt) {
+        if (window.confirmModal) {
+            const ok = await window.confirmModal({
+                title: confirmTitle,
+                message: confirmPrompt,
+                confirmText: '确定',
+                type: confirmType
+            });
+            if (!ok) return;
+        } else if (typeof confirm === 'function' && !confirm(confirmPrompt)) {
+            return;
+        }
     }
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ||
@@ -381,7 +396,9 @@ function triggerLogExport(exportType = 'auto') {
 
     if (exportType === 'selected') {
         if (ids.length === 0) {
-            alert('请先勾选需要导出的日志条目！');
+            if (window.showToast) {
+                window.showToast('请先勾选需要导出的日志条目！', 'warning');
+            }
             return;
         }
         urlParams.set('ids', ids.join(','));
@@ -402,7 +419,9 @@ function openBatchModal(modalId, tableId) {
     if (!m) return;
     const checked = document.querySelectorAll(`#${tableId} .row-checkbox:checked`);
     if (checked.length === 0) {
-        alert('请先勾选需要批量操作的项！');
+        if (window.showToast) {
+            window.showToast('请先勾选需要批量操作的项！', 'warning');
+        }
         return;
     }
     m.style.display = 'flex';
@@ -430,7 +449,9 @@ function submitBatchUserCredits() {
 function submitBatchUserExpires() {
     const expires = document.getElementById('batch-expires-date')?.value || '';
     if (!expires) {
-        alert('请选择到期日期！');
+        if (window.showToast) {
+            window.showToast('请选择到期日期！', 'warning');
+        }
         return;
     }
     executeBatchAction('users-table', '/admin/users/batch', 'set_expires', { expires_at: expires });
@@ -450,4 +471,183 @@ function submitBatchPlatformQps() {
     const qps = document.getElementById('batch-platform-qps-val')?.value || '';
     executeBatchAction('platforms-table', '/admin/platforms/batch', 'set_qps', { qps_limit: qps });
 }
+
+/**
+ * ==========================================================================
+ * 轻量级网页自定义下拉菜单组件 (替代系统原生 <select> 灰色弹窗)
+ * ==========================================================================
+ */
+function initCustomSelects() {
+    document.querySelectorAll('select:not(.native-select)').forEach(sel => {
+        if (sel.dataset.customSelectInit === 'true') return;
+        sel.dataset.customSelectInit = 'true';
+        sel.style.display = 'none';
+
+        const wrap = document.createElement('div');
+        wrap.className = 'custom-select-wrap';
+        if (sel.className) {
+            sel.className.split(/\s+/).forEach(c => {
+                if (c) wrap.classList.add(c + '-wrap');
+            });
+        }
+        if (sel.id) wrap.id = sel.id + '-custom-wrap';
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'custom-select-btn';
+
+        const btnText = document.createElement('span');
+        btnText.className = 'custom-select-btn-text';
+
+        const chevron = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        chevron.setAttribute('class', 'custom-select-chevron');
+        chevron.setAttribute('width', '11');
+        chevron.setAttribute('height', '11');
+        chevron.setAttribute('viewBox', '0 0 24 24');
+        chevron.setAttribute('fill', 'none');
+        chevron.setAttribute('stroke', 'currentColor');
+        chevron.setAttribute('stroke-width', '2.5');
+        chevron.setAttribute('stroke-linecap', 'round');
+        chevron.setAttribute('stroke-linejoin', 'round');
+        chevron.innerHTML = '<polyline points="6 9 12 15 18 9"></polyline>';
+
+        btn.appendChild(btnText);
+        btn.appendChild(chevron);
+        wrap.appendChild(btn);
+
+        const popover = document.createElement('div');
+        popover.className = 'custom-select-popover';
+
+        function updateOptions() {
+            popover.innerHTML = '';
+            const currVal = sel.value;
+            let foundText = '';
+
+            Array.from(sel.children).forEach(child => {
+                if (child.tagName === 'OPTGROUP') {
+                    const header = document.createElement('div');
+                    header.className = 'custom-select-group-header';
+                    header.textContent = child.label || '';
+                    popover.appendChild(header);
+
+                    Array.from(child.children).forEach(opt => {
+                        const item = renderItem(opt, currVal);
+                        if (opt.value === currVal || opt.selected) foundText = opt.text;
+                        popover.appendChild(item);
+                    });
+                } else if (child.tagName === 'OPTION') {
+                    const item = renderItem(child, currVal);
+                    if (child.value === currVal || child.selected) foundText = child.text;
+                    popover.appendChild(item);
+                }
+            });
+
+            const activeOpt = sel.options[sel.selectedIndex];
+            btnText.textContent = foundText || (activeOpt ? activeOpt.text : '') || '请选择';
+        }
+
+        function renderItem(opt, currVal) {
+            const item = document.createElement('button');
+            item.type = 'button';
+            item.className = 'custom-select-item' + (opt.value === currVal ? ' active' : '');
+            item.dataset.value = opt.value;
+
+            const t = document.createElement('span');
+            t.className = 'custom-select-item-text';
+            t.textContent = opt.text;
+
+            const chk = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            chk.setAttribute('class', 'custom-select-item-check');
+            chk.setAttribute('width', '13');
+            chk.setAttribute('height', '13');
+            chk.setAttribute('viewBox', '0 0 24 24');
+            chk.setAttribute('fill', 'none');
+            chk.setAttribute('stroke', 'currentColor');
+            chk.setAttribute('stroke-width', '2.5');
+            chk.setAttribute('stroke-linecap', 'round');
+            chk.setAttribute('stroke-linejoin', 'round');
+            chk.innerHTML = '<polyline points="20 6 9 17 4 12"></polyline>';
+
+            item.appendChild(t);
+            item.appendChild(chk);
+
+            item.onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                sel.value = opt.value;
+                btnText.textContent = opt.text;
+                wrap.classList.remove('open');
+
+                popover.querySelectorAll('.custom-select-item').forEach(el => {
+                    if (el.dataset.value === opt.value) el.classList.add('active');
+                    else el.classList.remove('active');
+                });
+
+                sel.dispatchEvent(new Event('change', { bubbles: true }));
+                if (typeof sel.onchange === 'function') {
+                    sel.onchange.call(sel, new Event('change'));
+                }
+            };
+            return item;
+        }
+
+        updateOptions();
+
+        btn.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const isOpen = wrap.classList.contains('open');
+
+            document.querySelectorAll('.custom-select-wrap.open').forEach(w => {
+                if (w !== wrap) w.classList.remove('open');
+            });
+
+            if (!isOpen) {
+                const rect = btn.getBoundingClientRect();
+                const spaceBelow = window.innerHeight - rect.bottom;
+                const spaceAbove = rect.top;
+                if (spaceBelow < 200 && spaceAbove > spaceBelow) {
+                    wrap.classList.add('drop-up');
+                } else {
+                    wrap.classList.remove('drop-up');
+                }
+                wrap.classList.add('open');
+            } else {
+                wrap.classList.remove('open');
+            }
+        };
+
+        sel.addEventListener('change', () => {
+            const activeOpt = sel.options[sel.selectedIndex];
+            if (activeOpt) {
+                btnText.textContent = activeOpt.text;
+                popover.querySelectorAll('.custom-select-item').forEach(el => {
+                    if (el.dataset.value === sel.value) el.classList.add('active');
+                    else el.classList.remove('active');
+                });
+            }
+        });
+
+        wrap.appendChild(popover);
+        sel.parentNode.insertBefore(wrap, sel.nextSibling);
+    });
+}
+
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.custom-select-wrap')) {
+        document.querySelectorAll('.custom-select-wrap.open').forEach(w => {
+            w.classList.remove('open');
+        });
+    }
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.custom-select-wrap.open').forEach(w => {
+            w.classList.remove('open');
+        });
+    }
+});
+
+window.initCustomSelects = initCustomSelects;
 

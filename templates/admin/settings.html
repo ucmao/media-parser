@@ -174,18 +174,18 @@
                                 onchange="triggerSettingsSubmit(this)">
                         </div>
 
-                        <div class="api-tip-preview-box">
-                            <div class="api-tip-preview-header">
+                        <details class="api-tip-preview-box" style="cursor:pointer">
+                            <summary class="api-tip-preview-header" style="user-select:none;outline:none">
                                 <span class="api-tip-preview-title">
                                     <svg class="app-icon" style="width:13px;height:13px" aria-hidden="true">
                                         <use href="{{ url_for('static', filename='icons.svg') }}#icon-code"></use>
                                     </svg>
                                     响应 JSON 效果预览
                                 </span>
-                                <span class="api-tip-preview-badge">实时联动</span>
-                            </div>
-                            <pre class="api-tip-code"><code id="api-tip-preview-code"></code></pre>
-                        </div>
+                                <span class="muted" style="font-size:12px">点击展开/收起 ▾</span>
+                            </summary>
+                            <pre class="api-tip-code" style="margin-top:8px;cursor:auto"><code id="api-tip-preview-code"></code></pre>
+                        </details>
                     </div>
                 </div>
             </section>

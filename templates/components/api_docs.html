@@ -345,7 +345,7 @@
                 <div class="pg-section-label">
                     <span>待解析链接 / 分享文案 <span style="color:#ef4444">*</span></span>
                 </div>
-                <textarea id="pg-target-url" class="pg-input" rows="3"
+                <textarea id="pg-target-url" class="pg-input" rows="4"
                     placeholder="粘贴目标作品分享链接或文案 (例如 https://v.douyin.com/...)" 
                     required autocomplete="off" oninput="syncCodeSnippets()"></textarea>
             </div>
@@ -377,17 +377,39 @@
                             onkeydown="handleKeyInputKeydown(event)">
                     </div>
 
-                    <select id="pg-key-selector" class="pg-key-dropdown" onchange="handleApiKeyDropdownChange(this)" title="选择已有 Key 或前往创建">
-                        <option value="">未选择 Key</option>
-                        {% if available_keys and available_keys|length > 0 %}
-                        {% for k in available_keys %}
-                        <option value="{{ k['key_prefix'] }}..." data-name="{{ k['name'] or '密钥' }}" {% if (new_api_key and k['key_prefix'] in new_api_key) or (not new_api_key and loop.first) %}selected{% endif %}>{{ k['name'] or '密钥' }}</option>
-                        {% endfor %}
-                        <option value="__GO_CREATE_KEY__">+ 创建新 Key / 管理密钥 ↗</option>
-                        {% else %}
-                        <option value="__GO_CREATE_KEY__">+ 暂无 Key，点击前往创建 ↗</option>
-                        {% endif %}
-                    </select>
+                    <!-- Custom Dropdown Component for Playground Key Selection -->
+                    <div class="pg-key-dropdown-wrap" id="pg-key-dropdown-wrap">
+                        <button type="button" class="pg-key-dropdown-trigger" id="pg-key-dropdown-btn" onclick="togglePgKeyDropdown(event)" title="选择已有 Key 或前往创建">
+                            <span id="pg-key-dropdown-label">{{ first_key['name'] if has_initial_key else '选择 Key' }}</span>
+                            <svg class="pg-key-dropdown-chevron" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
+                        <div class="pg-key-dropdown-menu" id="pg-key-dropdown-menu">
+                            <button type="button" class="pg-key-menu-item {% if not has_initial_key and not new_api_key %}active{% endif %}" data-val="" onclick="handlePgKeyItemSelect('', '手动输入')">
+                                <span class="pg-key-item-title">未选择 Key</span>
+                                <svg class="pg-key-item-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                            </button>
+                            {% if available_keys and available_keys|length > 0 %}
+                            {% for k in available_keys %}
+                            {% set is_selected = (new_api_key and k['key_prefix'] in new_api_key) or (not new_api_key and loop.first) %}
+                            <button type="button" class="pg-key-menu-item {% if is_selected %}active{% endif %}" data-val="{{ k['key_prefix'] }}..." data-name="{{ k['name'] or '密钥' }}" onclick="handlePgKeyItemSelect('{{ k['key_prefix'] }}...', '{{ k['name'] or '密钥' }}')">
+                                <span class="pg-key-item-title">{{ k['name'] or '密钥' }}</span>
+                                <svg class="pg-key-item-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                            </button>
+                            {% endfor %}
+                            <div class="pg-key-menu-divider"></div>
+                            <button type="button" class="pg-key-menu-item action-create" onclick="handlePgKeyActionCreate()">
+                                <span>+ 创建新 Key / 管理密钥 ↗</span>
+                            </button>
+                            {% else %}
+                            <div class="pg-key-menu-divider"></div>
+                            <button type="button" class="pg-key-menu-item action-create" onclick="handlePgKeyActionCreate()">
+                                <span>+ 暂无 Key，点击前往创建 ↗</span>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -601,22 +623,36 @@
         if (input && input.style.display !== 'none') input.focus();
     };
 
-    window.handleApiKeyDropdownChange = function(sel) {
-        const val = typeof sel === 'string' ? sel : (sel ? sel.value : '');
-        if (val === '__GO_CREATE_KEY__') {
-            const dropdown = document.getElementById('pg-key-selector');
-            if (dropdown) dropdown.value = '';
-            goToKeyManagement();
-            return;
+    window.togglePgKeyDropdown = function(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
         }
+        const wrap = document.getElementById('pg-key-dropdown-wrap');
+        if (wrap) {
+            wrap.classList.toggle('open');
+        }
+    };
+
+    window.closePgKeyDropdown = function() {
+        const wrap = document.getElementById('pg-key-dropdown-wrap');
+        if (wrap) {
+            wrap.classList.remove('open');
+        }
+    };
+
+    window.handlePgKeyItemSelect = function(val, name) {
+        closePgKeyDropdown();
         if (!val) {
             clearSelectedKey();
             return;
         }
-        const dropdown = document.getElementById('pg-key-selector');
-        const opt = dropdown ? dropdown.options[dropdown.selectedIndex] : null;
-        const name = opt ? (opt.dataset.name || opt.text) : '密钥';
         applySelectedKey(val, name);
+    };
+
+    window.handlePgKeyActionCreate = function() {
+        closePgKeyDropdown();
+        goToKeyManagement();
     };
 
     window.applySelectedKey = function(prefixVal, name) {
@@ -624,7 +660,7 @@
         const chipName = document.getElementById('pg-key-chip-name');
         const chipPrefix = document.getElementById('pg-key-chip-prefix');
         const input = document.getElementById('pg-api-key');
-        const dropdown = document.getElementById('pg-key-selector');
+        const label = document.getElementById('pg-key-dropdown-label');
 
         if (chipName) chipName.textContent = name || '密钥';
         if (chipPrefix) chipPrefix.textContent = '(' + prefixVal + ')';
@@ -638,9 +674,17 @@
             input.style.display = 'none';
         }
 
-        if (dropdown && dropdown.value !== prefixVal) {
-            dropdown.value = prefixVal;
+        if (label) {
+            label.textContent = name || '密钥';
         }
+
+        document.querySelectorAll('#pg-key-dropdown-menu .pg-key-menu-item').forEach(item => {
+            if (item.dataset.val === prefixVal) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
 
         syncCodeSnippets();
     };
@@ -649,7 +693,7 @@
         if (e) e.stopPropagation();
         const chip = document.getElementById('pg-selected-key-chip');
         const input = document.getElementById('pg-api-key');
-        const dropdown = document.getElementById('pg-key-selector');
+        const label = document.getElementById('pg-key-dropdown-label');
 
         if (chip) {
             chip.style.display = 'none';
@@ -661,24 +705,39 @@
             input.placeholder = '请输入或选择 API Key';
             input.focus();
         }
-        if (dropdown) {
-            dropdown.value = '';
+        if (label) {
+            label.textContent = '选择 Key';
         }
+
+        document.querySelectorAll('#pg-key-dropdown-menu .pg-key-menu-item').forEach(item => {
+            if (!item.dataset.val) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+
         syncCodeSnippets();
     };
 
     window.handleManualKeyInput = function() {
         const chip = document.getElementById('pg-selected-key-chip');
-        const input = document.getElementById('pg-api-key');
-        const dropdown = document.getElementById('pg-key-selector');
+        const label = document.getElementById('pg-key-dropdown-label');
 
         if (chip && chip.style.display !== 'none') {
             chip.style.display = 'none';
             chip.dataset.val = '';
         }
-        if (dropdown) {
-            dropdown.value = '';
+        if (label) {
+            label.textContent = '选择 Key';
         }
+        document.querySelectorAll('#pg-key-dropdown-menu .pg-key-menu-item').forEach(item => {
+            if (!item.dataset.val) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
         syncCodeSnippets();
     };
 
@@ -691,22 +750,35 @@
     };
 
     window.selectApiKey = function(keyVal) {
-        const dropdown = document.getElementById('pg-key-selector');
-        if (dropdown) {
-            for (let i = 0; i < dropdown.options.length; i++) {
-                if (dropdown.options[i].value === keyVal) {
-                    dropdown.selectedIndex = i;
-                    applySelectedKey(keyVal, dropdown.options[i].dataset.name || dropdown.options[i].text);
-                    return;
-                }
+        let matched = false;
+        document.querySelectorAll('#pg-key-dropdown-menu .pg-key-menu-item[data-val]').forEach(item => {
+            if (item.dataset.val === keyVal || item.dataset.val === (keyVal + '...')) {
+                applySelectedKey(item.dataset.val, item.dataset.name || '密钥');
+                matched = true;
+            }
+        });
+        if (!matched) {
+            const input = document.getElementById('pg-api-key');
+            if (input) {
+                input.value = keyVal;
+                syncCodeSnippets();
             }
         }
-        const input = document.getElementById('pg-api-key');
-        if (input) {
-            input.value = keyVal;
-            syncCodeSnippets();
-        }
     };
+
+    document.addEventListener('click', function(e) {
+        const wrap = document.getElementById('pg-key-dropdown-wrap');
+        if (wrap && wrap.classList.contains('open') && !wrap.contains(e.target)) {
+            wrap.classList.remove('open');
+        }
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const wrap = document.getElementById('pg-key-dropdown-wrap');
+            if (wrap) wrap.classList.remove('open');
+        }
+    });
 
     window.resetPlayground = function() {
         const urlInput = document.getElementById('pg-target-url');

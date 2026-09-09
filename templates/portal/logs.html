@@ -94,8 +94,8 @@
                             <td style="white-space:nowrap;text-align:center"><span class="badge {{ '' if log['status_code']<400 else 'off' }}">{{ log['status_code'] }}</span></td>
                             <td style="white-space:nowrap">
                                 {% if log['error_code'] %}
-                                <code style="font-size:12px;font-weight:600;color:#dc2626;background:#fef2f2;padding:2px 6px;border-radius:4px;border:1px solid #fee2e2">{{ log['error_code'] }}</code>
-                                {% else %}-{% endif %}
+                                <code class="error-code-badge">{{ log['error_code'] }}</code>
+                                {% else %}<span class="muted">-</span>{% endif %}
                             </td>
                             <td style="white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums">{{ log['duration_ms'] }} ms</td>
                         </tr>

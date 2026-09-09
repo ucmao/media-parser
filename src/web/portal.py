@@ -1,8 +1,9 @@
 import csv
 from datetime import datetime, time, timezone
+import io
 from zoneinfo import ZoneInfo
 
-from flask import Blueprint, Response, flash, g, redirect, render_template, request, session, stream_with_context, url_for
+from flask import Blueprint, Response, flash, g, redirect, render_template, request, session, url_for
 
 from configs.general_constants import DOMAIN_TO_NAME
 from src.auth import csrf_protected, format_log_time, generate_api_key, hash_api_key, login_required, user_is_expired
@@ -417,53 +418,81 @@ def _safe_csv_cell(value):
     return text
 
 
-class _CsvRowBuffer:
-    def write(self, value):
-        return value
-
-
 @bp.get("/logs/export.csv")
 @login_required
 def export_logs():
+    db = get_db()
+    export_type = request.args.get("export_type", "all")
     ids_param = request.args.get("ids", "").strip()
-    selected_ids = []
-    if ids_param:
-        try:
-            selected_ids = [int(i.strip()) for i in ids_param.split(",") if i.strip().isdigit()]
-        except ValueError:
-            selected_ids = []
 
-    def generate():
-        writer = csv.writer(_CsvRowBuffer())
-        yield "\ufeff"
-        yield writer.writerow(("时间", "调用 Key", "平台", "请求路径", "请求 URL", "状态码", "耗时（毫秒）", "错误码"))
-        db = get_db()
-        if selected_ids:
-            placeholders = ",".join(["?"] * len(selected_ids))
-            sql = f"""SELECT l.*, k.key_prefix, k.name as key_name
-                      FROM request_logs l
-                      LEFT JOIN api_keys k ON l.api_key_id = k.id
-                      WHERE l.user_id=? AND l.id IN ({placeholders})
-                      ORDER BY l.id DESC"""
-            cursor = db.execute(sql, [g.user["id"]] + selected_ids)
-        else:
-            sql = """SELECT l.*, k.key_prefix, k.name as key_name
-                     FROM request_logs l
-                     LEFT JOIN api_keys k ON l.api_key_id = k.id
-                     WHERE l.user_id=?
-                     ORDER BY l.id DESC"""
-            cursor = db.execute(sql, (g.user["id"],))
-        while rows := cursor.fetchmany(1000):
-            for row in rows:
-                key_display = f"{row['key_name']} ({row['key_prefix']}...)" if row["key_prefix"] else "Web 免鉴权"
-                yield writer.writerow(tuple(_safe_csv_cell(value) for value in (
-                    format_log_time(row["created_at"]), key_display, row["platform"] or "", row["path"],
-                    row["input_url"] or "", row["status_code"], row["duration_ms"],
-                    row["error_code"] or "",
-                )))
+    where_clauses, params = ["l.user_id = ?"], [g.user["id"]]
+
+    if export_type == "selected" and ids_param:
+        try:
+            id_list = [int(i.strip()) for i in ids_param.split(",") if i.strip().isdigit()]
+            if id_list:
+                placeholders = ",".join(["?"] * len(id_list))
+                where_clauses.append(f"l.id IN ({placeholders})")
+                params.extend(id_list)
+        except ValueError:
+            pass
+    else:
+        if l_q := request.args.get("logs_q", request.args.get("q", "")).strip():
+            where_clauses.append("(l.input_url LIKE ? OR l.error_code LIKE ? OR k.name LIKE ?)")
+            params.extend([f"%{l_q}%", f"%{l_q}%", f"%{l_q}%"])
+        if l_status := request.args.get("logs_status", request.args.get("status_code", "")).strip():
+            if l_status == "200":
+                where_clauses.append("l.status_code < 400")
+            elif l_status == "error":
+                where_clauses.append("l.status_code >= 400")
+            elif l_status.isdigit():
+                where_clauses.append("l.status_code = ?")
+                params.append(int(l_status))
+        if l_platform := request.args.get("logs_platform", request.args.get("platform", "")).strip():
+            where_clauses.append("l.platform = ?")
+            params.append(l_platform)
+        if utc_start := _parse_shanghai_to_utc_iso(request.args.get("logs_start_date", request.args.get("start_date", "")), is_end=False):
+            where_clauses.append("l.created_at >= ?")
+            params.append(utc_start)
+        if utc_end := _parse_shanghai_to_utc_iso(request.args.get("logs_end_date", request.args.get("end_date", "")), is_end=True):
+            where_clauses.append("l.created_at <= ?")
+            params.append(utc_end)
+
+    where_sql = " WHERE " + " AND ".join(where_clauses)
+
+    output = io.StringIO()
+    output.write("\ufeff")
+    writer = csv.writer(output, lineterminator="\r\n")
+    writer.writerow(("时间", "调用 Key", "平台", "请求路径", "请求 URL", "状态码", "耗时（毫秒）", "错误码"))
+
+    sql = f"""SELECT l.*, k.key_prefix, k.name as key_name
+              FROM request_logs l
+              LEFT JOIN api_keys k ON l.api_key_id = k.id
+              {where_sql}
+              ORDER BY l.id DESC"""
+    cursor = db.execute(sql, params)
+    while rows := cursor.fetchmany(1000):
+        for row in rows:
+            key_display = f"{row['key_name']} ({row['key_prefix']}...)" if row["key_prefix"] else "Web 免鉴权"
+            writer.writerow((
+                _safe_csv_cell(format_log_time(row["created_at"])),
+                _safe_csv_cell(key_display),
+                _safe_csv_cell(row["platform"] or ""),
+                _safe_csv_cell(row["path"]),
+                _safe_csv_cell(row["input_url"] or ""),
+                _safe_csv_cell(row["status_code"]),
+                _safe_csv_cell(row["duration_ms"]),
+                _safe_csv_cell(row["error_code"] or ""),
+            ))
+
+    csv_bytes = output.getvalue().encode("utf-8")
     filename = datetime.now(ZoneInfo("Asia/Shanghai")).strftime("my-request-logs-%Y%m%d-%H%M%S.csv")
     return Response(
-        stream_with_context(generate()),
+        csv_bytes,
         content_type="text/csv; charset=utf-8",
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Content-Length": str(len(csv_bytes)),
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+        },
     )

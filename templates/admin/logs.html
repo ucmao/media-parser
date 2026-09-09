@@ -73,7 +73,6 @@
                             <th class="th-sortable" onclick="handleSort('logs', 'duration_ms')" style="white-space:nowrap;width:85px;text-align:right">
                                 耗时 <span class="sort-icon {{ 'active' if logs_table.sorting.sort_by=='duration_ms' }}">{{ '↑' if logs_table.sorting.sort_by=='duration_ms' and logs_table.sorting.order=='asc' else ('↓' if logs_table.sorting.sort_by=='duration_ms' else '↕') }}</span>
                             </th>
-                            <th class="th-action" style="width:70px">操作</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -107,20 +106,14 @@
                             <td style="white-space:nowrap;text-align:center"><span class="badge {{ '' if log['status_code']<400 else 'off' }}">{{ log['status_code'] }}</span></td>
                             <td style="white-space:nowrap">
                                 {% if log['error_code'] %}
-                                <code style="font-size:12px;font-weight:600;color:#dc2626;background:#fef2f2;padding:2px 6px;border-radius:4px;border:1px solid #fee2e2">{{ log['error_code'] }}</code>
-                                {% else %}-{% endif %}
+                                <code class="error-code-badge">{{ log['error_code'] }}</code>
+                                {% else %}<span class="muted">-</span>{% endif %}
                             </td>
                             <td style="white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums">{{ log['duration_ms'] }} ms</td>
-                            <td class="td-action" style="white-space:nowrap;text-align:right">
-                                <form method="post" action="{{ url_for('admin.delete_log', log_id=log['id']) }}" onsubmit="return confirm('确定要删除该条日志记录吗？')" style="display:inline;margin:0">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <button type="submit" class="btn btn-danger btn-small" style="padding:0 9px;height:28px" title="删除该条日志">删除</button>
-                                </form>
-                            </td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="10" class="muted" style="text-align:center">暂无符合条件的日志记录</td>
+                            <td colspan="9" class="muted" style="text-align:center">暂无符合条件的日志记录</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -154,7 +147,7 @@
                 </div>
                 <div class="batch-toolbar-divider"></div>
                 <button type="button" class="batch-btn batch-btn-primary" onclick="triggerLogExport('selected')">批量导出 CSV</button>
-                <button type="button" class="batch-btn batch-btn-danger" onclick="executeBatchAction('logs-table', '/admin/logs/batch', 'delete', {}, '确定要删除选中的日志记录吗？')">批量删除</button>
+                <button type="button" class="batch-btn batch-btn-danger" onclick="executeBatchAction('logs-table', '/admin/logs/batch', 'delete', {}, '确定要删除选中的日志记录吗？此操作无法恢复。', '删除日志确认', 'danger')">批量删除</button>
                 <div class="batch-toolbar-divider"></div>
                 <button type="button" class="batch-btn batch-btn-clear" onclick="clearTableSelection('logs-table')" title="取消选择">&times; 清空</button>
             </div>

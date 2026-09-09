@@ -376,10 +376,21 @@ class ManagementTest(unittest.TestCase):
         response = self.client.get("/admin/logs/export.csv")
         self.assertEqual(response.status_code, 200)
         self.assertIn("text/csv", response.content_type)
+        self.assertIn("Content-Length", response.headers)
         body = response.get_data(as_text=True)
         self.assertIn("请求 URL", body)
         self.assertIn("https://example.com/video/1", body)
         self.assertIn("MEDIA_NOT_FOUND", body)
+
+        # Test with error status filter and all mode
+        filtered_resp = self.client.get("/admin/logs/export.csv?logs_status=error&export_type=all")
+        self.assertEqual(filtered_resp.status_code, 200)
+        self.assertIn("https://example.com/video/1", filtered_resp.get_data(as_text=True))
+
+        # Test with 200 status filter (should exclude error log)
+        ok_resp = self.client.get("/admin/logs/export.csv?logs_status=200&export_type=all")
+        self.assertEqual(ok_resp.status_code, 200)
+        self.assertNotIn("https://example.com/video/1", ok_resp.get_data(as_text=True))
 
     def test_user_can_export_only_own_logs_as_csv(self):
         self.client.post(

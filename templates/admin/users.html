@@ -85,7 +85,7 @@
                             <td style="text-align:center"><input type="checkbox" class="row-checkbox" value="{{ user['id'] }}"></td>
                             <td style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;color:var(--ink-muted);font-weight:500">#{{ user['id'] }}</td>
                             <td style="white-space:nowrap"><strong style="color:var(--ink)">{{ user['username'] }}</strong></td>
-                            <td style="white-space:nowrap;text-align:center"><span class="badge {{ 'brand' if user['role']=='admin' else '' }}">{{ '管理员' if user['role']=='admin' else '客户' }}</span></td>
+                            <td style="white-space:nowrap;text-align:center"><span class="badge {{ 'brand' if user['role']=='admin' else 'neutral' }}">{{ '管理员' if user['role']=='admin' else '客户' }}</span></td>
                             <td style="white-space:nowrap;text-align:center">
                                 <span class="badge {{ '' if user['active'] else 'off' }}">{{ '正常' if user['active'] else '停用' }}</span>
                             </td>

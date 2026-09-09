@@ -1,8 +1,9 @@
 import csv
 from datetime import datetime, time, timedelta, timezone
+import io
 from zoneinfo import ZoneInfo
 
-from flask import Blueprint, Response, flash, g, redirect, render_template, request, session, stream_with_context, url_for
+from flask import Blueprint, Response, flash, g, redirect, render_template, request, session, url_for
 
 from werkzeug.security import generate_password_hash
 
@@ -781,11 +782,6 @@ def _safe_csv_cell(value):
     return text
 
 
-class _CsvRowBuffer:
-    def write(self, value):
-        return value
-
-
 @bp.get("/logs/export.csv")
 @admin_required
 def export_logs():
@@ -828,30 +824,41 @@ def export_logs():
 
     where_sql = (" WHERE " + " AND ".join(where_clauses)) if where_clauses else ""
 
-    def generate():
-        writer = csv.writer(_CsvRowBuffer())
-        yield "\ufeff"
-        yield writer.writerow(("时间", "客户", "Key", "平台", "请求路径", "请求 URL", "状态码", "耗时（毫秒）", "错误码"))
-        cursor = db.execute(
-            f"SELECT l.*, u.username, k.key_prefix FROM request_logs l "
-            f"LEFT JOIN users u ON u.id=l.user_id LEFT JOIN api_keys k ON k.id=l.api_key_id "
-            f"{where_sql} ORDER BY l.id DESC",
-            params,
-        )
-        while rows := cursor.fetchmany(1000):
-            for row in rows:
-                yield writer.writerow(tuple(_safe_csv_cell(value) for value in (
-                    format_log_time(row["created_at"]), row["username"] or "在线体验",
-                    f"{row['key_prefix']}••••••••••••" if row["key_prefix"] else "", row["platform"] or "", row["path"],
-                    row["input_url"] or "", row["status_code"], row["duration_ms"],
-                    row["error_code"] or "",
-                )))
+    output = io.StringIO()
+    output.write("\ufeff")
+    writer = csv.writer(output, lineterminator="\r\n")
+    writer.writerow(("时间", "客户", "Key", "平台", "请求路径", "请求 URL", "状态码", "耗时（毫秒）", "错误码"))
 
+    cursor = db.execute(
+        f"SELECT l.*, u.username, k.key_prefix FROM request_logs l "
+        f"LEFT JOIN users u ON u.id=l.user_id LEFT JOIN api_keys k ON k.id=l.api_key_id "
+        f"{where_sql} ORDER BY l.id DESC",
+        params,
+    )
+    while rows := cursor.fetchmany(1000):
+        for row in rows:
+            writer.writerow((
+                _safe_csv_cell(format_log_time(row["created_at"])),
+                _safe_csv_cell(row["username"] or "在线体验"),
+                _safe_csv_cell(f"{row['key_prefix']}••••••••••••" if row["key_prefix"] else ""),
+                _safe_csv_cell(row["platform"] or ""),
+                _safe_csv_cell(row["path"]),
+                _safe_csv_cell(row["input_url"] or ""),
+                _safe_csv_cell(row["status_code"]),
+                _safe_csv_cell(row["duration_ms"]),
+                _safe_csv_cell(row["error_code"] or ""),
+            ))
+
+    csv_bytes = output.getvalue().encode("utf-8")
     filename = datetime.now(ZoneInfo("Asia/Shanghai")).strftime("request-logs-%Y%m%d-%H%M%S.csv")
     return Response(
-        stream_with_context(generate()),
+        csv_bytes,
         content_type="text/csv; charset=utf-8",
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Content-Length": str(len(csv_bytes)),
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+        },
     )
 
 
