@@ -158,13 +158,27 @@
         <!-- 顶部顶栏 (Topbar, 规范 64px 高度) -->
         <header class="main-topbar h-16 px-8 bg-white/95 backdrop-blur-md border-b border-slate-200/80 flex items-center justify-between sticky top-0 z-20 shadow-2xs">
             <div class="topbar-left flex items-center gap-2 text-sm">
-                <div class="topbar-breadcrumb flex items-center gap-1.5 text-slate-500 font-medium">
-                    <a href="{{ url_for('web.index') }}" target="_blank" class="hover:text-slate-900 transition">Media Parser</a>
+                <nav class="topbar-breadcrumb flex items-center gap-1.5 text-slate-500 font-medium" aria-label="Breadcrumb">
+                    <a href="{{ url_for('admin.overview' if g.user['role']=='admin' else 'portal.overview') }}" class="hover:text-slate-900 transition">{{ '管理后台' if g.user['role']=='admin' else '控制台' }}</a>
                     <span class="topbar-separator text-slate-300">/</span>
-                    <span>{{ '管理后台' if g.user['role']=='admin' else '控制台' }}</span>
+                    <span class="text-slate-500">
+                        {%- block nav_group -%}
+                        {%- if g.user['role'] == 'admin' -%}
+                            {%- if active_nav in ['overview', 'settings'] -%}系统管理
+                            {%- elif active_nav in ['users', 'keys', 'platforms'] -%}业务管理
+                            {%- elif active_nav == 'logs' -%}运维监控
+                            {%- elif active_nav == 'docs' -%}参考文档
+                            {%- else -%}系统管理{%- endif -%}
+                        {%- else -%}
+                            {%- if active_nav in ['overview', 'logs'] -%}概览与统计
+                            {%- elif active_nav in ['keys', 'platforms', 'docs'] -%}开发者中心
+                            {%- else -%}控制中心{%- endif -%}
+                        {%- endif -%}
+                        {%- endblock -%}
+                    </span>
                     <span class="topbar-separator text-slate-300">/</span>
-                </div>
-                <h1 class="page-title text-sm font-bold text-slate-900" id="active-page-title">{% block page_title %}{% endblock %}</h1>
+                    <h1 class="page-title text-sm font-bold text-slate-900 inline" id="active-page-title">{% block page_title %}{% endblock %}</h1>
+                </nav>
             </div>
             <div class="topbar-right flex items-center gap-3">
                 {% if is_api_enabled() %}
@@ -299,7 +313,7 @@ function initChartInteractions() {
             const containerRect = container.getBoundingClientRect();
             const svgRect = svg.getBoundingClientRect();
             const scaleX = svgRect.width / 720;
-            const targetX = cx * scaleX;
+            const targetX = (cx * scaleX) + (svgRect.left - containerRect.left);
 
             let tooltipWidth = tooltip.offsetWidth || 130;
             let left = targetX - (tooltipWidth / 2);

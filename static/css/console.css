@@ -322,29 +322,67 @@
 /* ==========================================================================
    SVG Charts & Tooltips
    ========================================================================== */
+.chart-container {
+  position: relative;
+  width: 100%;
+}
 .chart-guide-line {
-  stroke: #cbd5e1;
-  stroke-width: 1px;
-  stroke-dasharray: 4 4;
-  opacity: 0;
-  transition: opacity 0.15s ease;
   pointer-events: none;
 }
 .chart-hover-dot {
-  opacity: 0;
-  transition: opacity 0.15s ease, r 0.15s ease;
   pointer-events: none;
 }
 .chart-tooltip {
   position: absolute;
   pointer-events: none;
   z-index: 30;
+  display: none;
   opacity: 0;
-  transition: opacity 0.15s ease, transform 0.15s ease;
-  transform: translate(-50%, -100%);
+  background: rgba(255, 255, 255, 0.96);
+  color: #0f172a;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12), 0 4px 10px -2px rgba(15, 23, 42, 0.05);
+  backdrop-filter: blur(8px);
+  white-space: nowrap;
+  transition: left 0.06s ease, opacity 0.12s ease, transform 0.12s ease;
+  transform: translateY(4px);
 }
-.chart-tooltip.visible {
+.chart-tooltip.active {
+  display: block;
   opacity: 1;
+  transform: translateY(0);
+}
+.chart-tooltip .tt-title {
+  font-weight: 700;
+  margin-bottom: 5px;
+  color: #475569;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 4px;
+  font-size: 11.5px;
+}
+.chart-tooltip .tt-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 3px;
+  color: #475569;
+  font-size: 12px;
+}
+.chart-tooltip .tt-row strong {
+  color: #0f172a;
+  font-weight: 600;
+}
+.chart-tooltip .tt-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
 }
 .pie-slice {
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.15s ease;
