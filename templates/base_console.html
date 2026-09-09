@@ -1,83 +1,146 @@
 <!doctype html>
-{% macro icon(name, class_name='') -%}
-<svg class="app-icon {{ class_name }}" aria-hidden="true" focusable="false"><use href="{{ url_for('static', filename='icons.svg') }}#icon-{{ name }}"></use></svg>
+{% macro icon(name, class_name='w-4 h-4') -%}
+<svg class="app-icon inline-block {{ class_name }}" aria-hidden="true" focusable="false"><use href="{{ url_for('static', filename='icons.svg') }}#icon-{{ name }}"></use></svg>
 {%- endmacro %}
-<html lang="zh-CN">
+<html lang="zh-CN" class="h-full bg-slate-50">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}" sizes="32x32">
     <title>{% block title %}控制台{% endblock %} · Media Parser</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                DEFAULT: '#4f46e5',
+                50: '#eef2ff',
+                100: '#e0e7ff',
+                200: '#c7d2fe',
+                300: '#a5b4fc',
+                400: '#818cf8',
+                500: '#6366f1',
+                600: '#4f46e5',
+                700: '#4338ca',
+                800: '#3730a3',
+                900: '#312e81',
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"PingFang SC"', '"Hiragino Sans GB"', '"Microsoft YaHei"', 'sans-serif'],
+              mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+            }
+          }
+        }
+      }
+    </script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/console.css') }}">
 </head>
-<body>
+<body class="h-full font-sans text-slate-800 antialiased bg-slate-50 flex flex-col selection:bg-indigo-100 selection:text-indigo-900">
 {% block body %}
 {% if g.user %}
-<div class="console-app">
-    <aside class="sidebar">
-        <div>
-            <div class="sidebar-head">
-                <a class="brand" href="{{ url_for('web.index') }}" target="_blank">
-                    <img src="{{ url_for('static', filename='images/logo-web.png') }}" alt="Logo">
-                    <span>Media Parser</span>
-                </a>
-                <span class="role-badge">{{ '管理后台' if g.user['role']=='admin' else '客户控制台' }}</span>
-            </div>
-            <nav class="sidebar-nav">
-                {% if g.user['role'] == 'admin' %}
-                <div class="nav-group-title">系统管理</div>
-                <a href="{{ url_for('admin.overview') }}" class="nav-item {{ 'active' if active_nav == 'overview' }}"><i class="nav-icon">{{ icon('chart') }}</i><span>概览</span></a>
-                <a href="{{ url_for('admin.settings') }}" class="nav-item {{ 'active' if active_nav == 'settings' }}"><i class="nav-icon">{{ icon('settings') }}</i><span>系统设置</span></a>
-                
-                <div class="nav-group-title">业务管理</div>
-                <a href="{{ url_for('admin.users') }}" class="nav-item {{ 'active' if active_nav == 'users' }}"><i class="nav-icon">{{ icon('users') }}</i><span>客户账号</span></a>
-                <a href="{{ url_for('admin.keys') }}" class="nav-item {{ 'active' if active_nav == 'keys' }}"><i class="nav-icon">{{ icon('key') }}</i><span>API 密钥</span></a>
-                <a href="{{ url_for('admin.platforms') }}" class="nav-item {{ 'active' if active_nav == 'platforms' }}"><i class="nav-icon">{{ icon('globe') }}</i><span>支持平台</span></a>
-                
-                <div class="nav-group-title">运维监控</div>
-                <a href="{{ url_for('admin.logs') }}" class="nav-item {{ 'active' if active_nav == 'logs' }}"><i class="nav-icon">{{ icon('scroll') }}</i><span>运行日志</span></a>
-
-                <div class="nav-group-title">参考文档</div>
-                <a href="{{ url_for('admin.docs') }}" class="nav-item {{ 'active' if active_nav == 'docs' }}"><i class="nav-icon">{{ icon('book') }}</i><span>开发者文档</span></a>
-                {% else %}
-                <div class="nav-group-title">概览与统计</div>
-                <a href="{{ url_for('portal.overview') }}" class="nav-item {{ 'active' if active_nav == 'overview' }}"><i class="nav-icon">{{ icon('chart') }}</i><span>概览</span></a>
-                <a href="{{ url_for('portal.logs') }}" class="nav-item {{ 'active' if active_nav == 'logs' }}"><i class="nav-icon">{{ icon('scroll') }}</i><span>请求日志</span></a>
-                
-                <div class="nav-group-title">开发者中心</div>
-                <a href="{{ url_for('portal.keys') }}" class="nav-item {{ 'active' if active_nav == 'keys' }}"><i class="nav-icon">{{ icon('key') }}</i><span>API 密钥</span></a>
-                <a href="{{ url_for('portal.platforms') }}" class="nav-item {{ 'active' if active_nav == 'platforms' }}"><i class="nav-icon">{{ icon('globe') }}</i><span>支持平台</span></a>
-                <a href="{{ url_for('portal.docs') }}" class="nav-item {{ 'active' if active_nav == 'docs' }}"><i class="nav-icon">{{ icon('book') }}</i><span>开发者文档</span></a>
-                {% endif %}
-            </nav>
+<div class="console-app min-h-screen bg-slate-50">
+    <!-- 纯固定侧边栏 (Fixed Left Rail) -->
+    <aside class="sidebar fixed inset-y-0 left-0 w-64 bg-white border-r border-slate-200/80 flex flex-col justify-between select-none z-30 shadow-xs">
+        <!-- 顶部 Logo 栏 (固定 64px 高度与顶栏对齐) -->
+        <div class="sidebar-head h-16 px-5 border-b border-slate-100 flex items-center justify-between shrink-0">
+            <a class="brand flex items-center gap-2.5 font-bold text-slate-900 hover:text-brand transition" href="{{ url_for('web.index') }}" target="_blank">
+                <img src="{{ url_for('static', filename='images/logo-web.png') }}" alt="Logo" class="w-7 h-7 rounded-lg border border-slate-200 bg-white p-0.5 shadow-2xs">
+                <span class="text-sm font-bold tracking-tight text-slate-900">Media Parser</span>
+            </a>
+            <span class="role-badge text-xs font-semibold px-2 py-0.5 rounded-full {{ 'bg-indigo-50 text-indigo-700 border border-indigo-200' if g.user['role']=='admin' else 'bg-slate-100 text-slate-600 border border-slate-200' }}">
+                {{ '管理后台' if g.user['role']=='admin' else '控制台' }}
+            </span>
         </div>
-        <div class="sidebar-foot">
-            <div class="user-card-inner">
-                <div class="user-avatar">{{ g.user['username'][0]|upper }}</div>
-                <div class="user-meta">
-                    <div class="user-name">{{ g.user['username'] }}</div>
-                    <div class="user-role">{{ '超级管理员' if g.user['role']=='admin' else '客户账号' }}</div>
+
+        <!-- 独立滚动导航菜单列表 -->
+        <nav class="sidebar-nav flex-1 overflow-y-auto px-3.5 py-4 space-y-1.5 custom-scroll">
+            {% if g.user['role'] == 'admin' %}
+            <div class="nav-group-title text-xs font-bold text-slate-400 px-3 pt-2 pb-1 uppercase tracking-wider">系统管理</div>
+            <a href="{{ url_for('admin.overview') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ 'bg-indigo-50/80 text-brand font-semibold shadow-2xs' if active_nav == 'overview' else 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+                <span class="w-5 h-5 flex items-center justify-center shrink-0">{{ icon('chart', 'w-4 h-4') }}</span><span>概览</span>
+            </a>
+            <a href="{{ url_for('admin.settings') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ 'bg-indigo-50/80 text-brand font-semibold shadow-2xs' if active_nav == 'settings' else 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+                <span class="w-5 h-5 flex items-center justify-center shrink-0">{{ icon('settings', 'w-4 h-4') }}</span><span>系统设置</span>
+            </a>
+            
+            <div class="nav-group-title text-xs font-bold text-slate-400 px-3 pt-4 pb-1 uppercase tracking-wider">业务管理</div>
+            <a href="{{ url_for('admin.users') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ 'bg-indigo-50/80 text-brand font-semibold shadow-2xs' if active_nav == 'users' else 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+                <span class="w-5 h-5 flex items-center justify-center shrink-0">{{ icon('users', 'w-4 h-4') }}</span><span>客户账号</span>
+            </a>
+            <a href="{{ url_for('admin.keys') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ 'bg-indigo-50/80 text-brand font-semibold shadow-2xs' if active_nav == 'keys' else 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+                <span class="w-5 h-5 flex items-center justify-center shrink-0">{{ icon('key', 'w-4 h-4') }}</span><span>API 密钥</span>
+            </a>
+            <a href="{{ url_for('admin.platforms') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ 'bg-indigo-50/80 text-brand font-semibold shadow-2xs' if active_nav == 'platforms' else 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+                <span class="w-5 h-5 flex items-center justify-center shrink-0">{{ icon('globe', 'w-4 h-4') }}</span><span>支持平台</span>
+            </a>
+            
+            <div class="nav-group-title text-xs font-bold text-slate-400 px-3 pt-4 pb-1 uppercase tracking-wider">运维监控</div>
+            <a href="{{ url_for('admin.logs') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ 'bg-indigo-50/80 text-brand font-semibold shadow-2xs' if active_nav == 'logs' else 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+                <span class="w-5 h-5 flex items-center justify-center shrink-0">{{ icon('scroll', 'w-4 h-4') }}</span><span>运行日志</span>
+            </a>
+
+            <div class="nav-group-title text-xs font-bold text-slate-400 px-3 pt-4 pb-1 uppercase tracking-wider">参考文档</div>
+            <a href="{{ url_for('admin.docs') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ 'bg-indigo-50/80 text-brand font-semibold shadow-2xs' if active_nav == 'docs' else 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+                <span class="w-5 h-5 flex items-center justify-center shrink-0">{{ icon('book', 'w-4 h-4') }}</span><span>开发者文档</span>
+            </a>
+            {% else %}
+            <div class="nav-group-title text-xs font-bold text-slate-400 px-3 pt-2 pb-1 uppercase tracking-wider">概览与统计</div>
+            <a href="{{ url_for('portal.overview') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ 'bg-indigo-50/80 text-brand font-semibold shadow-2xs' if active_nav == 'overview' else 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+                <span class="w-5 h-5 flex items-center justify-center shrink-0">{{ icon('chart', 'w-4 h-4') }}</span><span>概览</span>
+            </a>
+            <a href="{{ url_for('portal.logs') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ 'bg-indigo-50/80 text-brand font-semibold shadow-2xs' if active_nav == 'logs' else 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+                <span class="w-5 h-5 flex items-center justify-center shrink-0">{{ icon('scroll', 'w-4 h-4') }}</span><span>请求日志</span>
+            </a>
+            
+            <div class="nav-group-title text-xs font-bold text-slate-400 px-3 pt-4 pb-1 uppercase tracking-wider">开发者中心</div>
+            <a href="{{ url_for('portal.keys') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ 'bg-indigo-50/80 text-brand font-semibold shadow-2xs' if active_nav == 'keys' else 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+                <span class="w-5 h-5 flex items-center justify-center shrink-0">{{ icon('key', 'w-4 h-4') }}</span><span>API 密钥</span>
+            </a>
+            <a href="{{ url_for('portal.platforms') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ 'bg-indigo-50/80 text-brand font-semibold shadow-2xs' if active_nav == 'platforms' else 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+                <span class="w-5 h-5 flex items-center justify-center shrink-0">{{ icon('globe', 'w-4 h-4') }}</span><span>支持平台</span>
+            </a>
+            <a href="{{ url_for('portal.docs') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ 'bg-indigo-50/80 text-brand font-semibold shadow-2xs' if active_nav == 'docs' else 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+                <span class="w-5 h-5 flex items-center justify-center shrink-0">{{ icon('book', 'w-4 h-4') }}</span><span>开发者文档</span>
+            </a>
+            {% endif %}
+        </nav>
+
+        <!-- 底部个人信息与退出栏 -->
+        <div class="sidebar-foot p-3.5 border-t border-slate-100 flex items-center justify-between bg-slate-50/60 shrink-0">
+            <div class="user-card-inner flex items-center gap-3 min-w-0">
+                <div class="user-avatar w-9 h-9 rounded-full bg-brand/10 border border-brand/20 text-brand flex items-center justify-center font-bold text-xs shrink-0">
+                    {{ g.user['username'][0]|upper }}
+                </div>
+                <div class="user-meta min-w-0 truncate">
+                    <div class="user-name text-sm font-semibold text-slate-900 truncate leading-snug">{{ g.user['username'] }}</div>
+                    <div class="user-role text-xs text-slate-500 truncate leading-normal">{{ '超级管理员' if g.user['role']=='admin' else '客户账号' }}</div>
                 </div>
             </div>
-            <div style="display:flex;align-items:center;gap:2px">
-                <button type="button" class="sidebar-action-btn" onclick="openChangePasswordModal()" title="修改密码" aria-label="修改密码">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <div class="flex items-center gap-1 shrink-0">
+                <button type="button" class="sidebar-action-btn p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors" onclick="openChangePasswordModal()" title="修改密码" aria-label="修改密码">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                 </button>
-                <form method="post" action="{{ url_for('auth.logout') }}" style="margin:0;display:flex">
+                <form method="post" action="{{ url_for('auth.logout') }}" class="m-0 flex">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="logout-icon-btn" title="退出登录" aria-label="退出登录">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    <button type="submit" class="logout-icon-btn p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors" title="退出登录" aria-label="退出登录">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                     </button>
                 </form>
             </div>
         </div>
     </aside>
-    <div class="main-wrapper">
+
+    <!-- 主工作区 (Main Content Area, 左侧偏移 pl-64) -->
+    <div class="main-wrapper pl-64 flex flex-col flex-1 min-w-0 min-h-screen">
         <!-- 顶部浮动气泡卡片提示容器 (Toast Notification) -->
-        <div id="toast-container" class="toast-container" aria-live="polite">
+        <div id="toast-container" class="toast-container fixed top-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm pointer-events-none" aria-live="polite">
             {% for category, message in get_flashed_messages(with_categories=true) %}
-            <div class="toast-bubble toast-{{ category or 'info' }}" role="alert">
-                <div class="toast-icon">
+            <div class="toast-bubble pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border shadow-lg bg-white text-sm transition-all duration-300 {{ 'border-red-200 text-red-700 bg-red-50/90' if category == 'error' else ('border-amber-200 text-amber-700 bg-amber-50/90' if category == 'warning' else 'border-emerald-200 text-emerald-800 bg-emerald-50/90') }}" role="alert">
+                <div class="toast-icon shrink-0">
                     {% if category == 'error' %}
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
                     {% elif category == 'warning' %}
@@ -86,85 +149,95 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="16 10 11 15 8 12"/></svg>
                     {% endif %}
                 </div>
-                <div class="toast-content">{{ message }}</div>
-                <button type="button" class="toast-close" onclick="dismissToast(this.closest('.toast-bubble'))" aria-label="关闭">&times;</button>
+                <div class="toast-content flex-1 font-medium">{{ message }}</div>
+                <button type="button" class="toast-close text-slate-400 hover:text-slate-700 text-lg leading-none" onclick="dismissToast(this.closest('.toast-bubble'))" aria-label="关闭">&times;</button>
             </div>
             {% endfor %}
         </div>
 
-        <header class="main-topbar">
-            <div class="topbar-left">
-                <div class="topbar-breadcrumb">
-                    <a href="{{ url_for('web.index') }}" target="_blank">Media Parser</a>
-                    <span class="topbar-separator">/</span>
+        <!-- 顶部顶栏 (Topbar, 规范 64px 高度) -->
+        <header class="main-topbar h-16 px-8 bg-white/95 backdrop-blur-md border-b border-slate-200/80 flex items-center justify-between sticky top-0 z-20 shadow-2xs">
+            <div class="topbar-left flex items-center gap-2 text-sm">
+                <div class="topbar-breadcrumb flex items-center gap-1.5 text-slate-500 font-medium">
+                    <a href="{{ url_for('web.index') }}" target="_blank" class="hover:text-slate-900 transition">Media Parser</a>
+                    <span class="topbar-separator text-slate-300">/</span>
                     <span>{{ '管理后台' if g.user['role']=='admin' else '控制台' }}</span>
-                    <span class="topbar-separator">/</span>
+                    <span class="topbar-separator text-slate-300">/</span>
                 </div>
-                <h1 class="page-title" id="active-page-title">{% block page_title %}{% endblock %}</h1>
+                <h1 class="page-title text-sm font-bold text-slate-900" id="active-page-title">{% block page_title %}{% endblock %}</h1>
             </div>
-            <div class="topbar-right">
+            <div class="topbar-right flex items-center gap-3">
                 {% if is_api_enabled() %}
-                <span class="status-pill online"><span class="status-dot pulse"></span>API 正常</span>
+                <span class="status-pill online inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                    <span class="status-dot w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>API 正常
+                </span>
                 {% else %}
-                <span class="status-pill offline"><span class="status-dot"></span>API 维护中</span>
+                <span class="status-pill offline inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 shadow-2xs">
+                    <span class="status-dot w-2 h-2 rounded-full bg-amber-500"></span>API 维护中
+                </span>
                 {% endif %}
             </div>
         </header>
-        {% block console_content %}{% endblock %}
+
+        <!-- 内容区域 (内边距 p-8 舒适宽敞) -->
+        <div class="flex-1 p-6 sm:p-8 min-w-0">
+            {% block console_content %}{% endblock %}
+        </div>
     </div>
 </div>
 
 <!-- 自定义操作确认弹窗 (Custom Confirmation Modal) -->
-<div id="confirm-modal-backdrop" class="modal-backdrop" style="display:none" aria-hidden="true">
-    <div class="modal-card" role="dialog" aria-modal="true">
-        <div class="modal-header">
-            <div class="modal-icon-wrap danger" id="modal-icon-wrap">
+<div id="confirm-modal-backdrop" class="modal-backdrop fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 transition-all duration-200" style="display:none" aria-hidden="true">
+    <div class="modal-card bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 transition-all duration-200 scale-95" role="dialog" aria-modal="true">
+        <div class="modal-header flex items-start gap-4 mb-5">
+            <div class="modal-icon-wrap w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-red-50 text-red-600 border border-red-200" id="modal-icon-wrap">
                 <svg id="modal-icon-danger" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                 <svg id="modal-icon-warning" style="display:none" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                 <svg id="modal-icon-primary" style="display:none" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
             </div>
             <div>
-                <h3 class="modal-title" id="modal-title">操作确认</h3>
-                <p class="modal-desc" id="modal-message">确认执行此操作吗？</p>
+                <h3 class="modal-title text-base font-bold text-slate-900" id="modal-title">操作确认</h3>
+                <p class="modal-desc text-sm text-slate-600 mt-1 leading-relaxed" id="modal-message">确认执行此操作吗？</p>
             </div>
         </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" id="modal-btn-cancel">取消</button>
-            <button type="button" class="btn btn-danger" id="modal-btn-confirm">确定</button>
+        <div class="modal-footer flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+            <button type="button" class="btn btn-secondary px-4 py-2 rounded-lg text-sm font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition shadow-xs" id="modal-btn-cancel">取消</button>
+            <button type="button" class="btn btn-danger px-4 py-2 rounded-lg text-sm font-semibold text-white bg-red-600 hover:bg-red-700 transition shadow-xs" id="modal-btn-confirm">确定</button>
         </div>
     </div>
 </div>
 
 <!-- 自定义修改个人密码弹窗 (Change Password Modal) -->
-<div id="change-password-modal-backdrop" class="modal-backdrop" style="display:none" aria-hidden="true">
-    <div class="modal-card" style="max-width:440px" role="dialog" aria-modal="true">
-        <div class="row between" style="margin-bottom:16px">
-            <h3 class="modal-title" style="margin:0">修改个人密码</h3>
-            <button type="button" class="toast-close" onclick="closeChangePasswordModal()" aria-label="关闭">&times;</button>
+<div id="change-password-modal-backdrop" class="modal-backdrop fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 transition-all duration-200" style="display:none" aria-hidden="true">
+    <div class="modal-card bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 transition-all duration-200 scale-95" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-bold text-slate-900 m-0">修改个人密码</h3>
+            <button type="button" class="text-slate-400 hover:text-slate-700 text-lg leading-none" onclick="closeChangePasswordModal()" aria-label="关闭">&times;</button>
         </div>
-        <form method="post" action="{{ url_for('auth.change_password') }}">
+        <form method="post" action="{{ url_for('auth.change_password') }}" class="space-y-4">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <div class="field" style="margin:12px 0">
-                <label>原密码</label>
-                <input type="password" name="old_password" placeholder="请输入当前原密码" required autocomplete="current-password">
+            <div class="space-y-1.5">
+                <label class="block text-xs font-semibold text-slate-700">原密码</label>
+                <input type="password" name="old_password" placeholder="请输入当前原密码" required autocomplete="current-password" class="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition">
             </div>
-            <div class="field" style="margin:12px 0">
-                <label>新密码 <span class="muted">(至少 8 位)</span></label>
-                <input type="password" name="new_password" minlength="8" placeholder="请输入新密码" required autocomplete="new-password">
+            <div class="space-y-1.5">
+                <label class="block text-xs font-semibold text-slate-700">新密码 <span class="text-slate-400 font-normal">(至少 8 位)</span></label>
+                <input type="password" name="new_password" minlength="8" placeholder="请输入新密码" required autocomplete="new-password" class="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition">
             </div>
-            <div class="field" style="margin:12px 0">
-                <label>确认新密码</label>
-                <input type="password" name="confirm_password" minlength="8" placeholder="请再次输入新密码" required autocomplete="new-password">
+            <div class="space-y-1.5">
+                <label class="block text-xs font-semibold text-slate-700">确认新密码</label>
+                <input type="password" name="confirm_password" minlength="8" placeholder="请再次输入新密码" required autocomplete="new-password" class="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition">
             </div>
-            <div class="modal-footer" style="margin-top:20px">
-                <button type="button" class="btn btn-secondary" onclick="closeChangePasswordModal()">取消</button>
-                <button type="submit" class="btn btn-primary">确认修改</button>
+            <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                <button type="button" class="px-4 py-2 rounded-lg text-sm font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition shadow-xs" onclick="closeChangePasswordModal()">取消</button>
+                <button type="submit" class="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-brand hover:bg-indigo-700 transition shadow-xs">确认修改</button>
             </div>
         </form>
     </div>
 </div>
 {% endif %}
 {% endblock %}
+
 <script>
 function initChartInteractions() {
     document.querySelectorAll('.chart-container').forEach(container => {
@@ -285,11 +358,10 @@ window.showToast = function(message, type = 'success', duration = 3000) {
     if (!container) {
         container = document.createElement('div');
         container.id = 'toast-container';
-        container.className = 'toast-container';
+        container.className = 'toast-container fixed top-5 right-5 z-[9999] flex flex-col gap-2.5 max-w-sm pointer-events-none';
         document.body.appendChild(container);
     }
 
-    // 1. 重复内容防连击：若已有完全相同的提示，则刷新其倒计时与动画，不再重复新增
     const activeToasts = Array.from(container.querySelectorAll('.toast-bubble:not(.toast-hiding)'));
     const duplicate = activeToasts.find(t => {
         const content = t.querySelector('.toast-content');
@@ -305,7 +377,6 @@ window.showToast = function(message, type = 'success', duration = 3000) {
         return;
     }
 
-    // 2. 数量上限控制（大厂标准最多展示 3 个，超出时自动顶替最早的一条）
     const MAX_TOASTS = 3;
     if (activeToasts.length >= MAX_TOASTS) {
         const toRemove = activeToasts.length - MAX_TOASTS + 1;
@@ -315,7 +386,10 @@ window.showToast = function(message, type = 'success', duration = 3000) {
     }
 
     const bubble = document.createElement('div');
-    bubble.className = `toast-bubble toast-${type}`;
+    const colorClasses = type === 'error' 
+        ? 'border-red-200 text-red-700 bg-red-50/90' 
+        : (type === 'warning' ? 'border-amber-200 text-amber-700 bg-amber-50/90' : 'border-emerald-200 text-emerald-800 bg-emerald-50/90');
+    bubble.className = `toast-bubble pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border shadow-lg bg-white text-sm transition-all duration-300 ${colorClasses}`;
     bubble.setAttribute('role', 'alert');
     
     let iconSvg = '';
@@ -328,9 +402,9 @@ window.showToast = function(message, type = 'success', duration = 3000) {
     }
     
     bubble.innerHTML = `
-        <div class="toast-icon">${iconSvg}</div>
-        <div class="toast-content"></div>
-        <button type="button" class="toast-close" aria-label="关闭">&times;</button>
+        <div class="toast-icon shrink-0">${iconSvg}</div>
+        <div class="toast-content flex-1 font-medium"></div>
+        <button type="button" class="toast-close text-slate-400 hover:text-slate-700 text-lg leading-none" aria-label="关闭">&times;</button>
     `;
     bubble.querySelector('.toast-content').textContent = message;
     bubble.querySelector('.toast-close').onclick = () => dismissToast(bubble);
@@ -372,8 +446,16 @@ window.confirmModal = function({
         btnConfirm.textContent = confirmText;
         btnCancel.textContent = cancelText;
 
-        btnConfirm.className = `btn ${type === 'danger' ? 'btn-danger' : 'btn-primary'}`;
-        iconWrap.className = `modal-icon-wrap ${type}`;
+        if (type === 'danger') {
+            btnConfirm.className = 'btn btn-danger px-4 py-2 rounded-lg text-sm font-semibold text-white bg-red-600 hover:bg-red-700 transition shadow-xs';
+            iconWrap.className = 'modal-icon-wrap w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-red-50 text-red-600 border border-red-200';
+        } else if (type === 'warning') {
+            btnConfirm.className = 'btn btn-primary px-4 py-2 rounded-lg text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700 transition shadow-xs';
+            iconWrap.className = 'modal-icon-wrap w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-amber-50 text-amber-600 border border-amber-200';
+        } else {
+            btnConfirm.className = 'btn btn-primary px-4 py-2 rounded-lg text-sm font-semibold text-white bg-brand hover:bg-indigo-700 transition shadow-xs';
+            iconWrap.className = 'modal-icon-wrap w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-indigo-50 text-brand border border-indigo-200';
+        }
 
         if (iconDanger) iconDanger.style.display = type === 'danger' ? 'block' : 'none';
         if (iconWarning) iconWarning.style.display = type === 'warning' ? 'block' : 'none';
@@ -519,9 +601,9 @@ function initDonutInteractions() {
         function activate(platform, calls, percent) {
             centerLbl.textContent = `${platform} (${percent})`;
             centerLbl.style.fontWeight = '600';
-            centerLbl.style.color = 'var(--brand)';
+            centerLbl.style.color = '#4f46e5';
             centerVal.textContent = `${calls} 次`;
-            centerVal.style.fontSize = calls.length > 7 ? '16px' : '18px';
+            centerVal.style.fontSize = calls.length > 7 ? '18px' : '20px';
 
             slices.forEach(s => {
                 if (s.dataset.platform === platform) s.classList.add('active');

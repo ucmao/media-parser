@@ -420,25 +420,26 @@ class ManagementTest(unittest.TestCase):
         self.assertIn("https://example.com/mine", body)
         self.assertNotIn("https://example.com/other", body)
 
-    def test_admin_can_purge_only_selected_old_logs(self):
+    def test_admin_can_batch_delete_logs(self):
         self.client.post("/auth/setup", data={"csrf_token": self.csrf(), "username": "admin", "password": "password123", "confirm_password": "password123"})
         self.client.post("/auth/login", data={"csrf_token": self.csrf(), "username": "admin", "password": "password123"})
         with self.app.app_context():
             db = get_db()
-            old_time = (datetime.now(timezone.utc) - timedelta(days=31)).isoformat(timespec="seconds")
-            db.execute(
+            c1 = db.execute(
                 "INSERT INTO request_logs(path,status_code,duration_ms,created_at) VALUES(?,?,?,?)",
-                ("/api/v1/parse", 200, 1, old_time),
+                ("/api/v1/parse", 200, 1, utcnow()),
             )
-            db.execute(
+            c2 = db.execute(
                 "INSERT INTO request_logs(path,status_code,duration_ms,created_at) VALUES(?,?,?,?)",
                 ("/api/v1/parse", 200, 1, utcnow()),
             )
             db.commit()
+            id1 = c1.lastrowid
+            id2 = c2.lastrowid
 
         response = self.client.post(
-            "/admin/logs/purge",
-            data={"csrf_token": self.csrf(), "scope": "30", "confirmation": "清理日志"},
+            "/admin/logs/batch",
+            data={"csrf_token": self.csrf(), "ids": str(id1), "action": "delete"},
             follow_redirects=False,
         )
         self.assertEqual(response.status_code, 302)
@@ -446,7 +447,7 @@ class ManagementTest(unittest.TestCase):
 
         # Follow redirect and verify flash message
         response = self.client.get(response.location, follow_redirects=True)
-        self.assertIn("共 1 条", response.get_data(as_text=True))
+        self.assertIn("已批量删除选中的 1 条日志记录", response.get_data(as_text=True))
         with self.app.app_context():
             self.assertEqual(get_db().execute("SELECT COUNT(*) count FROM request_logs").fetchone()["count"], 1)
 

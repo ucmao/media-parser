@@ -489,6 +489,9 @@ function initCustomSelects() {
             sel.className.split(/\s+/).forEach(c => {
                 if (c) wrap.classList.add(c + '-wrap');
             });
+            if (sel.classList.contains('w-full')) {
+                wrap.classList.add('w-full');
+            }
         }
         if (sel.id) wrap.id = sel.id + '-custom-wrap';
 
@@ -514,6 +517,25 @@ function initCustomSelects() {
         btn.appendChild(btnText);
         btn.appendChild(chevron);
         wrap.appendChild(btn);
+
+        // Measure widest option to lock button width and avoid width shifts upon selection
+        let maxOptionWidth = 0;
+        try {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            if (context) {
+                context.font = '500 12px system-ui, -apple-system, sans-serif';
+                Array.from(sel.options).forEach(opt => {
+                    const textWidth = context.measureText(opt.text || '').width;
+                    if (textWidth > maxOptionWidth) maxOptionWidth = textWidth;
+                });
+            }
+        } catch (e) {}
+
+        if (maxOptionWidth > 0) {
+            const calcMinWidth = Math.ceil(maxOptionWidth + 49);
+            btn.style.minWidth = `${calcMinWidth}px`;
+        }
 
         const popover = document.createElement('div');
         popover.className = 'custom-select-popover';

@@ -320,6 +320,8 @@ def platforms():
         "name": "name",
         "domains": "domain_count",
         "calls": "my_calls_24h",
+        "rate": "my_success_rate_24h",
+        "success_rate": "my_success_rate_24h",
         "status": lambda x: (not x["enabled"], x["name"]),
     }
 

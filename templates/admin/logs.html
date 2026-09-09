@@ -2,118 +2,124 @@
 {% block title %}运行日志 · 管理员后台{% endblock %}
 {% block page_title %}运行日志{% endblock %}
 {% block console_content %}
-<main class="container">
-    <div id="logs" class="tab-view">
-        <section class="card">
-            <div style="margin-bottom:16px">
-                <div class="row" style="gap:10px;align-items:center">
-                    <h2 style="margin:0">运行日志</h2>
-                    <span class="badge" style="font-weight:600">{{ logs_table.pagination.total_count }} 条记录</span>
+<main class="max-w-7xl mx-auto space-y-6">
+    <div id="logs" class="tab-view space-y-6">
+        <section class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <div>
+                    <div class="flex items-center gap-3">
+                        <h2 class="text-base font-bold text-slate-900">运行日志</h2>
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">{{ logs_table.pagination.total_count }} 条记录</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1">记录用户请求的完整链接，支持按关键词、平台、状态及日期范围实时筛选与排序。</p>
                 </div>
-                <span class="muted" style="display:block;margin-top:6px;font-size:13px">记录用户请求的完整链接，支持按关键词、平台、状态及日期范围实时筛选与排序。</span>
             </div>
 
             <!-- 筛选与搜索工具栏 -->
-            <form method="get" action="{{ url_for('admin.logs') }}" class="table-toolbar table-filter-form">
-                <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">
-                    <input type="text" name="logs_q" placeholder="搜索请求URL/客户/错误码..." value="{{ logs_table.query_params.q }}" class="filter-input-text">
-                    <select name="logs_platform" onchange="this.form.submit()">
+            <form method="get" action="{{ url_for('admin.logs') }}" class="table-toolbar table-filter-form mb-5">
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <input type="text" name="logs_q" placeholder="搜索请求URL/客户/错误码..." value="{{ logs_table.query_params.q }}" class="filter-input-text px-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition w-56 bg-white">
+                    <select name="logs_platform" onchange="this.form.submit()" class="px-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-white text-slate-700">
                         <option value="">全部平台</option>
                         {% for item in platforms %}
                         <option value="{{ item.name }}" {{ 'selected' if request.args.get('logs_platform') == item.name }}>{{ item.name }}</option>
                         {% endfor %}
                     </select>
-                    <select name="logs_status" onchange="this.form.submit()">
+                    <select name="logs_status" onchange="this.form.submit()" class="px-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-white text-slate-700">
                         <option value="">全部状态</option>
                         <option value="200" {{ 'selected' if request.args.get('logs_status') == '200' }}>成功 (&lt;400)</option>
                         <option value="error" {{ 'selected' if request.args.get('logs_status') == 'error' }}>失败 (&gt;=400)</option>
                     </select>
-                    <div class="date-range-group" style="display:inline-flex;align-items:center;gap:4px">
-                        <input type="date" name="logs_start_date" value="{{ request.args.get('logs_start_date', '') }}" title="开始日期" style="width:130px !important" onchange="this.form.submit()">
-                        <span class="muted" style="font-size:13px">-</span>
-                        <input type="date" name="logs_end_date" value="{{ request.args.get('logs_end_date', '') }}" title="结束日期" style="width:130px !important" onchange="this.form.submit()">
+                    <div class="date-range-group">
+                        <input type="date" name="logs_start_date" value="{{ request.args.get('logs_start_date', '') }}" title="开始日期" class="w-28" onchange="this.form.submit()">
+                        <span class="text-slate-300 text-xs select-none">-</span>
+                        <input type="date" name="logs_end_date" value="{{ request.args.get('logs_end_date', '') }}" title="结束日期" class="w-28" onchange="this.form.submit()">
                     </div>
-                    <button type="button" class="btn btn-secondary btn-small" onclick="resetTableFilter('logs')">重置</button>
+                    <button type="button" class="btn btn-secondary btn-small px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition shadow-xs" onclick="resetTableFilter('logs')">重置</button>
                 </div>
             </form>
 
-            <div class="table-wrap">
-                <table id="logs-table" style="width:100%;min-width:960px">
-                    <thead>
+            <div class="table-wrap overflow-x-auto rounded-xl border border-slate-200">
+                <table id="logs-table" class="w-full min-w-[960px] text-left text-xs border-collapse">
+                    <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
                         <tr>
-                            <th style="width:44px;text-align:center">
-                                <div class="batch-select-dropdown" data-table="logs-table" data-total="{{ logs_table.pagination.total_count }}">
-                                    <input type="checkbox" class="table-select-all" data-table="logs-table" title="全选当前页">
-                                    <button type="button" class="batch-dropdown-trigger" title="选择范围" aria-label="选择范围">
+                            <th class="w-11 px-3 py-3 text-center">
+                                <div class="batch-select-dropdown relative inline-flex items-center justify-center" data-table="logs-table" data-total="{{ logs_table.pagination.total_count }}">
+                                    <input type="checkbox" class="table-select-all rounded border-slate-300 text-brand focus:ring-brand/20 cursor-pointer" data-table="logs-table" title="全选当前页">
+                                    <button type="button" class="batch-dropdown-trigger absolute left-full top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-700 ml-0.5" title="选择范围" aria-label="选择范围">
                                         <svg class="batch-chevron-icon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                             <polyline points="6 9 12 15 18 9"></polyline>
                                         </svg>
                                     </button>
-                                    <div class="batch-dropdown-menu">
-                                        <button type="button" class="batch-dropdown-item" data-action="current-page">选择当前页</button>
-                                        <button type="button" class="batch-dropdown-item" data-action="all">选择全部</button>
+                                    <div class="batch-dropdown-menu absolute left-0 top-full mt-1.5 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-30 hidden min-w-[105px] text-xs whitespace-nowrap">
+                                        <button type="button" class="batch-dropdown-item w-full text-left px-3 py-1.5 hover:bg-slate-50 text-slate-700" data-action="current-page">选择当前页</button>
+                                        <button type="button" class="batch-dropdown-item w-full text-left px-3 py-1.5 hover:bg-slate-50 text-slate-700" data-action="all">选择全部</button>
                                     </div>
                                 </div>
                             </th>
-                            <th class="th-sortable" onclick="handleSort('logs', 'created_at')" style="white-space:nowrap;width:140px">
-                                时间 <span class="sort-icon {{ 'active' if logs_table.sorting.sort_by=='created_at' }}">{{ '↑' if logs_table.sorting.sort_by=='created_at' and logs_table.sorting.order=='asc' else ('↓' if logs_table.sorting.sort_by=='created_at' else '↕') }}</span>
+                            <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition whitespace-nowrap w-36" onclick="handleSort('logs', 'created_at')">
+                                时间 <span class="sort-icon ml-0.5 {{ 'text-brand font-bold' if logs_table.sorting.sort_by=='created_at' else 'text-slate-300' }}">{{ '↑' if logs_table.sorting.sort_by=='created_at' and logs_table.sorting.order=='asc' else ('↓' if logs_table.sorting.sort_by=='created_at' else '↕') }}</span>
                             </th>
-                            <th class="th-sortable" onclick="handleSort('logs', 'username')" style="white-space:nowrap;width:115px">
-                                客户 <span class="sort-icon {{ 'active' if logs_table.sorting.sort_by=='username' }}">{{ '↑' if logs_table.sorting.sort_by=='username' and logs_table.sorting.order=='asc' else ('↓' if logs_table.sorting.sort_by=='username' else '↕') }}</span>
+                            <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition whitespace-nowrap w-28" onclick="handleSort('logs', 'username')">
+                                客户 <span class="sort-icon ml-0.5 {{ 'text-brand font-bold' if logs_table.sorting.sort_by=='username' else 'text-slate-300' }}">{{ '↑' if logs_table.sorting.sort_by=='username' and logs_table.sorting.order=='asc' else ('↓' if logs_table.sorting.sort_by=='username' else '↕') }}</span>
                             </th>
-                            <th style="white-space:nowrap;width:120px">调用 Key</th>
-                            <th class="th-sortable" onclick="handleSort('logs', 'platform')" style="white-space:nowrap;width:75px">
-                                平台 <span class="sort-icon {{ 'active' if logs_table.sorting.sort_by=='platform' }}">{{ '↑' if logs_table.sorting.sort_by=='platform' and logs_table.sorting.order=='asc' else ('↓' if logs_table.sorting.sort_by=='platform' else '↕') }}</span>
+                            <th class="px-3 py-3 whitespace-nowrap w-28">调用 Key</th>
+                            <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition whitespace-nowrap w-20" onclick="handleSort('logs', 'platform')">
+                                平台 <span class="sort-icon ml-0.5 {{ 'text-brand font-bold' if logs_table.sorting.sort_by=='platform' else 'text-slate-300' }}">{{ '↑' if logs_table.sorting.sort_by=='platform' and logs_table.sorting.order=='asc' else ('↓' if logs_table.sorting.sort_by=='platform' else '↕') }}</span>
                             </th>
-                            <th style="min-width:220px">请求 URL</th>
-                            <th class="th-sortable" onclick="handleSort('logs', 'status_code')" style="white-space:nowrap;width:70px;text-align:center">
-                                状态 <span class="sort-icon {{ 'active' if logs_table.sorting.sort_by=='status_code' }}">{{ '↑' if logs_table.sorting.sort_by=='status_code' and logs_table.sorting.order=='asc' else ('↓' if logs_table.sorting.sort_by=='status_code' else '↕') }}</span>
+                            <th class="px-3 py-3 min-w-[220px]">请求 URL</th>
+                            <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition whitespace-nowrap w-20 text-center" onclick="handleSort('logs', 'status_code')">
+                                状态 <span class="sort-icon ml-0.5 {{ 'text-brand font-bold' if logs_table.sorting.sort_by=='status_code' else 'text-slate-300' }}">{{ '↑' if logs_table.sorting.sort_by=='status_code' and logs_table.sorting.order=='asc' else ('↓' if logs_table.sorting.sort_by=='status_code' else '↕') }}</span>
                             </th>
-                            <th style="white-space:nowrap;width:105px">错误码</th>
-                            <th class="th-sortable" onclick="handleSort('logs', 'duration_ms')" style="white-space:nowrap;width:85px;text-align:right">
-                                耗时 <span class="sort-icon {{ 'active' if logs_table.sorting.sort_by=='duration_ms' }}">{{ '↑' if logs_table.sorting.sort_by=='duration_ms' and logs_table.sorting.order=='asc' else ('↓' if logs_table.sorting.sort_by=='duration_ms' else '↕') }}</span>
+                            <th class="px-3 py-3 whitespace-nowrap w-28">错误码</th>
+                            <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition whitespace-nowrap w-24 text-right" onclick="handleSort('logs', 'duration_ms')">
+                                耗时 <span class="sort-icon ml-0.5 {{ 'text-brand font-bold' if logs_table.sorting.sort_by=='duration_ms' else 'text-slate-300' }}">{{ '↑' if logs_table.sorting.sort_by=='duration_ms' and logs_table.sorting.order=='asc' else ('↓' if logs_table.sorting.sort_by=='duration_ms' else '↕') }}</span>
                             </th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="divide-y divide-slate-100">
                         {% for log in logs %}
-                        <tr>
-                            <td style="text-align:center"><input type="checkbox" class="row-checkbox" value="{{ log['id'] }}"></td>
-                            <td style="white-space:nowrap">{{ format_log_time(log['created_at']) }}</td>
-                            <td style="white-space:nowrap">
+                        <tr class="hover:bg-slate-50/70 transition">
+                            <td class="px-3 py-3 text-center">
+                                <input type="checkbox" class="row-checkbox rounded border-slate-300 text-brand focus:ring-brand/20 cursor-pointer" value="{{ log['id'] }}">
+                            </td>
+                            <td class="px-3 py-3 whitespace-nowrap text-slate-500">{{ format_log_time(log['created_at']) }}</td>
+                            <td class="px-3 py-3 whitespace-nowrap">
                                 {% if log['username'] %}
-                                <span style="display:inline-flex;align-items:center;gap:5px">
-                                    <span class="muted" style="font-size:12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;opacity:0.75">#{{ log['user_id'] }}</span>
-                                    <strong>{{ log['username'] }}</strong>
-                                </span>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-slate-400 font-mono text-[11px]">#{{ log['user_id'] }}</span>
+                                    <strong class="text-slate-900 font-bold">{{ log['username'] }}</strong>
+                                </div>
                                 {% else %}
-                                <span class="muted">在线体验</span>
+                                <span class="text-slate-400">在线体验</span>
                                 {% endif %}
                             </td>
-                            <td style="white-space:nowrap">
+                            <td class="px-3 py-3 whitespace-nowrap">
                                 {% if log['key_prefix'] %}
-                                <span class="key" style="font-size:11px;padding:0 5px;line-height:18px" title="{{ log['key_prefix'] }}••••••••••••">{{ log['key_prefix'] }}...</span>
+                                <span class="font-mono text-[11px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200" title="{{ log['key_prefix'] }}••••••••••••">{{ log['key_prefix'] }}...</span>
                                 {% else %}
-                                <span class="muted" style="font-size:12px;opacity:0.65">Web 免鉴权</span>
+                                <span class="text-slate-400 text-[11px]">Web 免鉴权</span>
                                 {% endif %}
                             </td>
-                            <td style="white-space:nowrap">{{ log['platform'] or '-' }}</td>
-                            <td style="max-width:380px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                            <td class="px-3 py-3 whitespace-nowrap font-medium text-slate-700">{{ log['platform'] or '-' }}</td>
+                            <td class="px-3 py-3 max-w-sm truncate">
                                 {% if log['input_url'] %}
-                                <a href="{{ log['input_url'] }}" target="_blank" rel="noopener noreferrer" title="{{ log['input_url'] }}">{{ log['input_url'] }}</a>
+                                <a href="{{ log['input_url'] }}" target="_blank" rel="noopener noreferrer" class="text-brand hover:underline font-mono text-[11px]" title="{{ log['input_url'] }}">{{ log['input_url'] }}</a>
                                 {% else %}-{% endif %}
                             </td>
-                            <td style="white-space:nowrap;text-align:center"><span class="badge {{ '' if log['status_code']<400 else 'off' }}">{{ log['status_code'] }}</span></td>
-                            <td style="white-space:nowrap">
-                                {% if log['error_code'] %}
-                                <code class="error-code-badge">{{ log['error_code'] }}</code>
-                                {% else %}<span class="muted">-</span>{% endif %}
+                            <td class="px-3 py-3 whitespace-nowrap text-center">
+                                <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold {{ 'bg-emerald-50 text-emerald-700 border border-emerald-200' if log['status_code']<400 else 'bg-red-50 text-red-700 border border-red-200' }}">{{ log['status_code'] }}</span>
                             </td>
-                            <td style="white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums">{{ log['duration_ms'] }} ms</td>
+                            <td class="px-3 py-3 whitespace-nowrap">
+                                {% if log['error_code'] %}
+                                <code class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[11px] font-mono border border-slate-200">{{ log['error_code'] }}</code>
+                                {% else %}<span class="text-slate-300">-</span>{% endif %}
+                            </td>
+                            <td class="px-3 py-3 whitespace-nowrap text-right font-mono text-slate-600">{{ log['duration_ms'] }} ms</td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="9" class="muted" style="text-align:center">暂无符合条件的日志记录</td>
+                            <td colspan="9" class="text-center py-10 text-slate-400">暂无符合条件的日志记录</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -121,161 +127,37 @@
             </div>
 
             <!-- 分页控件与每页条数 Selector -->
-            <div class="pagination-bar">
-                <div class="pagination-info">
+            <div class="pagination-bar flex flex-col sm:flex-row items-center justify-between gap-4 mt-5 pt-4 border-t border-slate-100 text-xs text-slate-500">
+                <div class="pagination-info flex items-center gap-3">
                     <span>共 {{ logs_table.pagination.total_count }} 条数据</span>
-                    <label>每页显示:
-                        <select class="page-size-select" onchange="handlePageSizeChange('logs', this.value)">
+                    <label class="flex items-center gap-1.5">每页显示:
+                        <select class="page-size-select px-2 py-1 rounded border border-slate-200 bg-white text-slate-700 text-xs focus:outline-none" onchange="handlePageSizeChange('logs', this.value)">
                             {% for size in logs_table.pagination.page_sizes %}
                             <option value="{{ size }}" {{ 'selected' if logs_table.pagination.page_size == size }}>{{ size }} 条</option>
                             {% endfor %}
                         </select>
                     </label>
                 </div>
-                <div class="pagination-pages">
-                    <a href="javascript:void(0)" class="page-btn {{ 'disabled' if not logs_table.pagination.has_prev }}" onclick="handlePageChange('logs', {{ logs_table.pagination.page - 1 }})">上一页</a>
-                    <span style="font-size:13px;margin:0 6px">第 {{ logs_table.pagination.page }} / {{ logs_table.pagination.total_pages }} 页</span>
-                    <a href="javascript:void(0)" class="page-btn {{ 'disabled' if not logs_table.pagination.has_next }}" onclick="handlePageChange('logs', {{ logs_table.pagination.page + 1 }})">下一页</a>
+                <div class="pagination-pages flex items-center gap-2">
+                    <a href="javascript:void(0)" class="page-btn px-2.5 py-1 rounded border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition {{ 'opacity-50 pointer-events-none' if not logs_table.pagination.has_prev }}" onclick="handlePageChange('logs', {{ logs_table.pagination.page - 1 }})">上一页</a>
+                    <span class="px-1 text-slate-600 font-medium">第 {{ logs_table.pagination.page }} / {{ logs_table.pagination.total_pages }} 页</span>
+                    <a href="javascript:void(0)" class="page-btn px-2.5 py-1 rounded border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition {{ 'opacity-50 pointer-events-none' if not logs_table.pagination.has_next }}" onclick="handlePageChange('logs', {{ logs_table.pagination.page + 1 }})">下一页</a>
                 </div>
             </div>
 
-            <!-- pan-relay 风格 运行日志 底部悬浮胶囊批量工具栏 -->
-            <div id="logs-table-floating-toolbar" class="batch-floating-toolbar">
-                <div class="batch-toolbar-summary">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                    <span>已选 <strong class="logs-table-selected-count">0</strong> 条日志</span>
+            <!-- 底部悬浮胶囊批量工具栏 -->
+            <div id="logs-table-floating-toolbar" class="batch-floating-toolbar fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-md text-slate-800 px-4 py-2.5 rounded-2xl shadow-xl border border-slate-200/90 flex items-center gap-2.5 z-40 text-xs font-semibold transition-all duration-200 opacity-0 pointer-events-none translate-y-4">
+                <div class="batch-toolbar-summary flex items-center gap-1.5 text-slate-600">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <span>已选 <strong class="logs-table-selected-count text-slate-900 font-bold">0</strong> 条日志</span>
                 </div>
-                <div class="batch-toolbar-divider"></div>
-                <button type="button" class="batch-btn batch-btn-primary" onclick="triggerLogExport('selected')">批量导出 CSV</button>
-                <button type="button" class="batch-btn batch-btn-danger" onclick="executeBatchAction('logs-table', '/admin/logs/batch', 'delete', {}, '确定要删除选中的日志记录吗？此操作无法恢复。', '删除日志确认', 'danger')">批量删除</button>
-                <div class="batch-toolbar-divider"></div>
-                <button type="button" class="batch-btn batch-btn-clear" onclick="clearTableSelection('logs-table')" title="取消选择">&times; 清空</button>
+                <div class="w-px h-4 bg-slate-200"></div>
+                <button type="button" class="batch-btn batch-btn-primary px-3 py-1.5 rounded-lg bg-brand hover:bg-indigo-700 text-white shadow-xs transition font-semibold" onclick="triggerLogExport('selected')">批量导出 CSV</button>
+                <button type="button" class="batch-btn px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white shadow-xs transition font-semibold" onclick="executeBatchAction('logs-table', '/admin/logs/batch', 'delete', {}, '确定要删除选中的日志记录吗？此操作无法恢复。', '删除日志确认', 'danger')">批量删除</button>
+                <div class="w-px h-4 bg-slate-200"></div>
+                <button type="button" class="batch-btn batch-btn-clear px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition font-medium" onclick="clearTableSelection('logs-table')" title="取消选择">&times; 清空</button>
             </div>
         </section>
     </div>
-
-    <!-- 清理请求日志弹窗 -->
-    <div id="admin-purge-logs-modal-backdrop" class="modal-backdrop" style="display:none" aria-hidden="true">
-        <div class="modal-card" style="max-width:480px" role="dialog" aria-modal="true">
-            <div class="row between" style="margin-bottom:16px">
-                <h3 class="modal-title" style="margin:0;color:#b91c1c;display:flex;align-items:center;gap:8px">
-                    <svg class="app-icon" style="width:20px;height:20px;color:#ef4444" aria-hidden="true">
-                        <use href="{{ url_for('static', filename='icons.svg') }}#icon-alert"></use>
-                    </svg>
-                    清理请求日志
-                </h3>
-                <button type="button" class="toast-close" onclick="closeAdminPurgeLogsModal()"
-                    aria-label="关闭">&times;</button>
-            </div>
-
-            <div
-                style="background:#fef2f2;border:1px solid #fee2e2;border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:13px;line-height:1.5;color:#991b1b">
-                日志清理后无法恢复，且会影响对应历史区间的统计图表。<br>
-                建议在清理前先 <a href="{{ url_for('admin.export_logs') }}" target="_blank"
-                    style="color:#b91c1c;font-weight:600;text-decoration:underline">导出 CSV 归档备份</a>。
-            </div>
-
-            <div
-                style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12.5px;color:#475569">
-                <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-                    <span>当前日志总量：</span>
-                    <strong style="color:#0f172a">{{ log_storage['count'] }} 条</strong>
-                </div>
-                {% if log_storage['count'] > 0 and log_storage['oldest_created_at'] %}
-                <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-                    <span>最早记录（北京时间）：</span>
-                    <span>{{ format_log_time(log_storage['oldest_created_at']) }}</span>
-                </div>
-                <div style="display:flex;justify-content:space-between">
-                    <span>最新记录（北京时间）：</span>
-                    <span>{{ format_log_time(log_storage['newest_created_at']) }}</span>
-                </div>
-                {% endif %}
-            </div>
-
-            <form method="post" action="{{ url_for('admin.purge_logs') }}">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-                <div class="field" style="margin:12px 0">
-                    <label>清理范围</label>
-                    <select id="admin-purge-scope" name="scope" required onchange="handlePurgeScopeChange(this)">
-                        <option value="30">清理 30 天前的日志</option>
-                        <option value="90">清理 90 天前的日志</option>
-                        <option value="180">清理 180 天前的日志</option>
-                        <option value="custom">清理指定日期前的日志</option>
-                        <option value="all">清空全部请求日志</option>
-                    </select>
-                </div>
-
-                <div id="admin-purge-custom-date" class="field" style="margin:12px 0;display:none">
-                    <label>指定截止日期 <span class="muted">(该日期 00:00:00 之前的日志将被清理)</span></label>
-                    <input type="date" name="before_date">
-                </div>
-
-                <div class="field" style="margin:16px 0 12px">
-                    <label>确认操作 <span class="muted">(请输入“<strong style="color:#dc2626">清理日志</strong>”以确认)</span></label>
-                    <input type="text" id="admin-purge-confirmation-input" name="confirmation" placeholder="清理日志"
-                        required autocomplete="off">
-                </div>
-
-                <div class="modal-footer" style="margin-top:20px">
-                    <button type="button" class="btn btn-secondary" onclick="closeAdminPurgeLogsModal()">取消</button>
-                    <button type="submit" class="btn btn-danger">确认清理</button>
-                </div>
-            </form>
-        </div>
-    </div>
 </main>
-
-<script>
-function openAdminPurgeLogsModal() {
-    const m = document.getElementById('admin-purge-logs-modal-backdrop');
-    if (!m) return;
-    m.style.display = 'flex';
-    void m.offsetHeight;
-    m.classList.add('modal-open');
-    const scopeSelect = document.getElementById('admin-purge-scope');
-    if (scopeSelect) {
-        scopeSelect.value = '30';
-        handlePurgeScopeChange(scopeSelect);
-    }
-    const input = document.getElementById('admin-purge-confirmation-input');
-    if (input) {
-        input.value = '';
-        input.focus();
-    }
-}
-
-function closeAdminPurgeLogsModal() {
-    const m = document.getElementById('admin-purge-logs-modal-backdrop');
-    if (!m) return;
-    m.classList.remove('modal-open');
-    setTimeout(() => { m.style.display = 'none'; }, 180);
-}
-
-function handlePurgeScopeChange(selectEl) {
-    const customDateBox = document.getElementById('admin-purge-custom-date');
-    if (!customDateBox) return;
-    const dateInput = customDateBox.querySelector('input[name="before_date"]');
-    if (selectEl.value === 'custom') {
-        customDateBox.style.display = 'block';
-        if (dateInput) dateInput.required = true;
-    } else {
-        customDateBox.style.display = 'none';
-        if (dateInput) {
-            dateInput.required = false;
-            dateInput.value = '';
-        }
-    }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    const plm = document.getElementById('admin-purge-logs-modal-backdrop');
-    if (plm) {
-        plm.addEventListener('click', (e) => {
-            if (e.target === plm) closeAdminPurgeLogsModal();
-        });
-    }
-});
-</script>
 {% endblock %}

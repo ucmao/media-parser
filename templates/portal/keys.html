@@ -2,37 +2,30 @@
 {% block title %}API 密钥 · 客户控制台{% endblock %}
 {% block page_title %}API 密钥{% endblock %}
 {% block console_content %}
-<main class="container">
-    <div id="keys" class="tab-view">
+<main class="max-w-7xl mx-auto space-y-6">
+    <div id="keys" class="tab-view space-y-6">
         {% if new_api_key %}
-        <div id="portal-new-key-modal-backdrop" class="modal-backdrop" style="display:none" aria-hidden="true">
-            <div class="modal-card" style="max-width:540px" role="dialog" aria-modal="true">
-                <div class="row between" style="margin-bottom:12px">
-                    <div class="row" style="gap:8px;align-items:center">
-                        <span class="badge" style="background:#dcfce7;color:#15803d">生成成功</span>
-                        <h3 class="modal-title" style="margin:0;color:#166534">新生成的 API Key</h3>
+        <div id="portal-new-key-modal-backdrop" class="modal-backdrop fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4" style="display:none" aria-hidden="true">
+            <div class="modal-card bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full p-6" role="dialog" aria-modal="true">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">生成成功</span>
+                        <h3 class="text-base font-bold text-emerald-950 m-0">新生成的 API Key</h3>
                     </div>
-                    <button type="button" class="toast-close" onclick="closePortalNewKeyModal()"
-                        aria-label="关闭">&times;</button>
+                    <button type="button" class="text-slate-400 hover:text-slate-700 text-lg leading-none" onclick="closePortalNewKeyModal()" aria-label="关闭">&times;</button>
                 </div>
-                <p class="muted" style="color:#15803d;margin:0 0 14px">密钥明文仅在此处展示一次，请妥善保管。（注：示例中的 <code>YOUR_URL</code>
-                    需替换为您要解析的具体视频或图集链接）</p>
+                <p class="text-xs text-emerald-800 mb-4">密钥明文仅在此处展示一次，请妥善保管。（注：示例中的 <code>YOUR_URL</code> 需替换为您要解析的具体视频或图集链接）</p>
 
-                <div class="secret" id="new-key" style="margin-bottom:16px;user-select:all">{{ new_api_key }}</div>
+                <div class="p-3.5 bg-slate-50 text-slate-800 font-mono text-sm font-semibold rounded-xl break-all select-all mb-4 border border-slate-200" id="new-key">{{ new_api_key }}</div>
 
-                <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:20px">
-                    <button type="button" class="btn btn-primary btn-small"
-                        onclick="navigator.clipboard.writeText('{{ new_api_key }}'); showToast('已复制完整 API Key', 'success')">复制密钥</button>
-                    <button type="button" class="btn btn-small"
-                        onclick="navigator.clipboard.writeText((window.location.origin || '{{ api_base_url() }}').replace(/\/$/, '') + '/api/v1/parse?key={{ new_api_key }}&url=YOUR_URL'); showToast('已复制测试 URL', 'success')">复制
-                        GET URL</button>
-                    <button type="button" class="btn btn-small"
-                        onclick="navigator.clipboard.writeText('curl -H &quot;Authorization: Bearer {{ new_api_key }}&quot; &quot;' + (window.location.origin || '{{ api_base_url() }}').replace(/\/$/, '') + '/api/v1/parse?url=YOUR_URL&quot;'); showToast('已复制 cURL 命令', 'success')">复制
-                        cURL 命令</button>
+                <div class="flex flex-wrap items-center gap-2 mb-6">
+                    <button type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-brand hover:bg-indigo-700 shadow-xs transition" onclick="navigator.clipboard.writeText('{{ new_api_key }}'); showToast('已复制完整 API Key', 'success')">复制密钥</button>
+                    <button type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-xs transition" onclick="navigator.clipboard.writeText((window.location.origin || '{{ api_base_url() }}').replace(/\/$/, '') + '/api/v1/parse?key={{ new_api_key }}&url=YOUR_URL'); showToast('已复制测试 URL', 'success')">复制 GET URL</button>
+                    <button type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-xs transition" onclick="navigator.clipboard.writeText('curl -H &quot;Authorization: Bearer {{ new_api_key }}&quot; &quot;' + (window.location.origin || '{{ api_base_url() }}').replace(/\/$/, '') + '/api/v1/parse?url=YOUR_URL&quot;'); showToast('已复制 cURL 命令', 'success')">复制 cURL 命令</button>
                 </div>
 
-                <div class="modal-footer" style="justify-content:flex-end">
-                    <button type="button" class="btn btn-primary" onclick="closePortalNewKeyModal()">我已保存，关闭</button>
+                <div class="flex justify-end pt-3 border-t border-slate-100">
+                    <button type="button" class="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-brand hover:bg-indigo-700 shadow-xs" onclick="closePortalNewKeyModal()">我已保存，关闭</button>
                 </div>
             </div>
         </div>
@@ -57,103 +50,103 @@
         </script>
         {% endif %}
 
-        <section class="card">
-            <div style="margin-bottom:16px">
-                <div class="row between" style="margin-bottom:12px;flex-wrap:wrap;gap:12px;align-items:center">
-                    <div class="row" style="gap:10px;align-items:center">
-                        <h2 style="margin:0">API 密钥</h2>
-                        <span class="badge" style="font-weight:600">{{ keys_table.pagination.total_count }} 个密钥</span>
+        <section class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <div>
+                    <div class="flex items-center gap-3">
+                        <h2 class="text-base font-bold text-slate-900">API 密钥</h2>
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">{{ keys_table.pagination.total_count }} 个密钥</span>
                     </div>
-                    <button type="button" class="btn btn-primary btn-small" onclick="openPortalCreateKeyModal()">+ 创建 API Key</button>
+                    <p class="text-xs text-slate-500 mt-1">最多可创建 10 个密钥。推荐在正式生产项目中使用 Authorization 请求头传参。</p>
                 </div>
-                <p class="muted" style="margin:0;font-size:13px">最多可创建 10 个密钥。推荐在正式生产项目中使用 Authorization 请求头传参。</p>
+                <button type="button" class="px-3.5 py-2 rounded-lg text-xs font-bold text-white bg-brand hover:bg-indigo-700 shadow-xs transition shrink-0 self-start sm:self-auto" onclick="openPortalCreateKeyModal()">+ 创建 API Key</button>
             </div>
 
             <!-- 筛选与搜索工具栏 -->
-            <form method="get" action="{{ url_for('portal.keys') }}" class="table-toolbar table-filter-form">
-                <div class="row" style="gap:8px;flex-wrap:wrap">
-                    <input type="text" name="keys_q" placeholder="搜索密钥名称..." value="{{ keys_table.query_params.q }}" class="filter-input-text">
-                    <select name="keys_active" onchange="this.form.submit()">
+            <form method="get" action="{{ url_for('portal.keys') }}" class="table-toolbar table-filter-form mb-5">
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <input type="text" name="keys_q" placeholder="搜索密钥名称..." value="{{ keys_table.query_params.q }}" class="filter-input-text px-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition w-48 bg-white">
+                    <select name="keys_active" onchange="this.form.submit()" class="px-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-white text-slate-700">
                         <option value="">全部状态</option>
                         <option value="1" {{ 'selected' if request.args.get('keys_active') == '1' }}>正常</option>
                         <option value="0" {{ 'selected' if request.args.get('keys_active') == '0' }}>停用</option>
                     </select>
-                    <button type="button" class="btn btn-secondary btn-small" onclick="resetTableFilter('keys')">重置</button>
+                    <button type="button" class="btn btn-secondary btn-small px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition shadow-xs" onclick="resetTableFilter('keys')">重置</button>
                 </div>
             </form>
 
-            <div class="table-wrap">
-                <table id="keys-table" style="width:100%;min-width:820px">
-                    <thead>
+            <div class="table-wrap overflow-x-auto rounded-xl border border-slate-200">
+                <table id="keys-table" class="w-full min-w-[820px] text-left text-xs border-collapse">
+                    <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
                         <tr>
-                            <th style="width:44px;text-align:center">
-                                <div class="batch-select-dropdown" data-table="keys-table" data-total="{{ keys_table.pagination.total_count }}">
-                                    <input type="checkbox" class="table-select-all" data-table="keys-table" title="全选当前页">
-                                    <button type="button" class="batch-dropdown-trigger" title="选择范围" aria-label="选择范围">
+                            <th class="w-11 px-3 py-3 text-center">
+                                <div class="batch-select-dropdown relative inline-flex items-center justify-center" data-table="keys-table" data-total="{{ keys_table.pagination.total_count }}">
+                                    <input type="checkbox" class="table-select-all rounded border-slate-300 text-brand focus:ring-brand/20 cursor-pointer" data-table="keys-table" title="全选当前页">
+                                    <button type="button" class="batch-dropdown-trigger absolute left-full top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-700 ml-0.5" title="选择范围" aria-label="选择范围">
                                         <svg class="batch-chevron-icon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                             <polyline points="6 9 12 15 18 9"></polyline>
                                         </svg>
                                     </button>
-                                    <div class="batch-dropdown-menu">
-                                        <button type="button" class="batch-dropdown-item" data-action="current-page">选择当前页</button>
-                                        <button type="button" class="batch-dropdown-item" data-action="all">选择全部</button>
+                                    <div class="batch-dropdown-menu absolute left-0 top-full mt-1.5 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-30 hidden min-w-[105px] text-xs whitespace-nowrap">
+                                        <button type="button" class="batch-dropdown-item w-full text-left px-3 py-1.5 hover:bg-slate-50 text-slate-700" data-action="current-page">选择当前页</button>
+                                        <button type="button" class="batch-dropdown-item w-full text-left px-3 py-1.5 hover:bg-slate-50 text-slate-700" data-action="all">选择全部</button>
                                     </div>
                                 </div>
                             </th>
-                            <th class="th-sortable" onclick="handleSort('keys', 'name')" style="white-space:nowrap;width:150px">
-                                密钥名称 <span class="sort-icon {{ 'active' if keys_table.sorting.sort_by=='name' }}">{{ '↑' if keys_table.sorting.sort_by=='name' and keys_table.sorting.order=='asc' else ('↓' if keys_table.sorting.sort_by=='name' else '↕') }}</span>
+                            <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition whitespace-nowrap w-36" onclick="handleSort('keys', 'name')">
+                                密钥名称 <span class="sort-icon ml-0.5 {{ 'text-brand font-bold' if keys_table.sorting.sort_by=='name' else 'text-slate-300' }}">{{ '↑' if keys_table.sorting.sort_by=='name' and keys_table.sorting.order=='asc' else ('↓' if keys_table.sorting.sort_by=='name' else '↕') }}</span>
                             </th>
-                            <th style="white-space:nowrap;width:160px">Key 前缀</th>
-                            <th class="th-sortable" onclick="handleSort('keys', 'active')" style="white-space:nowrap;width:80px;text-align:center">
-                                状态 <span class="sort-icon {{ 'active' if keys_table.sorting.sort_by=='active' }}">{{ '↑' if keys_table.sorting.sort_by=='active' and keys_table.sorting.order=='asc' else ('↓' if keys_table.sorting.sort_by=='active' else '↕') }}</span>
+                            <th class="px-3 py-3 whitespace-nowrap w-40">Key 前缀</th>
+                            <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition whitespace-nowrap w-24 text-center" onclick="handleSort('keys', 'active')">
+                                状态 <span class="sort-icon ml-0.5 {{ 'text-brand font-bold' if keys_table.sorting.sort_by=='active' else 'text-slate-300' }}">{{ '↑' if keys_table.sorting.sort_by=='active' and keys_table.sorting.order=='asc' else ('↓' if keys_table.sorting.sort_by=='active' else '↕') }}</span>
                             </th>
-                            <th class="th-sortable" onclick="handleSort('keys', 'last_used_at')" style="white-space:nowrap;width:145px">
-                                最后使用时间 <span class="sort-icon {{ 'active' if keys_table.sorting.sort_by=='last_used_at' }}">{{ '↑' if keys_table.sorting.sort_by=='last_used_at' and keys_table.sorting.order=='asc' else ('↓' if keys_table.sorting.sort_by=='last_used_at' else '↕') }}</span>
+                            <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition whitespace-nowrap w-36" onclick="handleSort('keys', 'last_used_at')">
+                                最后使用时间 <span class="sort-icon ml-0.5 {{ 'text-brand font-bold' if keys_table.sorting.sort_by=='last_used_at' else 'text-slate-300' }}">{{ '↑' if keys_table.sorting.sort_by=='last_used_at' and keys_table.sorting.order=='asc' else ('↓' if keys_table.sorting.sort_by=='last_used_at' else '↕') }}</span>
                             </th>
-                            <th class="th-sortable" onclick="handleSort('keys', 'created_at')" style="white-space:nowrap;width:145px">
-                                创建时间 <span class="sort-icon {{ 'active' if keys_table.sorting.sort_by=='created_at' }}">{{ '↑' if keys_table.sorting.sort_by=='created_at' and keys_table.sorting.order=='asc' else ('↓' if keys_table.sorting.sort_by=='created_at' else '↕') }}</span>
+                            <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition whitespace-nowrap w-36" onclick="handleSort('keys', 'created_at')">
+                                创建时间 <span class="sort-icon ml-0.5 {{ 'text-brand font-bold' if keys_table.sorting.sort_by=='created_at' else 'text-slate-300' }}">{{ '↑' if keys_table.sorting.sort_by=='created_at' and keys_table.sorting.order=='asc' else ('↓' if keys_table.sorting.sort_by=='created_at' else '↕') }}</span>
                             </th>
-                            <th class="th-action" style="width:110px">操作</th>
+                            <th class="th-action px-3 py-3 w-28 text-right">操作</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="divide-y divide-slate-100">
                         {% for key in keys %}
-                        <tr>
-                            <td style="text-align:center"><input type="checkbox" class="row-checkbox" value="{{ key['id'] }}"></td>
-                            <td style="white-space:nowrap"><strong>{{ key['name'] }}</strong></td>
-                            <td style="white-space:nowrap"><span class="key">{{ key['key_prefix'] }}••••••••••••</span></td>
-                            <td style="text-align:center">
-                                <form method="post" action="{{ url_for('portal.toggle_key', key_id=key['id']) }}"
-                                    style="margin:0;display:inline-block">
+                        <tr class="hover:bg-slate-50/70 transition">
+                            <td class="px-3 py-3 text-center">
+                                <input type="checkbox" class="row-checkbox rounded border-slate-300 text-brand focus:ring-brand/20 cursor-pointer" value="{{ key['id'] }}">
+                            </td>
+                            <td class="px-3 py-3 whitespace-nowrap font-bold text-slate-900">{{ key['name'] }}</td>
+                            <td class="px-3 py-3 whitespace-nowrap">
+                                <span class="font-mono text-xs text-slate-600 bg-slate-50 border border-slate-200/80 px-2.5 py-1 rounded-lg inline-flex items-center select-all">{{ key['key_prefix'] }}••••••••••••</span>
+                            </td>
+                            <td class="px-3 py-3 whitespace-nowrap text-center">
+                                <form method="post" action="{{ url_for('portal.toggle_key', key_id=key['id']) }}" class="m-0 inline-block">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <label class="switch switch-sm" title="切换 Key 状态">
-                                        <input type="checkbox" name="active" {{ 'checked' if key['active'] }}
-                                            onchange="this.form.submit()">
-                                        <span class="slider"></span>
+                                    <label class="relative inline-flex items-center cursor-pointer" title="切换 Key 状态">
+                                        <input type="checkbox" name="active" {{ 'checked' if key['active'] }} onchange="this.form.submit()" class="sr-only peer">
+                                        <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand"></div>
                                     </label>
                                 </form>
                             </td>
-                            <td style="white-space:nowrap;font-size:13px;color:var(--ink-secondary)">{{ format_log_time(key['last_used_at']) if key['last_used_at'] else '从未' }}</td>
-                            <td style="white-space:nowrap;font-size:13px;color:var(--ink-secondary)">{{ format_log_time(key['created_at']) if key['created_at'] else '-' }}</td>
-                            <td class="td-action" style="white-space:nowrap;text-align:right">
-                                <div class="row" style="gap:4px;justify-content:flex-end;align-items:center">
-                                    <button type="button" class="btn btn-secondary btn-small"
-                                        style="padding:0 8px;height:28px"
+                            <td class="px-3 py-3 whitespace-nowrap text-slate-500">{{ format_log_time(key['last_used_at']) if key['last_used_at'] else '从未' }}</td>
+                            <td class="px-3 py-3 whitespace-nowrap text-slate-500">{{ format_log_time(key['created_at']) if key['created_at'] else '-' }}</td>
+                            <td class="td-action px-3 py-3 whitespace-nowrap text-right">
+                                <div class="flex items-center justify-end gap-1.5">
+                                    <button type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition shadow-xs"
                                         onclick="openPortalEditKeyModal({{ key['id'] }}, '{{ key['name']|e }}')">编辑</button>
-                                    <form method="post" action="{{ url_for('portal.delete_key', key_id=key['id']) }}"
-                                        style="margin:0" data-confirm="确定要永久删除密钥「{{ key['name'] }}」吗？删除后使用该密钥的接口将立即失效。"
+                                    <form method="post" action="{{ url_for('portal.delete_key', key_id=key['id']) }}" class="m-0"
+                                        data-confirm="确定要永久删除密钥「{{ key['name'] }}」吗？删除后使用该密钥的接口将立即失效。"
                                         data-confirm-title="删除 API Key 确认" data-confirm-text="确认删除"
                                         data-confirm-type="danger">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <button class="btn btn-danger btn-small"
-                                            style="padding:0 8px;height:28px">删除</button>
+                                        <button class="px-2.5 py-1 rounded-lg text-xs font-semibold text-red-600 border border-red-200 bg-white hover:bg-red-50 transition shadow-xs">删除</button>
                                     </form>
                                 </div>
                             </td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="7" class="muted" style="text-align:center">暂无符合条件的 API Key</td>
+                            <td colspan="7" class="text-center py-10 text-slate-400">暂无符合条件的 API Key</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -161,79 +154,77 @@
             </div>
 
             <!-- 分页控件与每页条数 Selector -->
-            <div class="pagination-bar">
-                <div class="pagination-info">
+            <div class="pagination-bar flex flex-col sm:flex-row items-center justify-between gap-4 mt-5 pt-4 border-t border-slate-100 text-xs text-slate-500">
+                <div class="pagination-info flex items-center gap-3">
                     <span>共 {{ keys_table.pagination.total_count }} 条数据</span>
-                    <label>每页显示:
-                        <select class="page-size-select" onchange="handlePageSizeChange('keys', this.value)">
+                    <label class="flex items-center gap-1.5">每页显示:
+                        <select class="page-size-select px-2 py-1 rounded border border-slate-200 bg-white text-slate-700 text-xs focus:outline-none" onchange="handlePageSizeChange('keys', this.value)">
                             {% for size in keys_table.pagination.page_sizes %}
                             <option value="{{ size }}" {{ 'selected' if keys_table.pagination.page_size == size }}>{{ size }} 条</option>
                             {% endfor %}
                         </select>
                     </label>
                 </div>
-                <div class="pagination-pages">
-                    <a href="javascript:void(0)" class="page-btn {{ 'disabled' if not keys_table.pagination.has_prev }}" onclick="handlePageChange('keys', {{ keys_table.pagination.page - 1 }})">上一页</a>
-                    <span style="font-size:13px;margin:0 6px">第 {{ keys_table.pagination.page }} / {{ keys_table.pagination.total_pages }} 页</span>
-                    <a href="javascript:void(0)" class="page-btn {{ 'disabled' if not keys_table.pagination.has_next }}" onclick="handlePageChange('keys', {{ keys_table.pagination.page + 1 }})">下一页</a>
+                <div class="pagination-pages flex items-center gap-2">
+                    <a href="javascript:void(0)" class="page-btn px-2.5 py-1 rounded border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition {{ 'opacity-50 pointer-events-none' if not keys_table.pagination.has_prev }}" onclick="handlePageChange('keys', {{ keys_table.pagination.page - 1 }})">上一页</a>
+                    <span class="px-1 text-slate-600 font-medium">第 {{ keys_table.pagination.page }} / {{ keys_table.pagination.total_pages }} 页</span>
+                    <a href="javascript:void(0)" class="page-btn px-2.5 py-1 rounded border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition {{ 'opacity-50 pointer-events-none' if not keys_table.pagination.has_next }}" onclick="handlePageChange('keys', {{ keys_table.pagination.page + 1 }})">下一页</a>
                 </div>
             </div>
 
             <!-- 底部悬浮胶囊批量工具栏 -->
-            <div id="keys-table-floating-toolbar" class="batch-floating-toolbar">
-                <div class="batch-toolbar-summary">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                    <span>已选 <strong class="keys-table-selected-count">0</strong> 项</span>
+            <div id="keys-table-floating-toolbar" class="batch-floating-toolbar fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-md text-slate-800 px-4 py-2.5 rounded-2xl shadow-xl border border-slate-200/90 flex items-center gap-2.5 z-40 text-xs font-semibold transition-all duration-200 opacity-0 pointer-events-none translate-y-4">
+                <div class="batch-toolbar-summary flex items-center gap-1.5 text-slate-600">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <span>已选 <strong class="keys-table-selected-count text-slate-900 font-bold">0</strong> 项</span>
                 </div>
-                <div class="batch-toolbar-divider"></div>
-                <button type="button" class="batch-btn batch-btn-primary" onclick="executeBatchAction('keys-table', '/console/keys/batch', 'enable')">批量启用</button>
-                <button type="button" class="batch-btn" onclick="executeBatchAction('keys-table', '/console/keys/batch', 'disable')">批量停用</button>
-                <button type="button" class="batch-btn batch-btn-danger" onclick="executeBatchAction('keys-table', '/console/keys/batch', 'delete', {}, '确定要彻底删除选中的 API Key 吗？此操作无法恢复！', '删除密钥确认', 'danger')">删除 Key</button>
-                <div class="batch-toolbar-divider"></div>
-                <button type="button" class="batch-btn batch-btn-clear" onclick="clearTableSelection('keys-table')" title="取消选择">&times; 清空</button>
+                <div class="w-px h-4 bg-slate-200"></div>
+                <button type="button" class="batch-btn batch-btn-primary px-3 py-1.5 rounded-lg bg-brand hover:bg-indigo-700 text-white shadow-xs transition font-semibold" onclick="executeBatchAction('keys-table', '/console/keys/batch', 'enable')">批量启用</button>
+                <button type="button" class="batch-btn px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-xs transition font-semibold" onclick="executeBatchAction('keys-table', '/console/keys/batch', 'disable')">批量停用</button>
+                <button type="button" class="batch-btn px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white shadow-xs transition font-semibold" onclick="executeBatchAction('keys-table', '/console/keys/batch', 'delete', {}, '确定要彻底删除选中的 API Key 吗？此操作无法恢复！', '删除密钥确认', 'danger')">删除 Key</button>
+                <div class="w-px h-4 bg-slate-200"></div>
+                <button type="button" class="batch-btn batch-btn-clear px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition font-medium" onclick="clearTableSelection('keys-table')" title="取消选择">&times; 清空</button>
             </div>
         </section>
     </div>
 
     <!-- 创建 API Key 弹窗 -->
-    <div id="portal-create-key-modal-backdrop" class="modal-backdrop" style="display:none" aria-hidden="true">
-        <div class="modal-card" style="max-width:480px" role="dialog" aria-modal="true">
-            <div class="row between" style="margin-bottom:16px">
-                <h3 class="modal-title" style="margin:0">创建新 API Key</h3>
-                <button type="button" class="toast-close" onclick="closePortalCreateKeyModal()"
-                    aria-label="关闭">&times;</button>
+    <div id="portal-create-key-modal-backdrop" class="modal-backdrop fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4" style="display:none" aria-hidden="true">
+        <div class="modal-card bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-bold text-slate-900 m-0">创建新 API Key</h3>
+                <button type="button" class="text-slate-400 hover:text-slate-700 text-lg leading-none" onclick="closePortalCreateKeyModal()" aria-label="关闭">&times;</button>
             </div>
-            <form method="post" action="{{ url_for('portal.create_key') }}">
+            <form method="post" action="{{ url_for('portal.create_key') }}" class="space-y-4">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <div class="field" style="margin:12px 0">
-                    <label>密钥名称</label>
-                    <input name="name" maxlength="40" placeholder="例如：生产环境Key" required>
+                <div class="space-y-1">
+                    <label class="block text-xs font-semibold text-slate-700">密钥名称</label>
+                    <input name="name" maxlength="40" placeholder="例如：生产环境Key" required class="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-brand">
                 </div>
-                <div class="modal-footer" style="margin-top:20px">
-                    <button type="button" class="btn btn-secondary" onclick="closePortalCreateKeyModal()">取消</button>
-                    <button type="submit" class="btn btn-primary">立即创建</button>
+                <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+                    <button type="button" class="px-4 py-2 rounded-lg text-sm font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" onclick="closePortalCreateKeyModal()">取消</button>
+                    <button type="submit" class="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-brand hover:bg-indigo-700 shadow-xs">立即创建</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- 用户编辑 API Key 名称弹窗 -->
-    <div id="portal-edit-key-modal-backdrop" class="modal-backdrop" style="display:none" aria-hidden="true">
-        <div class="modal-card" style="max-width:480px" role="dialog" aria-modal="true">
-            <div class="row between" style="margin-bottom:16px">
-                <h3 class="modal-title" style="margin:0">修改密钥名称</h3>
-                <button type="button" class="toast-close" onclick="closePortalEditKeyModal()"
-                    aria-label="关闭">&times;</button>
+    <div id="portal-edit-key-modal-backdrop" class="modal-backdrop fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4" style="display:none" aria-hidden="true">
+        <div class="modal-card bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-bold text-slate-900 m-0">修改密钥名称</h3>
+                <button type="button" class="text-slate-400 hover:text-slate-700 text-lg leading-none" onclick="closePortalEditKeyModal()" aria-label="关闭">&times;</button>
             </div>
-            <form id="portal-edit-key-form" method="post" action="">
+            <form id="portal-edit-key-form" method="post" action="" class="space-y-4">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <div class="field" style="margin:12px 0">
-                    <label>密钥名称</label>
-                    <input id="portal-edit-key-name" name="name" maxlength="40" placeholder="例如：生产环境Key" required>
+                <div class="space-y-1">
+                    <label class="block text-xs font-semibold text-slate-700">密钥名称</label>
+                    <input id="portal-edit-key-name" name="name" maxlength="40" placeholder="例如：生产环境Key" required class="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-brand">
                 </div>
-                <div class="modal-footer" style="margin-top:20px">
-                    <button type="button" class="btn btn-secondary" onclick="closePortalEditKeyModal()">取消</button>
-                    <button type="submit" class="btn btn-primary">保存修改</button>
+                <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+                    <button type="button" class="px-4 py-2 rounded-lg text-sm font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" onclick="closePortalEditKeyModal()">取消</button>
+                    <button type="submit" class="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-brand hover:bg-indigo-700 shadow-xs">保存修改</button>
                 </div>
             </form>
         </div>

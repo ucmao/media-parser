@@ -1,64 +1,64 @@
 {% extends 'base_console.html' %}
 {% block title %}初始化系统管理员{% endblock %}
 {% block body %}
-<main class="auth-wrap">
-    <div class="auth-card">
-        <div class="auth-brand">
-            <a href="{{ url_for('web.index') }}" title="返回首页">
-                <img src="{{ url_for('static', filename='images/logo-web.png') }}" alt="Media Parser Logo">
+<main class="min-h-screen flex items-center justify-center p-4 bg-slate-50 relative selection:bg-indigo-100 selection:text-indigo-900">
+    <div class="w-full max-w-md">
+        <div class="text-center mb-8">
+            <a href="{{ url_for('web.index') }}" title="返回首页" class="inline-flex items-center justify-center mb-3">
+                <img src="{{ url_for('static', filename='images/logo-web.png') }}" alt="Media Parser Logo" class="w-12 h-12 rounded-2xl border border-slate-200 bg-white p-1 shadow-sm hover:scale-105 transition">
             </a>
-            <h2>Media Parser 控制台</h2>
-            <p class="muted" style="font-size:13px;margin:4px 0 0">首次部署：创建超级管理员初始凭据</p>
+            <h2 class="text-xl font-bold text-slate-900 tracking-tight">Media Parser 控制台</h2>
+            <p class="text-xs text-slate-500 mt-1">首次部署：创建超级管理员初始凭据</p>
         </div>
 
-        <div class="card" style="box-shadow:var(--shadow-lg)">
-            <div class="row" style="gap:8px;align-items:center;margin-bottom:8px">
-                <span class="badge" style="background:#eef2ff;color:#4f46e5;border-color:#c7d2fe">首次初始化</span>
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xl shadow-slate-200/50 p-7">
+            <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-brand border border-indigo-200 mb-3">
+                首次初始化
             </div>
-            <h1 class="title" style="font-size:20px;margin-bottom:4px">初始化管理员</h1>
-            <p class="subtitle" style="margin-bottom:20px">该步骤仅在初次部署时执行一次，请务必设置强密码并妥善保管。</p>
+            <h1 class="text-lg font-bold text-slate-900 mb-1">初始化超级管理员</h1>
+            <p class="text-xs text-slate-500 mb-5 leading-relaxed">该步骤仅在初次部署时执行一次，请务必设置强密码并妥善保管。</p>
 
             {% for category, message in get_flashed_messages(with_categories=true) %}
-            <div class="flash {{ category }}">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <div class="mb-4 flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border text-sm {{ 'border-red-200 text-red-700 bg-red-50' if category == 'error' else ('border-amber-200 text-amber-700 bg-amber-50' if category == 'warning' else 'border-emerald-200 text-emerald-800 bg-emerald-50') }}">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                 <span>{{ message }}</span>
             </div>
             {% endfor %}
 
-            <form method="post">
+            <form method="post" class="space-y-4">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <div class="field">
-                    <label>管理员用户名 <span class="muted">(3 ~ 40 位)</span></label>
-                    <input name="username" minlength="3" maxlength="40" placeholder="例如：admin" required autofocus>
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-slate-700">管理员用户名 <span class="text-slate-400 font-normal">(3 ~ 40 位)</span></label>
+                    <input name="username" minlength="3" maxlength="40" placeholder="例如：admin" required autofocus class="w-full px-3.5 py-2.5 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-white text-slate-900">
                 </div>
-                <div class="field">
-                    <label>管理员密码 <span class="muted">(至少 8 位)</span></label>
-                    <div class="password-group">
-                        <input name="password" type="password" minlength="8" placeholder="请输入高强度管理员密码" required>
-                        <button type="button" class="password-toggle-btn" aria-label="切换密码可见性" title="显示密码" onclick="togglePasswordVisibility(this)">
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-slate-700">管理员密码 <span class="text-slate-400 font-normal">(至少 8 位)</span></label>
+                    <div class="password-group relative">
+                        <input name="password" type="password" minlength="8" placeholder="请输入高强度管理员密码" required class="w-full px-3.5 py-2.5 pr-10 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-white text-slate-900">
+                        <button type="button" class="password-toggle-btn absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-1" aria-label="切换密码可见性" title="显示密码" onclick="togglePasswordVisibility(this)">
                             <svg class="icon-eye" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                            <svg class="icon-eye-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                            <svg class="icon-eye-off hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
                         </button>
                     </div>
                 </div>
-                <div class="field">
-                    <label>确认管理员密码</label>
-                    <div class="password-group">
-                        <input name="confirm_password" type="password" minlength="8" placeholder="请再次输入管理员密码" required>
-                        <button type="button" class="password-toggle-btn" aria-label="切换密码可见性" title="显示密码" onclick="togglePasswordVisibility(this)">
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-slate-700">确认管理员密码</label>
+                    <div class="password-group relative">
+                        <input name="confirm_password" type="password" minlength="8" placeholder="请再次输入管理员密码" required class="w-full px-3.5 py-2.5 pr-10 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-white text-slate-900">
+                        <button type="button" class="password-toggle-btn absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-1" aria-label="切换密码可见性" title="显示密码" onclick="togglePasswordVisibility(this)">
                             <svg class="icon-eye" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                            <svg class="icon-eye-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                            <svg class="icon-eye-off hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
                         </button>
                     </div>
                 </div>
-                <div style="margin-top:24px">
-                    <button type="submit" class="btn btn-primary btn-block" style="height:42px;font-size:14px">立即创建超级管理员</button>
+                <div class="pt-2">
+                    <button type="submit" class="w-full h-11 flex items-center justify-center rounded-lg bg-brand hover:bg-indigo-700 text-white font-bold text-sm shadow-sm transition">立即创建超级管理员</button>
                 </div>
             </form>
         </div>
 
-        <div style="text-align:center;margin-top:20px">
-            <a href="{{ url_for('web.index') }}" class="muted" style="font-size:12.5px;display:inline-flex;align-items:center;gap:4px">
+        <div class="text-center mt-6">
+            <a href="{{ url_for('web.index') }}" class="text-xs text-slate-500 hover:text-slate-800 transition inline-flex items-center gap-1.5 font-medium">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
                 返回首页在线体验
             </a>
@@ -76,13 +76,13 @@ function togglePasswordVisibility(btn) {
     if (!input) return;
     if (input.type === 'password') {
         input.type = 'text';
-        if (eye) eye.style.display = 'none';
-        if (eyeOff) eyeOff.style.display = 'block';
+        if (eye) eye.classList.add('hidden');
+        if (eyeOff) eyeOff.classList.remove('hidden');
         btn.setAttribute('title', '隐藏密码');
     } else {
         input.type = 'password';
-        if (eye) eye.style.display = 'block';
-        if (eyeOff) eyeOff.style.display = 'none';
+        if (eye) eye.classList.remove('hidden');
+        if (eyeOff) eyeOff.classList.add('hidden');
         btn.setAttribute('title', '显示密码');
     }
 }

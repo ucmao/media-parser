@@ -88,6 +88,8 @@ def get_db():
         g.db.row_factory = sqlite3.Row
         g.db.execute("PRAGMA foreign_keys = ON")
         g.db.execute("PRAGMA busy_timeout = 10000")
+        g.db.execute("PRAGMA journal_mode = WAL")
+        g.db.execute("PRAGMA synchronous = NORMAL")
     return g.db
 
 
@@ -449,7 +451,11 @@ def get_platform_distribution(user_id=None, days=7):
         "#7c3aed", "#059669", "#d97706", "#2563eb", "#db2777",
         "#0891b2", "#ea580c", "#475569", "#65a30d", "#9333ea",
         "#0d9488", "#c026d3", "#4338ca", "#16a34a", "#ca8a04",
-        "#e11d48", "#2563eb", "#7c2d12", "#4b5563", "#047857", "#b45309"
+        "#be123c", "#1d4ed8", "#b91c1c", "#6d28d9", "#0f766e",
+        "#c2410c", "#334155", "#4d7c0f", "#86198f", "#1e40af",
+        "#991b1b", "#581c87", "#115e59", "#9a3412", "#1e293b",
+        "#3f6212", "#701a75", "#1e3a8a", "#831843", "#312e81",
+        "#064e3b", "#78350f", "#0f172a", "#365314", "#4a044e"
     ]
 
     items = []

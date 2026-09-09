@@ -1,81 +1,65 @@
 {% extends 'base_console.html' %}
 {% block title %}登录控制台{% endblock %}
 {% block body %}
-<main class="auth-wrap">
-    <div class="auth-card">
-        <div class="auth-brand">
-            <a href="{{ url_for('web.index') }}" title="返回首页">
-                <img src="{{ url_for('static', filename='images/logo-web.png') }}" alt="Media Parser Logo">
+<main class="min-h-screen flex items-center justify-center p-4 bg-slate-50 relative selection:bg-indigo-100 selection:text-indigo-900">
+    <div class="w-full max-w-md">
+        <div class="text-center mb-8">
+            <a href="{{ url_for('web.index') }}" title="返回首页" class="inline-flex items-center justify-center mb-3">
+                <img src="{{ url_for('static', filename='images/logo-web.png') }}" alt="Media Parser Logo" class="w-12 h-12 rounded-2xl border border-slate-200 bg-white p-1 shadow-sm hover:scale-105 transition">
             </a>
-            <h2>Media Parser 控制台</h2>
-            <p class="muted" style="font-size:13px;margin:4px 0 0">多平台媒体解析与开放 API</p>
+            <h2 class="text-xl font-bold text-slate-900 tracking-tight">Media Parser 控制台</h2>
+            <p class="text-xs text-slate-500 mt-1">多平台媒体解析与开放 API</p>
         </div>
 
-        <div class="card" style="box-shadow:var(--shadow-lg)">
-            <h1 class="title" style="font-size:20px;margin-bottom:20px">登录账号</h1>
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xl shadow-slate-200/50 p-7">
+            <h1 class="text-lg font-bold text-slate-900 mb-5">登录账号</h1>
 
             {% for category, message in get_flashed_messages(with_categories=true) %}
-            <div class="flash {{ category }}">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <div class="mb-4 flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border text-sm {{ 'border-red-200 text-red-700 bg-red-50' if category == 'error' else ('border-amber-200 text-amber-700 bg-amber-50' if category == 'warning' else 'border-emerald-200 text-emerald-800 bg-emerald-50') }}">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                 <span>{{ message }}</span>
             </div>
             {% endfor %}
 
-            <form method="post">
+            <form method="post" class="space-y-4">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <div class="field">
-                    <label>用户名</label>
-                    <input name="username" placeholder="请输入用户名" autocomplete="username" required autofocus>
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-slate-700">用户名</label>
+                    <input name="username" placeholder="请输入用户名" autocomplete="username" required autofocus class="w-full px-3.5 py-2.5 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-white text-slate-900">
                 </div>
-                <div class="field">
-                    <label>密码</label>
-                    <div class="password-group">
-                        <input name="password" type="password" placeholder="请输入密码" autocomplete="current-password" required>
-                        <button type="button" class="password-toggle-btn" aria-label="切换密码可见性" title="显示密码" onclick="togglePasswordVisibility(this)">
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-slate-700">密码</label>
+                    <div class="password-group relative">
+                        <input name="password" type="password" placeholder="请输入密码" autocomplete="current-password" required class="w-full px-3.5 py-2.5 pr-10 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-white text-slate-900">
+                        <button type="button" class="password-toggle-btn absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-1" aria-label="切换密码可见性" title="显示密码" onclick="togglePasswordVisibility(this)">
                             <svg class="icon-eye" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                            <svg class="icon-eye-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                            <svg class="icon-eye-off hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
                         </button>
                     </div>
                 </div>
-                <div style="margin-top:14px;display:flex;align-items:center;justify-content:space-between">
-                    <label style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:var(--text-secondary);user-select:none">
-                        <input type="checkbox" name="remember_me" value="1" checked style="accent-color:var(--brand);width:15px;height:15px;cursor:pointer;margin:0">
-                        保持登录状态 (30天免登录)
+                <div class="flex items-center justify-between pt-1">
+                    <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-600 select-none">
+                        <input type="checkbox" name="remember" class="rounded border-slate-300 text-brand focus:ring-brand/20">
+                        <span>保持 30 天登录</span>
                     </label>
-                    <a href="javascript:void(0)" onclick="document.getElementById('forgot-modal').style.display='flex'" style="font-size:13px;color:var(--brand);text-decoration:none;font-weight:500">忘记密码？</a>
+                    {% if registration_enabled %}
+                    <a href="{{ url_for('auth.register') }}" class="text-xs font-semibold text-brand hover:underline">申请注册新账号</a>
+                    {% endif %}
                 </div>
-                <div style="margin-top:20px">
-                    <button type="submit" class="btn btn-primary btn-block" style="height:42px;font-size:14px">立即登录</button>
+                <div class="pt-2">
+                    <button type="submit" class="w-full h-11 flex items-center justify-center rounded-lg bg-brand hover:bg-indigo-700 text-white font-bold text-sm shadow-sm transition">登录控制台</button>
                 </div>
             </form>
-
-            <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line-subtle);text-align:center;font-size:13px" class="muted">
-                还没有账号？<a style="color:var(--brand);font-weight:600" href="{{ url_for('auth.register') }}">注册账号</a>
-                {% if not has_admin %}
-                <span style="margin:0 6px">·</span>
-                <a style="color:var(--brand);font-weight:600" href="{{ url_for('auth.setup') }}">初始化超级管理员</a>
-                {% endif %}
-            </div>
         </div>
 
-        <div style="text-align:center;margin-top:20px">
-            <a href="{{ url_for('web.index') }}" class="muted" style="font-size:12.5px;display:inline-flex;align-items:center;gap:4px">
+        <div class="text-center mt-6">
+            <a href="{{ url_for('web.index') }}" class="text-xs text-slate-500 hover:text-slate-800 transition inline-flex items-center gap-1.5 font-medium">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
                 返回首页在线体验
             </a>
         </div>
     </div>
 </main>
-
-<div id="forgot-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(2px)" onclick="if(event.target===this)this.style.display='none'">
-    <div class="card" style="width:min(400px,90vw);padding:24px;box-shadow:var(--shadow-lg);text-align:left;animation:modalIn 0.15s ease-out">
-        <h3 style="margin:0 0 10px;font-size:16px;font-weight:700;color:var(--ink)">重置密码提示</h3>
-        <p style="margin:0 0 20px;font-size:13.5px;line-height:1.6;color:var(--ink-secondary)">如遗忘账户密码，请联系<strong>系统超级管理员</strong>在控制台用户列表重置；如您是管理员且遗忘凭据，可在服务端通过重置脚本重新配置。</p>
-        <div style="display:flex;justify-content:flex-end">
-            <button type="button" class="btn btn-primary" style="height:36px;font-size:13px;padding:0 18px" onclick="document.getElementById('forgot-modal').style.display='none'">我知道了</button>
-        </div>
-    </div>
-</div>
 
 <script>
 function togglePasswordVisibility(btn) {
@@ -87,13 +71,13 @@ function togglePasswordVisibility(btn) {
     if (!input) return;
     if (input.type === 'password') {
         input.type = 'text';
-        if (eye) eye.style.display = 'none';
-        if (eyeOff) eyeOff.style.display = 'block';
+        if (eye) eye.classList.add('hidden');
+        if (eyeOff) eyeOff.classList.remove('hidden');
         btn.setAttribute('title', '隐藏密码');
     } else {
         input.type = 'password';
-        if (eye) eye.style.display = 'block';
-        if (eyeOff) eyeOff.style.display = 'none';
+        if (eye) eye.classList.remove('hidden');
+        if (eyeOff) eyeOff.classList.add('hidden');
         btn.setAttribute('title', '显示密码');
     }
 }

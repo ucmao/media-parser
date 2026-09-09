@@ -326,6 +326,11 @@ def is_api_enabled():
     return setting("global_api_enabled", "1") == "1"
 
 
+def render_icon(name, class_name="w-4 h-4"):
+    from markupsafe import Markup
+    return Markup(f'<svg class="{class_name}" aria-hidden="true" focusable="false"><use href="/static/icons.svg#icon-{name}"></use></svg>')
+
+
 def register_template_helpers(app):
     app.jinja_env.globals["csrf_token"] = csrf_token
     app.jinja_env.globals["user_is_expired"] = user_is_expired
@@ -334,3 +339,5 @@ def register_template_helpers(app):
     app.jinja_env.globals["format_local_date"] = format_local_date
     app.jinja_env.globals["api_base_url"] = api_base_url
     app.jinja_env.globals["is_api_enabled"] = is_api_enabled
+    app.jinja_env.globals["icon"] = render_icon
+

@@ -2,91 +2,95 @@
 {% block title %}支持平台 · 客户控制台{% endblock %}
 {% block page_title %}支持平台{% endblock %}
 {% block console_content %}
-<main class="container">
-    <div id="platforms" class="tab-view">
-        <section class="card">
-            <div style="margin-bottom:16px">
-                <div class="row" style="gap:10px;align-items:center">
-                    <h2 style="margin:0">支持平台</h2>
-                    <span class="badge" style="font-weight:600">{{ platforms_table.pagination.total_count }} 个平台</span>
+<main class="max-w-7xl mx-auto space-y-6">
+    <div id="platforms" class="tab-view space-y-6">
+        <section class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <div>
+                    <div class="flex items-center gap-3">
+                        <h2 class="text-base font-bold text-slate-900">支持平台</h2>
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">{{ platforms_table.pagination.total_count }} 个平台</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1">查看系统支持解析的音视频平台、域名匹配规则及当前实时服务状态。</p>
                 </div>
-                <span class="muted" style="display:block;margin-top:6px;font-size:13px">查看系统支持解析的音视频平台、域名匹配规则及当前实时服务状态。</span>
             </div>
 
             <!-- 筛选与搜索工具栏 -->
-            <form method="get" action="{{ url_for('portal.platforms') }}" class="table-toolbar table-filter-form" style="margin-bottom:14px">
-                <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">
-                    <input type="text" name="platforms_q" placeholder="搜索平台名称或域名..." value="{{ platforms_table.query_params.q }}" class="filter-input-text">
-                    <select name="platforms_status" onchange="this.form.submit()">
+            <form method="get" action="{{ url_for('portal.platforms') }}" class="table-toolbar table-filter-form mb-5">
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <input type="text" name="platforms_q" placeholder="搜索平台名称或域名..." value="{{ platforms_table.query_params.q }}" class="filter-input-text px-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition w-56 bg-white">
+                    <select name="platforms_status" onchange="this.form.submit()" class="px-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-white text-slate-700">
                         <option value="">全部状态</option>
                         <option value="enabled" {{ 'selected' if request.args.get('platforms_status') == 'enabled' }}>正常开放</option>
                         <option value="disabled" {{ 'selected' if request.args.get('platforms_status') == 'disabled' }}>维护中 / 暂停</option>
                     </select>
-                    <button type="button" class="btn btn-secondary btn-small" onclick="resetTableFilter('platforms')">重置</button>
+                    <button type="button" class="btn btn-secondary btn-small px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition shadow-xs" onclick="resetTableFilter('platforms')">重置</button>
                 </div>
             </form>
 
-            <div class="table-wrap">
-                <table id="platforms-table" style="width:100%;min-width:780px">
-                    <thead>
+            <div class="table-wrap overflow-x-auto rounded-xl border border-slate-200">
+                <table id="platforms-table" class="w-full min-w-[780px] text-left text-xs border-collapse">
+                    <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
                         <tr>
-                            <th class="th-sortable" onclick="handleSort('platforms', 'name')" style="white-space:nowrap;width:160px">
-                                平台名称 <span class="sort-icon {{ 'active' if platforms_table.sorting.sort_by=='name' }}">{{ '↑' if platforms_table.sorting.sort_by=='name' and platforms_table.sorting.order=='asc' else ('↓' if platforms_table.sorting.sort_by=='name' else '↕') }}</span>
+                            <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition whitespace-nowrap w-40" onclick="handleSort('platforms', 'name')">
+                                平台名称 <span class="sort-icon ml-0.5 {{ 'text-brand font-bold' if platforms_table.sorting.sort_by=='name' else 'text-slate-300' }}">{{ '↑' if platforms_table.sorting.sort_by=='name' and platforms_table.sorting.order=='asc' else ('↓' if platforms_table.sorting.sort_by=='name' else '↕') }}</span>
                             </th>
-                            <th class="th-sortable" onclick="handleSort('platforms', 'domains')" style="min-width:320px">
-                                匹配域名 <span class="sort-icon {{ 'active' if platforms_table.sorting.sort_by=='domains' }}">{{ '↑' if platforms_table.sorting.sort_by=='domains' and platforms_table.sorting.order=='asc' else ('↓' if platforms_table.sorting.sort_by=='domains' else '↕') }}</span>
+                            <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition min-w-[320px]" onclick="handleSort('platforms', 'domains')">
+                                匹配域名 <span class="sort-icon ml-0.5 {{ 'text-brand font-bold' if platforms_table.sorting.sort_by=='domains' else 'text-slate-300' }}">{{ '↑' if platforms_table.sorting.sort_by=='domains' and platforms_table.sorting.order=='asc' else ('↓' if platforms_table.sorting.sort_by=='domains' else '↕') }}</span>
                             </th>
-                            <th class="th-sortable" onclick="handleSort('platforms', 'calls')" style="white-space:nowrap;width:150px">
-                                24h 我的调用 <span class="sort-icon {{ 'active' if platforms_table.sorting.sort_by=='calls' }}">{{ '↑' if platforms_table.sorting.sort_by=='calls' and platforms_table.sorting.order=='asc' else ('↓' if platforms_table.sorting.sort_by=='calls' else '↕') }}</span>
+                            <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition whitespace-nowrap w-28" onclick="handleSort('platforms', 'calls')">
+                                24h 我的调用 <span class="sort-icon ml-0.5 {{ 'text-brand font-bold' if platforms_table.sorting.sort_by=='calls' else 'text-slate-300' }}">{{ '↑' if platforms_table.sorting.sort_by=='calls' and platforms_table.sorting.order=='asc' else ('↓' if platforms_table.sorting.sort_by=='calls' else '↕') }}</span>
                             </th>
-                            <th class="th-sortable" onclick="handleSort('platforms', 'status')" style="white-space:nowrap;width:110px;text-align:center">
-                                服务状态 <span class="sort-icon {{ 'active' if platforms_table.sorting.sort_by=='status' }}">{{ '↑' if platforms_table.sorting.sort_by=='status' and platforms_table.sorting.order=='asc' else ('↓' if platforms_table.sorting.sort_by=='status' else '↕') }}</span>
+                            <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition whitespace-nowrap w-28" onclick="handleSort('platforms', 'rate')">
+                                24h 成功率 <span class="sort-icon ml-0.5 {{ 'text-brand font-bold' if platforms_table.sorting.sort_by=='rate' else 'text-slate-300' }}">{{ '↑' if platforms_table.sorting.sort_by=='rate' and platforms_table.sorting.order=='asc' else ('↓' if platforms_table.sorting.sort_by=='rate' else '↕') }}</span>
+                            </th>
+                            <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition whitespace-nowrap w-28 text-center" onclick="handleSort('platforms', 'status')">
+                                服务状态 <span class="sort-icon ml-0.5 {{ 'text-brand font-bold' if platforms_table.sorting.sort_by=='status' else 'text-slate-300' }}">{{ '↑' if platforms_table.sorting.sort_by=='status' and platforms_table.sorting.order=='asc' else ('↓' if platforms_table.sorting.sort_by=='status' else '↕') }}</span>
                             </th>
                         </tr>
                     </thead>
-                    <tbody id="platforms-tbody">
+                    <tbody id="platforms-tbody" class="divide-y divide-slate-100">
                         {% for item in platforms %}
-                        <tr class="platform-row">
-                            <td style="white-space:nowrap">
-                                <strong style="font-size:14px;color:var(--ink)">{{ item.name }}</strong>
-                            </td>
-                            <td>
-                                <div class="domain-tag-list" style="display:flex;flex-wrap:wrap;gap:5px;align-items:center">
+                        <tr class="platform-row hover:bg-slate-50/70 transition">
+                            <td class="px-3 py-3 whitespace-nowrap font-bold text-slate-900">{{ item.name }}</td>
+                            <td class="px-3 py-3">
+                                <div class="domain-tag-list flex flex-wrap items-center gap-1.5">
                                     {% for dom in item.domains[:4] %}
-                                    <span class="domain-tag" title="{{ dom }}">{{ dom }}</span>
+                                    <span class="domain-tag px-2 py-0.5 text-[11px] font-mono bg-slate-100 text-slate-600 rounded border border-slate-200/80 max-w-[200px] truncate" title="{{ dom }}">{{ dom }}</span>
                                     {% endfor %}
                                     {% if item.domains|length > 4 %}
-                                    <span class="domain-more-toggle" onclick="toggleMoreDomains(this)" title="点击展开全部 {{ item.domains|length }} 个域名">+{{ item.domains|length - 4 }} 更多</span>
-                                    <span class="domain-extra-list" style="display:none;flex-wrap:wrap;gap:5px">
+                                    <span class="domain-extra-list hidden flex-wrap gap-1.5">
                                         {% for dom in item.domains[4:] %}
-                                        <span class="domain-tag" title="{{ dom }}">{{ dom }}</span>
+                                        <span class="domain-tag px-2 py-0.5 text-[11px] font-mono bg-slate-100 text-slate-600 rounded border border-slate-200/80 max-w-[200px] truncate" title="{{ dom }}">{{ dom }}</span>
                                         {% endfor %}
                                     </span>
+                                    <span class="domain-more-toggle px-1.5 py-0.5 text-[10px] font-bold bg-indigo-50 text-brand rounded border border-indigo-200 cursor-pointer select-none hover:bg-indigo-100 transition" onclick="toggleMoreDomains(this)" title="点击展开全部 {{ item.domains|length }} 个域名">+{{ item.domains|length - 4 }} 更多</span>
                                     {% endif %}
                                 </div>
                             </td>
-                            <td style="white-space:nowrap">
+                            <td class="px-3 py-3 whitespace-nowrap">
                                 {% if item.my_calls_24h > 0 %}
-                                <div style="display:flex;flex-direction:column;gap:2px">
-                                    <div>
-                                        <strong style="font-size:13.5px;color:var(--ink)">{{ item.my_calls_24h }}</strong>
-                                        <span class="muted" style="font-size:12px">次</span>
-                                    </div>
-                                    <span class="muted" style="font-size:11.5px">{{ item.my_success_rate_24h }}% 成功率</span>
-                                </div>
+                                <span class="font-bold text-slate-900">{{ item.my_calls_24h }}</span> <span class="text-slate-400 font-normal text-[11px]">次</span>
                                 {% else %}
-                                <span class="muted" style="font-size:13px;letter-spacing:1px" title="近 24 小时无调用记录">—</span>
+                                <span class="text-slate-300">—</span>
                                 {% endif %}
                             </td>
-                            <td style="text-align:center;white-space:nowrap">
+                            <td class="px-3 py-3 whitespace-nowrap">
+                                {% if item.my_calls_24h > 0 %}
+                                <span class="font-semibold {{ 'text-emerald-600' if item.my_success_rate_24h >= 90 else ('text-amber-600' if item.my_success_rate_24h >= 60 else 'text-rose-600') }}">{{ item.my_success_rate_24h }}%</span>
+                                {% else %}
+                                <span class="text-slate-300">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-3 py-3 whitespace-nowrap text-center">
                                 {% if item.enabled %}
-                                <span class="badge" style="font-size:11.5px;padding:3px 9px">
-                                    <span style="width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block"></span>
+                                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                     正常开放
                                 </span>
                                 {% else %}
-                                <span class="badge off" style="font-size:11.5px;padding:3px 9px">
-                                    <span style="width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block"></span>
+                                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold inline-flex items-center gap-1.5 bg-slate-100 text-slate-500 border border-slate-200">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
                                     维护中
                                 </span>
                                 {% endif %}
@@ -94,7 +98,7 @@
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="4" class="muted" style="text-align:center">暂无符合条件的支持平台</td>
+                            <td colspan="5" class="text-center py-10 text-slate-400">暂无符合条件的支持平台</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -102,73 +106,45 @@
             </div>
 
             <!-- 分页控件与每页条数 Selector -->
-            <div class="pagination-bar">
-                <div class="pagination-info">
+            <div class="pagination-bar flex flex-col sm:flex-row items-center justify-between gap-4 mt-5 pt-4 border-t border-slate-100 text-xs text-slate-500">
+                <div class="pagination-info flex items-center gap-3">
                     <span>共 {{ platforms_table.pagination.total_count }} 个平台</span>
-                    <label>每页显示:
-                        <select class="page-size-select" onchange="handlePageSizeChange('platforms', this.value)">
+                    <label class="flex items-center gap-1.5">每页显示:
+                        <select class="page-size-select px-2 py-1 rounded border border-slate-200 bg-white text-slate-700 text-xs focus:outline-none" onchange="handlePageSizeChange('platforms', this.value)">
                             {% for size in platforms_table.pagination.page_sizes %}
                             <option value="{{ size }}" {{ 'selected' if platforms_table.pagination.page_size == size }}>{{ size }} 条</option>
                             {% endfor %}
                         </select>
                     </label>
                 </div>
-                <div class="pagination-pages">
-                    <a href="javascript:void(0)" class="page-btn {{ 'disabled' if not platforms_table.pagination.has_prev }}" onclick="handlePageChange('platforms', {{ platforms_table.pagination.page - 1 }})">上一页</a>
-                    <span style="font-size:13px;margin:0 6px">第 {{ platforms_table.pagination.page }} / {{ platforms_table.pagination.total_pages }} 页</span>
-                    <a href="javascript:void(0)" class="page-btn {{ 'disabled' if not platforms_table.pagination.has_next }}" onclick="handlePageChange('platforms', {{ platforms_table.pagination.page + 1 }})">下一页</a>
+                <div class="pagination-pages flex items-center gap-2">
+                    <a href="javascript:void(0)" class="page-btn px-2.5 py-1 rounded border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition {{ 'opacity-50 pointer-events-none' if not platforms_table.pagination.has_prev }}" onclick="handlePageChange('platforms', {{ platforms_table.pagination.page - 1 }})">上一页</a>
+                    <span class="px-1 text-slate-600 font-medium">第 {{ platforms_table.pagination.page }} / {{ platforms_table.pagination.total_pages }} 页</span>
+                    <a href="javascript:void(0)" class="page-btn px-2.5 py-1 rounded border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition {{ 'opacity-50 pointer-events-none' if not platforms_table.pagination.has_next }}" onclick="handlePageChange('platforms', {{ platforms_table.pagination.page + 1 }})">下一页</a>
                 </div>
             </div>
         </section>
     </div>
 </main>
 
-<style>
-.domain-tag {
-    display: inline-block;
-    padding: 1.5px 6px;
-    font-size: 11.5px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    background: var(--bg-subtle);
-    color: var(--ink-secondary);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-xs);
-    white-space: nowrap;
-    max-width: 240px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    vertical-align: middle;
-}
-.domain-more-toggle {
-    display: inline-block;
-    padding: 1.5px 6px;
-    font-size: 11px;
-    font-weight: 600;
-    background: var(--brand-light);
-    color: var(--brand);
-    border: 1px solid var(--brand-border);
-    border-radius: var(--radius-xs);
-    cursor: pointer;
-    user-select: none;
-    transition: all 0.15s ease;
-}
-.domain-more-toggle:hover {
-    background: var(--brand-light-hover);
-}
-</style>
-
 <script>
 function toggleMoreDomains(btn) {
-    const extraList = btn.nextElementSibling;
+    const parent = btn.closest('.domain-tag-list');
+    const extraList = parent ? parent.querySelector('.domain-extra-list') : null;
     if (!extraList) return;
-    const isHidden = extraList.style.display === 'none' || window.getComputedStyle(extraList).display === 'none';
+    const isHidden = extraList.classList.contains('hidden');
     if (isHidden) {
-        extraList.style.display = 'inline-flex';
+        extraList.classList.remove('hidden');
+        extraList.classList.add('inline-flex');
         btn.textContent = '收起';
+        btn.setAttribute('title', '点击收起多余域名');
     } else {
-        extraList.style.display = 'none';
+        extraList.classList.add('hidden');
+        extraList.classList.remove('inline-flex');
         const count = extraList.querySelectorAll('.domain-tag').length;
         btn.textContent = `+${count} 更多`;
+        const total = parent.querySelectorAll('.domain-tag').length;
+        btn.setAttribute('title', `点击展开全部 ${total} 个域名`);
     }
 }
 </script>

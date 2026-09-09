@@ -599,6 +599,8 @@ def platforms():
         "name": "name",
         "domains": "domain_count",
         "calls": "calls_24h",
+        "rate": "success_rate_24h",
+        "success_rate": "success_rate_24h",
         "qps": lambda x: (x["qps_limit"] is None, x["qps_limit"] or 0),
         "status": lambda x: (not x["enabled"], x["name"]),
     }
@@ -761,16 +763,11 @@ def logs():
             "qps_limit": None if row is None else row["qps_limit"],
         })
 
-    log_storage = db.execute(
-        "SELECT COUNT(*) count, MIN(created_at) oldest_created_at, MAX(created_at) newest_created_at FROM request_logs"
-    ).fetchone()
-
     return render_template(
         "admin/logs.html",
         logs=logs_table["items"],
         logs_table=logs_table,
         platforms=platforms_list,
-        log_storage=log_storage,
         active_nav="logs",
     )
 
@@ -860,48 +857,6 @@ def export_logs():
             "Cache-Control": "no-cache, no-store, must-revalidate",
         },
     )
-
-
-@bp.post("/logs/purge")
-@admin_required
-@csrf_protected
-def purge_logs():
-    if request.form.get("confirmation", "").strip() != "清理日志":
-        flash("请输入“清理日志”后再执行清理", "error")
-        return redirect(url_for("admin.logs"))
-
-    scope = request.form.get("scope", "")
-    where_sql = ""
-    params = ()
-    description = ""
-    if scope in {"30", "90", "180"}:
-        days = int(scope)
-        cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat(timespec="seconds")
-        where_sql = " WHERE created_at < ?"
-        params = (cutoff,)
-        description = f"{days} 天前"
-    elif scope == "custom":
-        try:
-            selected_date = datetime.strptime(request.form.get("before_date", ""), "%Y-%m-%d").date()
-        except ValueError:
-            flash("请选择有效的清理截止日期", "error")
-            return redirect(url_for("admin.logs"))
-        cutoff = datetime.combine(selected_date, time.min, tzinfo=ZoneInfo("Asia/Shanghai")).astimezone(timezone.utc).isoformat(timespec="seconds")
-        where_sql = " WHERE created_at < ?"
-        params = (cutoff,)
-        description = f"{selected_date.isoformat()} 之前"
-    elif scope == "all":
-        description = "全部"
-    else:
-        flash("请选择要清理的日志范围", "error")
-        return redirect(url_for("admin.logs"))
-
-    db = get_db()
-    count = db.execute("SELECT COUNT(*) count FROM request_logs" + where_sql, params).fetchone()["count"]
-    db.execute("DELETE FROM request_logs" + where_sql, params)
-    db.commit()
-    flash(f"已清理 {description} 请求日志，共 {count} 条；用户、API Key 与系统配置未受影响", "success")
-    return redirect(url_for("admin.logs"))
 
 
 @bp.post("/logs/<int:log_id>/delete")
