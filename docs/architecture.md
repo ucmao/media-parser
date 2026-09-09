@@ -142,17 +142,19 @@ class ExampleParser(BaseParser):
 
 ## 📦 统一响应格式标准 (Data Contract)
 
-所有解析接口均通过 `utils/common_utils.py` 中的 `make_response` 返回一致的 JSON 响应体。
+所有解析接口均通过 `src/api/response.py` 中的 `make_response` 返回一致的 JSON 响应体。完整错误码与接口细节请参阅 **[RESTful API 与错误码规范](api.md)**。
 
 ### 成功响应示例 (`200 OK`)
 ```json
 {
-  "code": 200,
-  "msg": "成功",
+  "retcode": 200,
+  "retdesc": "成功",
+  "succ": true,
   "data": {
     "platform": "抖音",
     "video_id": "7616399587141737704",
     "title": "视频文案标题",
+    "desc": "作品描述或AI对话正文",
     "video_url": "https://aweme.snssdk.com/aweme/v1/play/...",
     "cover_url": "https://p3-pc.douyinpic.com/...",
     "author": {
@@ -168,18 +170,17 @@ class ExampleParser(BaseParser):
       }
     ],
     "video_list": []
-  },
-  "success": true
+  }
 }
 ```
 
 ### 错误响应示例 (`400 / 500`)
 ```json
 {
-  "code": 400,
-  "msg": "未找到有效的分享链接",
+  "retcode": 400,
+  "retdesc": "未找到有效的分享链接",
+  "succ": false,
   "data": null,
-  "success": false,
   "error_code": "URL_NOT_FOUND"
 }
 ```

@@ -41,7 +41,7 @@ class JimengParser(BaseParser):
     def _parse_once(self):
         try:
             item_id = self._extract_item_id(self.real_url)
-            if not item_id and "/s/" in urlparse(self.real_url).path:
+            if not item_id:
                 response = self.session.get(
                     self.real_url,
                     headers={"User-Agent": self.USER_AGENT},
@@ -50,6 +50,8 @@ class JimengParser(BaseParser):
                 )
                 response.raise_for_status()
                 item_id = self._extract_item_id(response.url)
+                if not item_id and response.text:
+                    item_id = self._extract_item_id_from_html(response.text)
 
             if not item_id:
                 logger.warning(f"Unable to extract Jimeng item ID: {self.real_url}")
@@ -99,6 +101,32 @@ class JimengParser(BaseParser):
         if not cover_url:
             cover_url = common.get("cover_url") or video.get("cover_url")
 
+        # 提取即梦 AI 生图/图集图片
+        image_list = []
+        raw_images = detail.get("image_infos") or detail.get("image_list") or detail.get("images") or []
+        if isinstance(raw_images, list):
+            for img in raw_images:
+                if isinstance(img, str) and img.startswith("http"):
+                    image_list.append(img)
+                elif isinstance(img, dict):
+                    url_map = img.get("image_url_map") or img.get("cover_url_map") or {}
+                    img_url = None
+                    if isinstance(url_map, dict):
+                        for quality in ("original", "4096", "2400", "1080", "720"):
+                            if url_map.get(quality):
+                                img_url = url_map[quality]
+                                break
+                        if not img_url:
+                            img_url = next((u for u in url_map.values() if u), None)
+                    if not img_url:
+                        img_url = img.get("image_url") or img.get("url") or img.get("origin_url") or img.get("main_url")
+                    if img_url:
+                        image_list.append(img_url)
+
+        image_list = list(dict.fromkeys(image_list))
+        if not primary_video and not image_list and cover_url:
+            image_list = [cover_url]
+
         author_id = author.get("uid") or author.get("sec_uid") or ""
         return {
             "title": common.get("title") or None,
@@ -111,7 +139,7 @@ class JimengParser(BaseParser):
                 "author_id": str(author_id) if author_id else "",
                 "avatar": author.get("avatar_url") or "",
             },
-            "image_list": [],
+            "image_list": image_list,
         }
 
     @staticmethod
@@ -131,16 +159,38 @@ class JimengParser(BaseParser):
 
     @staticmethod
     def _extract_item_id(url):
+        if not url:
+            return None
         parsed = urlparse(url)
         query = parse_qs(parsed.query)
-        for key in ("item_id", "id"):
+        for key in ("published_item_id", "item_id", "id", "work_id", "feed_id", "projectId"):
             value = query.get(key, [None])[0]
-            if value:
+            if value and value.isdigit():
                 return value
 
         path_parts = [part for part in parsed.path.split("/") if part]
-        if path_parts and path_parts[-1].isdigit():
-            return path_parts[-1]
+        for part in reversed(path_parts):
+            if part.isdigit() and len(part) >= 10:
+                return part
+        return None
+
+    @staticmethod
+    def _extract_item_id_from_html(html_text):
+        if not html_text:
+            return None
+        import re
+        patterns = [
+            r'["\']published_item_id["\']\s*:\s*["\']?(\d{10,25})',
+            r'["\']item_id["\']\s*:\s*["\']?(\d{10,25})',
+            r'["\']itemId["\']\s*:\s*["\']?(\d{10,25})',
+            r'["\']work_id["\']\s*:\s*["\']?(\d{10,25})',
+            r'["\']feed_id["\']\s*:\s*["\']?(\d{10,25})',
+            r'["\']id["\']\s*:\s*["\']?(\d{15,25})',
+        ]
+        for pattern in patterns:
+            match = re.search(pattern, html_text)
+            if match:
+                return match.group(1)
         return None
 
     def get_real_video_url(self):

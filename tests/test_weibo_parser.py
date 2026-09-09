@@ -76,5 +76,12 @@ class WeiboParserTest(unittest.TestCase):
         self.assertEqual(parser.get_author_info()["nickname"], "测试作者")
 
 
+    def test_extracts_id_and_oid_from_wblive_url(self):
+        parser = WeiboParser.__new__(WeiboParser)
+        parser.real_url = "https://weibo.com/l/wblive/p/show/1022:2321325311149536575703"
+        self.assertEqual(parser._extract_video_oid(), "1022:2321325311149536575703")
+        self.assertEqual(parser._extract_id(), "2321325311149536575703")
+
+
 if __name__ == "__main__":
     unittest.main()

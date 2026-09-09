@@ -152,5 +152,37 @@ class DoubaoParserTest(unittest.TestCase):
         )
 
 
+    def test_thread_extracts_dialogue_text_when_no_media(self):
+        router_payload = {
+            "data": {
+                "message_snapshot": {
+                    "message_list": [
+                        {"content": "请写一首关于秋天的古诗"},
+                        {"content": "空山新雨后，天气晚来秋。明月松间照，清泉石上流。"}
+                    ]
+                }
+            }
+        }
+        script_payload = [
+            "thread_(token)/page",
+            [{"key": "shareInfo", "routerDataFnArgs": [json.dumps(router_payload, ensure_ascii=False)]}],
+        ]
+        page = (
+            '<script data-fn-name="mergeLoaderData" data-script-src="modern-run-window-fn" '
+            f'data-fn-args="{html.escape(json.dumps(script_payload, ensure_ascii=False), quote=True)}"></script>'
+        )
+        response = Mock(text=page)
+        response.raise_for_status.return_value = None
+
+        with patch("requests.Session.get", return_value=response):
+            parser = DoubaoParser("https://www.doubao.com/thread/pure-text")
+
+        self.assertTrue(parser.no_media_in_content)
+        self.assertIn("请写一首关于秋天的古诗", parser.get_description())
+        self.assertIn("空山新雨后，天气晚来秋", parser.get_description())
+        self.assertIsNone(parser.get_real_video_url())
+        self.assertEqual(parser.get_image_list(), [])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -127,5 +127,34 @@ class JimengParserTest(unittest.TestCase):
         self.assertEqual(formatted["video_list"], ["https://video.example.com/large.mp4"])
 
 
+    def test_short_link_extracts_id_from_html_content(self):
+        page_response = Mock(
+            url="https://jimeng.jianying.com/s/Mx2zJtLMG9A/?t=210",
+            text='<html><script>window.__INITIAL_DATA__ = {"published_item_id": "7412345678901234567"};</script></html>'
+        )
+        page_response.raise_for_status.return_value = None
+        api_response = Mock()
+        api_response.raise_for_status.return_value = None
+        api_response.json.return_value = {
+            "ret": "0",
+            "data": {
+                "common_attr": {"title": "即梦AI生图", "cover_url": "https://img.example.com/cover.jpg"},
+                "author": {"name": "AI创作者"},
+                "image_infos": [
+                    {"image_url": "https://img.example.com/art1.jpg"},
+                    {"image_url": "https://img.example.com/art2.jpg"}
+                ]
+            },
+        }
+
+        with patch("requests.Session.get", return_value=page_response) as get:
+            with patch("requests.Session.post", return_value=api_response) as post:
+                parser = JimengParser("https://jimeng.jianying.com/s/Mx2zJtLMG9A/?t=210")
+
+        self.assertEqual(post.call_args.kwargs["json"]["published_item_id"], "7412345678901234567")
+        self.assertEqual(parser.get_image_list(), ["https://img.example.com/art1.jpg", "https://img.example.com/art2.jpg"])
+        self.assertEqual(parser.get_title_content(), "即梦AI生图")
+
+
 if __name__ == "__main__":
     unittest.main()

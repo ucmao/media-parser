@@ -8,6 +8,7 @@
 
 ## 📚 文档导航
 
+* 🔌 **[RESTful API 与错误码规范 (API Specification)](api.md)**：查阅统一响应结构、鉴权方式及全局错误码定义表。
 * 🏗️ **[系统架构与生命周期 (Architecture)](architecture.md)**：了解请求处理链路、302 跳转跟踪与 ParserFactory 自动发现机制。
 * 🔍 **[通用逆向方法论 (Reverse Engineering Guide)](reverse-guide.md)**：掌握 SSR 数据提取、H5 接口伪装、JS 签名沙箱及抓包 SOP。
 * 🧪 **[测试与回归验证 (Testing Guide)](testing.md)**：学习 Pytest 单元测试、Mock 构造与真实样本（Live Samples）测试。
@@ -33,15 +34,15 @@
 | 2 | **小红书** | 图文 / LivePhoto / 视频 | ✅ 支持 | 🟢 免配置 | SSR HTML 状态注入 + 双 UA 自适应回退 | [查看指南](parsers/xiaohongshu.md) |
 | 3 | **快手** | 视频 / 图文 / 音频 | ✅ 支持 | 🟢 免配置 (内置游客凭证) | GraphQL / H5 双端多路由 Fallback | [查看指南](parsers/kuaishou.md) |
 | 4 | **哔哩哔哩** | 视频 (MP4) / 音频分流 | ✅ 支持 | 🟢 免配置 | 官方 View + PlayURL API | [查看指南](parsers/bilibili.md) |
-| 5 | **豆包 AI** | AI 视频生成直链 | ✅ 支持 | 🔐 需 `DOUBAO_COOKIE` | Web Session 维持 + 任务轮询 | [查看指南](parsers/doubao.md) |
-| 6 | **即梦 AI** | AI 视频生成直链 | ✅ 支持 | 🟢 免配置 | 移动分享端接口解析 | [查看指南](parsers/jimeng.md) |
+| 5 | **豆包 AI** | AI 视频 / 提示词生图 / 对话正文 | ✅ 支持 | 🔐 视频需 `DOUBAO_COOKIE` / 图文免配置 | Web Session 维持 + 任务轮询 + 对话树解析 | [查看指南](parsers/doubao.md) |
+| 6 | **即梦 AI** | AI 视频 / AI 生图图集 / Prompt | ✅ 支持 | 🟢 免配置 | 移动分享端接口解析 + SPA HTML 正则提取 | [查看指南](parsers/jimeng.md) |
 | 7 | **可灵 AI** | AI 视频生成直链 | ✅ 支持 | 🟢 免配置 | 快手可灵 H5 分享接口 | [查看指南](parsers/kling.md) |
 | 8 | **海螺 AI** | AI 视频直链 / Prompt / 参考帧 | ✅ 支持 | 🟢 免配置 | Next.js Flight SSR 流式渲染解析 | [查看指南](parsers/hailuo.md) |
 | 9 | **通义千问** | AI 图文 / 图像生成 | ✅ 支持 | ⚠️ 需 `YUANBAO_COOKIE` | AI Studio 移动分享端抓取 | [查看指南](parsers/qianwen.md) |
 | 10 | **夸克 AI** | AI 图文 / 图像 | ✅ 支持 | 🟢 免配置 | 夸克 H5 分享路由解析 | [查看指南](parsers/quark-ai.md) |
 | 11 | **小云雀 AI** | AI 图文 / 图像 | ✅ 支持 | 🟢 免配置 | 剪映小云雀分享端 | [查看指南](parsers/xiaoyunque.md) |
 | 12 | **腾讯元宝** | AI 生图 / 图片编辑 / AI 视频 | ⚠️ 含原生水印 | 🟢 公开分享免配置 | Next.js SSR 对话数据提取 | [查看指南](parsers/yuanbao.md) |
-| 13 | **微博** | 视频 / 微博正文 / 多图 | ✅ 支持 | 🟢 免配置 | 移动端 H5 接口 + Base62 解码 | [查看指南](parsers/weibo.md) |
+| 13 | **微博** | 视频 / 直播回放 / 微博正文 / 多图 | ✅ 支持 | 🟢 免配置 | 移动端 H5 接口 + 直播组件 + Base62 解码 | [查看指南](parsers/weibo.md) |
 | 14 | **知乎** | 视频 (Video Pin) / 想法 / 问答 | ✅ 支持 | 🟢 免配置 | Web API 多路由正则提取 | [查看指南](parsers/zhihu.md) |
 | 15 | **皮皮虾** | 视频 / 图文 | ✅ 支持 | 🟢 免配置 | H5 接口数据解析 | [查看指南](parsers/pipixia.md) |
 | 16 | **皮皮搞笑** | 视频 | ✅ 支持 | 🟢 免配置 | H5 页面 JSON 提取 | [查看指南](parsers/pipigaoxiao.md) |

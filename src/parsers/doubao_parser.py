@@ -138,6 +138,7 @@ class DoubaoParser(BaseParser):
 
         return {
             "title": self._find_title(roots) or "豆包对话分享",
+            "desc": self._extract_messages_text(roots) or None,
             "video_url": video_urls[0] if video_urls else None,
             "video_list": video_urls,
             "cover_url": cover_urls[0] if cover_urls else None,
@@ -577,6 +578,22 @@ class DoubaoParser(BaseParser):
         return ""
 
     @classmethod
+    def _extract_messages_text(cls, roots):
+        texts = []
+        for item in cls._walk_dicts(roots):
+            content = item.get("content")
+            if isinstance(content, str) and content.strip():
+                s = content.strip()
+                if not (s.startswith("{") and s.endswith("}")) and not (s.startswith("[") and s.endswith("]")):
+                    if len(s) > 1 and s not in texts:
+                        texts.append(s)
+            elif isinstance(content, dict):
+                text_val = content.get("text") or content.get("message")
+                if isinstance(text_val, str) and text_val.strip() and text_val.strip() not in texts:
+                    texts.append(text_val.strip())
+        return "\n\n".join(texts) if texts else ""
+
+    @classmethod
     def _find_author(cls, roots):
         for item in cls._walk_dicts(roots):
             nickname = item.get("nickname") or item.get("user_name")
@@ -626,6 +643,9 @@ class DoubaoParser(BaseParser):
 
     def get_title_content(self):
         return self.data.get("title") or ""
+
+    def get_description(self):
+        return self.data.get("desc") or None
 
     def get_cover_photo_url(self):
         return self.data.get("cover_url")

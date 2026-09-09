@@ -10,12 +10,13 @@
 * **支持媒体类型**：
   * AI 生成 1080P 高清无水印视频 (MP4)
   * AI 生成图文 / 提示词生图 (PNG/JPEG)
+  * 对话问答正文 (Markdown/纯文本内容)
   * 对话标题、Prompt 提示词与创作者信息
 * **常见链接形态**：
   * 独立视频分享：`https://www.doubao.com/video-sharing?share_id=41356597786354690&video_id=v0d69cg10004d6978e2ljht0i4fdpp00`
   * 对话历史/线程分享：`https://www.doubao.com/thread/w8293749281`
 * **Cookie 依赖**：
-  * **图片解析**：**无需 Cookie**（公开元数据直接包含 `image_ori_raw` 高清原图）。
+  * **图片与对话正文解析**：**无需 Cookie**（公开元数据直接包含 `image_ori_raw` 高清原图与完整对话文本）。
   * **视频无水印解析**：**必须配置 Cookie**（1080P 原始流被权限隔离，未登录仅能获取服务端硬压制水印的预览切片）。
 
 ---

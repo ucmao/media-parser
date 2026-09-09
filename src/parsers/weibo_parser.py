@@ -43,14 +43,16 @@ class WeiboParser(BaseParser):
         self.post_data = self._fetch_post_data()
 
     def _extract_video_oid(self):
-        """提取微博视频页使用的 ``1034:<media_id>`` 标识。"""
+        """提取微博视频页使用的 ``1034:<media_id>`` 或直播 ``1022:<media_id>`` 标识。"""
         if not self.real_url:
             return None
 
         fid = (parse_qs(urlparse(self.real_url).query).get("fid") or [""])[0]
         if re.fullmatch(r"\d+:\d+", fid):
             return fid
-        if match := re.search(r"/(?:tv/)?show/(\d+:\d+)", urlparse(self.real_url).path):
+        if match := re.search(r"/(?:tv/|l/wblive/p/)?show/(\d+:\d+)", urlparse(self.real_url).path):
+            return match.group(1)
+        if match := re.search(r"/show/(\d+:\d+)", self.real_url):
             return match.group(1)
         return None
 
@@ -62,9 +64,11 @@ class WeiboParser(BaseParser):
         if match := re.fullmatch(r"\d+:(\d+)", fid):
             return match.group(1)
 
-        # 视频页会从 video.weibo.com/show?fid=1034:... 跳转到
-        # weibo.com/tv/show/1034:...，两种 URL 都使用同一个数字微博 ID。
-        if match := re.search(r"/(?:tv/)?show/\d+:(\d+)", urlparse(self.real_url).path):
+        # 视频/直播页会从 video.weibo.com/show?fid=1034:... 跳转到
+        # weibo.com/tv/show/1034:... 或 weibo.com/l/wblive/p/show/1022:...
+        if match := re.search(r"/(?:tv/|l/wblive/p/)?show/\d+:(\d+)", urlparse(self.real_url).path):
+            return match.group(1)
+        if match := re.search(r"/show/\d+:(\d+)", self.real_url):
             return match.group(1)
             
         # PC URL, like: weibo.com/123456789/O8yqz0I8Q or weibo.com/7928442102/5331959570240710
