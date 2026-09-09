@@ -204,7 +204,12 @@ def login():
                 session["user_id"] = user["id"]
                 session.permanent = request.form.get("remember_me") in {"1", "on", "true"}
                 target = request.args.get("next", "")
-                if not target.startswith("/") or target.startswith("//"):
+                if (
+                    not target.startswith("/")
+                    or target.startswith("//")
+                    or target.startswith("/auth/")
+                    or (user["role"] != "admin" and target.startswith("/admin"))
+                ):
                     target = url_for("admin.dashboard") if user["role"] == "admin" else url_for("portal.dashboard")
                 return redirect(target)
     return render_template("auth/login.html", has_admin=has_admin)
@@ -316,6 +321,11 @@ def api_base_url():
         return "http://localhost:8051/"
 
 
+def is_api_enabled():
+    """检查全局 API 服务开关是否开启。"""
+    return setting("global_api_enabled", "1") == "1"
+
+
 def register_template_helpers(app):
     app.jinja_env.globals["csrf_token"] = csrf_token
     app.jinja_env.globals["user_is_expired"] = user_is_expired
@@ -323,3 +333,4 @@ def register_template_helpers(app):
     app.jinja_env.globals["format_log_time"] = format_log_time
     app.jinja_env.globals["format_local_date"] = format_local_date
     app.jinja_env.globals["api_base_url"] = api_base_url
+    app.jinja_env.globals["is_api_enabled"] = is_api_enabled

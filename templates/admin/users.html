@@ -1,0 +1,512 @@
+{% extends 'base_console.html' %}
+{% block title %}客户账号 · 管理员后台{% endblock %}
+{% block page_title %}客户账号{% endblock %}
+{% block console_content %}
+<main class="container">
+    <div id="users" class="tab-view">
+        <section class="card">
+            <div style="margin-bottom:16px">
+                <div class="row" style="gap:10px;align-items:center">
+                    <h2 style="margin:0">客户账号</h2>
+                    <span class="badge" style="font-weight:600">{{ users_table.pagination.total_count }} 个账号</span>
+                </div>
+                <span class="muted" style="display:block;margin-top:6px;font-size:13px">新注册客户默认分配试用期，您可以随时延长有效期或单独配置 QPS。</span>
+            </div>
+
+            <!-- 筛选与搜索工具栏 -->
+            <form method="get" action="{{ url_for('admin.users') }}" class="table-toolbar table-filter-form">
+                <div class="row" style="gap:8px;flex-wrap:wrap">
+                    <input type="text" name="users_q" placeholder="搜索用户名..." value="{{ users_table.query_params.q }}" class="filter-input-text">
+                    <select name="users_role" onchange="this.form.submit()">
+                        <option value="">全部角色</option>
+                        <option value="admin" {{ 'selected' if request.args.get('users_role') == 'admin' }}>超级管理员</option>
+                        <option value="user" {{ 'selected' if request.args.get('users_role') == 'user' }}>普通客户</option>
+                    </select>
+                    <select name="users_active" onchange="this.form.submit()">
+                        <option value="">全部状态</option>
+                        <option value="1" {{ 'selected' if request.args.get('users_active') == '1' }}>正常</option>
+                        <option value="0" {{ 'selected' if request.args.get('users_active') == '0' }}>停用</option>
+                    </select>
+                    <button type="button" class="btn btn-secondary btn-small" onclick="resetTableFilter('users')">重置</button>
+                </div>
+            </form>
+
+            <div class="table-wrap">
+                <table id="users-table" style="width:100%;min-width:960px">
+                    <thead>
+                        <tr>
+                            <th style="width:44px;text-align:center">
+                                <div class="batch-select-dropdown" data-table="users-table" data-total="{{ users_table.pagination.total_count }}">
+                                    <input type="checkbox" class="table-select-all" data-table="users-table" title="全选当前页">
+                                    <button type="button" class="batch-dropdown-trigger" title="选择范围" aria-label="选择范围">
+                                        <svg class="batch-chevron-icon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="6 9 12 15 18 9"></polyline>
+                                        </svg>
+                                    </button>
+                                    <div class="batch-dropdown-menu">
+                                        <button type="button" class="batch-dropdown-item" data-action="current-page">选择当前页</button>
+                                        <button type="button" class="batch-dropdown-item" data-action="all">选择全部</button>
+                                    </div>
+                                </div>
+                            </th>
+                            <th class="th-sortable" onclick="handleSort('users', 'id')" style="white-space:nowrap;width:64px">
+                                ID <span class="sort-icon {{ 'active' if users_table.sorting.sort_by=='id' }}">{{ '↑' if users_table.sorting.sort_by=='id' and users_table.sorting.order=='asc' else ('↓' if users_table.sorting.sort_by=='id' else '↕') }}</span>
+                            </th>
+                            <th class="th-sortable" onclick="handleSort('users', 'username')" style="min-width:110px">
+                                客户名称 <span class="sort-icon {{ 'active' if users_table.sorting.sort_by=='username' }}">{{ '↑' if users_table.sorting.sort_by=='username' and users_table.sorting.order=='asc' else ('↓' if users_table.sorting.sort_by=='username' else '↕') }}</span>
+                            </th>
+                            <th class="th-sortable" onclick="handleSort('users', 'role')" style="white-space:nowrap;width:80px;text-align:center">
+                                角色 <span class="sort-icon {{ 'active' if users_table.sorting.sort_by=='role' }}">{{ '↑' if users_table.sorting.sort_by=='role' and users_table.sorting.order=='asc' else ('↓' if users_table.sorting.sort_by=='role' else '↕') }}</span>
+                            </th>
+                            <th class="th-sortable" onclick="handleSort('users', 'active')" style="white-space:nowrap;width:75px;text-align:center">
+                                状态 <span class="sort-icon {{ 'active' if users_table.sorting.sort_by=='active' }}">{{ '↑' if users_table.sorting.sort_by=='active' and users_table.sorting.order=='asc' else ('↓' if users_table.sorting.sort_by=='active' else '↕') }}</span>
+                            </th>
+                            <th class="th-sortable" onclick="handleSort('users', 'expires_at')" style="white-space:nowrap;width:110px">
+                                到期日期 <span class="sort-icon {{ 'active' if users_table.sorting.sort_by=='expires_at' }}">{{ '↑' if users_table.sorting.sort_by=='expires_at' and users_table.sorting.order=='asc' else ('↓' if users_table.sorting.sort_by=='expires_at' else '↕') }}</span>
+                            </th>
+                            <th class="th-sortable" onclick="handleSort('users', 'qps_limit')" style="white-space:nowrap;width:95px">
+                                并发限制 <span class="sort-icon {{ 'active' if users_table.sorting.sort_by=='qps_limit' }}">{{ '↑' if users_table.sorting.sort_by=='qps_limit' and users_table.sorting.order=='asc' else ('↓' if users_table.sorting.sort_by=='qps_limit' else '↕') }}</span>
+                            </th>
+                            <th class="th-sortable" onclick="handleSort('users', 'credits')" style="white-space:nowrap;width:105px">
+                                剩余积分 <span class="sort-icon {{ 'active' if users_table.sorting.sort_by=='credits' }}">{{ '↑' if users_table.sorting.sort_by=='credits' and users_table.sorting.order=='asc' else ('↓' if users_table.sorting.sort_by=='credits' else '↕') }}</span>
+                            </th>
+                            <th class="th-sortable" onclick="handleSort('users', 'key_count')" style="white-space:nowrap;width:70px;text-align:center">
+                                密钥数 <span class="sort-icon {{ 'active' if users_table.sorting.sort_by=='key_count' }}">{{ '↑' if users_table.sorting.sort_by=='key_count' and users_table.sorting.order=='asc' else ('↓' if users_table.sorting.sort_by=='key_count' else '↕') }}</span>
+                            </th>
+                            <th class="th-sortable" onclick="handleSort('users', 'created_at')" style="white-space:nowrap;width:145px">
+                                注册时间 <span class="sort-icon {{ 'active' if users_table.sorting.sort_by=='created_at' }}">{{ '↑' if users_table.sorting.sort_by=='created_at' and users_table.sorting.order=='asc' else ('↓' if users_table.sorting.sort_by=='created_at' else '↕') }}</span>
+                            </th>
+                            <th class="th-action" style="width:95px">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td style="text-align:center"><input type="checkbox" class="row-checkbox" value="{{ user['id'] }}"></td>
+                            <td style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;color:var(--ink-muted);font-weight:500">#{{ user['id'] }}</td>
+                            <td style="white-space:nowrap"><strong style="color:var(--ink)">{{ user['username'] }}</strong></td>
+                            <td style="white-space:nowrap;text-align:center"><span class="badge {{ 'brand' if user['role']=='admin' else '' }}">{{ '管理员' if user['role']=='admin' else '客户' }}</span></td>
+                            <td style="white-space:nowrap;text-align:center">
+                                <span class="badge {{ '' if user['active'] else 'off' }}">{{ '正常' if user['active'] else '停用' }}</span>
+                            </td>
+                            <td style="white-space:nowrap">
+                                {% if user['role'] == 'admin' or not user['expires_at'] %}
+                                <span class="badge" style="background:#ecfdf5;color:#059669;border:1px solid #a7f3d0;font-weight:600">永久有效</span>
+                                {% else %}
+                                <span>{{ format_local_date(user['expires_at']) }}</span>
+                                {% endif %}
+                            </td>
+                            <td style="white-space:nowrap">
+                                {% if user['role'] == 'admin' %}
+                                <span class="muted">无限制</span>
+                                {% else %}
+                                <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:600">{{ user['qps_limit'] or 2 }}</span> <span class="muted" style="font-size:12px">QPS</span>
+                                {% endif %}
+                            </td>
+                            <td style="white-space:nowrap">
+                                {% if user['role'] == 'admin' or user['credits'] == -1 or user['credits'] is none %}
+                                <span class="badge" style="background:#f3e8ff;color:#7e22ce;border:1px solid #e9d5ff;font-weight:600">无限制</span>
+                                {% else %}
+                                <strong style="color:var(--ink)">{{ "{:,}".format(user['credits']) }}</strong> <span class="muted" style="font-size:12px">分</span>
+                                {% endif %}
+                            </td>
+                            <td style="white-space:nowrap;text-align:center">{{ user['key_count'] }}</td>
+                            <td style="white-space:nowrap;font-size:13px;color:var(--ink-secondary)">{{ format_log_time(user['created_at']) if user['created_at'] else '-' }}</td>
+                            <td class="td-action" style="white-space:nowrap;text-align:right">
+                                <div class="row" style="gap:6px;justify-content:flex-end;align-items:center">
+                                    {% if user['role'] != 'admin' %}
+                                    <button type="button" class="btn btn-secondary btn-small" style="padding:0 8px;height:28px"
+                                        onclick="openAdminEditUserModal({{ user['id'] }}, '{{ user['username']|e }}', {{ user['credits'] if user['credits'] is not none else -1 }}, {{ user['qps_limit'] or 2 }}, '{{ format_local_date(user['expires_at']) if user['expires_at'] else '' }}')">
+                                        编辑
+                                    </button>
+                                    <div class="action-dropdown" data-dropdown="user-{{ user['id'] }}">
+                                        <button type="button" class="action-dropdown-trigger" onclick="toggleActionDropdown(this, event)" title="更多操作" aria-label="更多操作">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                                                <circle cx="12" cy="5" r="2.2"></circle>
+                                                <circle cx="12" cy="12" r="2.2"></circle>
+                                                <circle cx="12" cy="19" r="2.2"></circle>
+                                            </svg>
+                                        </button>
+                                        <div class="action-dropdown-menu">
+                                            <button type="button" class="action-dropdown-item"
+                                                onclick="closeAllActionDropdowns(); openAdminResetPasswordModal({{ user['id'] }}, '{{ user['username']|e }}')">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                                <span>重置密码</span>
+                                            </button>
+                                            <form method="post" action="{{ url_for('admin.update_user', user_id=user['id']) }}" style="margin:0"
+                                                data-confirm="确定要{{ '停用' if user['active'] else '启用' }}客户「{{ user['username'] }}」吗？"
+                                                data-confirm-title="{{ '停用账号' if user['active'] else '启用账号' }}"
+                                                data-confirm-text="确认{{ '停用' if user['active'] else '启用' }}"
+                                                data-confirm-type="{{ 'danger' if user['active'] else 'primary' }}">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <input type="hidden" name="active" value="{{ '0' if user['active'] else '1' }}">
+                                                <button type="submit" class="action-dropdown-item {{ 'danger' if user['active'] else '' }}">
+                                                    {% if user['active'] %}
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                                                    <span>停用账号</span>
+                                                    {% else %}
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                                    <span>启用账号</span>
+                                                    {% endif %}
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <span class="muted" style="font-size:12px">-</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="11" class="muted" style="text-align:center">暂无符合条件的客户账号</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 分页控件与每页条数 Selector -->
+            <div class="pagination-bar">
+                <div class="pagination-info">
+                    <span>共 {{ users_table.pagination.total_count }} 条数据</span>
+                    <label>每页显示:
+                        <select class="page-size-select" onchange="handlePageSizeChange('users', this.value)">
+                            {% for size in users_table.pagination.page_sizes %}
+                            <option value="{{ size }}" {{ 'selected' if users_table.pagination.page_size == size }}>{{ size }} 条</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                </div>
+                <div class="pagination-pages">
+                    <a href="javascript:void(0)" class="page-btn {{ 'disabled' if not users_table.pagination.has_prev }}" onclick="handlePageChange('users', {{ users_table.pagination.page - 1 }})">上一页</a>
+                    <span style="font-size:13px;margin:0 6px">第 {{ users_table.pagination.page }} / {{ users_table.pagination.total_pages }} 页</span>
+                    <a href="javascript:void(0)" class="page-btn {{ 'disabled' if not users_table.pagination.has_next }}" onclick="handlePageChange('users', {{ users_table.pagination.page + 1 }})">下一页</a>
+                </div>
+            </div>
+
+            <!-- pan-relay 风格 底部悬浮胶囊批量工具栏 -->
+            <div id="users-table-floating-toolbar" class="batch-floating-toolbar">
+                <div class="batch-toolbar-summary">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <span>已选 <strong class="users-table-selected-count">0</strong> 项</span>
+                </div>
+                <div class="batch-toolbar-divider"></div>
+                <button type="button" class="batch-btn batch-btn-primary" onclick="executeBatchAction('users-table', '/admin/users/batch', 'enable')">批量启用</button>
+                <button type="button" class="batch-btn" onclick="executeBatchAction('users-table', '/admin/users/batch', 'disable')">批量停用</button>
+                <button type="button" class="batch-btn" onclick="openBatchModal('batch-user-credits-modal', 'users-table')">批量增减积分</button>
+                <button type="button" class="batch-btn" onclick="openBatchModal('batch-user-expires-modal', 'users-table')">到期时间</button>
+                <button type="button" class="batch-btn" onclick="openBatchModal('batch-user-qps-modal', 'users-table')">并发 QPS</button>
+                <div class="batch-toolbar-divider"></div>
+                <button type="button" class="batch-btn batch-btn-clear" onclick="clearTableSelection('users-table')" title="取消选择">&times; 清空</button>
+            </div>
+        </section>
+    </div>
+
+    <!-- 批量充值/扣减积分 Modal -->
+    <div id="batch-user-credits-modal" class="modal-backdrop" style="display:none" aria-hidden="true">
+        <div class="modal-card" style="max-width:460px" role="dialog" aria-modal="true">
+            <div class="row between" style="margin-bottom:16px">
+                <h3 class="modal-title" style="margin:0">批量变更客户积分</h3>
+                <button type="button" class="toast-close" onclick="closeBatchModal('batch-user-credits-modal')" aria-label="关闭">&times;</button>
+            </div>
+            <p class="muted" style="margin-bottom:14px;font-size:13px">将对选中的 <strong class="users-table-selected-count">0</strong> 个客户账号批量更新积分。</p>
+            <div class="field" style="margin:12px 0">
+                <label>变更模式</label>
+                <select id="batch-credits-mode" style="margin-bottom:12px" onchange="handleBatchCreditsModeChange(this.value)">
+                    <option value="add">增加积分 (+)</option>
+                    <option value="deduct">扣减积分 (-)</option>
+                    <option value="set">固定积分数值 (=)</option>
+                    <option value="unlimited">设为无限制 / 不限额 (∞)</option>
+                </select>
+                <div id="batch-credits-amount-wrap">
+                    <label>调整点数</label>
+                    <input type="number" id="batch-credits-amount" value="100" min="0" max="10000000" placeholder="请输入积分点数">
+                </div>
+                <div id="batch-credits-unlimited-notice" style="display:none;padding:10px 14px;background:#f3e8ff;border-radius:8px;color:#7e22ce;font-size:13px;line-height:1.4">
+                    已选择「无限制 / 不限额」，确认后所有勾选客户的调用将不再受积分扣除限制。
+                </div>
+            </div>
+            <div class="modal-footer" style="margin-top:20px;justify-content:flex-end">
+                <button type="button" class="btn btn-secondary" onclick="closeBatchModal('batch-user-credits-modal')">取消</button>
+                <button type="button" class="btn btn-primary" onclick="submitBatchUserCredits()">确认更新</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 批量修改到期时间 Modal -->
+    <div id="batch-user-expires-modal" class="modal-backdrop" style="display:none" aria-hidden="true">
+        <div class="modal-card" style="max-width:440px" role="dialog" aria-modal="true">
+            <div class="row between" style="margin-bottom:16px">
+                <h3 class="modal-title" style="margin:0">批量修改账号到期时间</h3>
+                <button type="button" class="toast-close" onclick="closeBatchModal('batch-user-expires-modal')" aria-label="关闭">&times;</button>
+            </div>
+            <p class="muted" style="margin-bottom:14px;font-size:13px">将选中的 <strong class="users-table-selected-count">0</strong> 个客户账号到期时间统一调整。</p>
+            <div class="field" style="margin:12px 0">
+                <label>截止到期日期</label>
+                <input type="date" id="batch-expires-date" required>
+            </div>
+            <div class="modal-footer" style="margin-top:20px;justify-content:flex-end">
+                <button type="button" class="btn btn-secondary" onclick="closeBatchModal('batch-user-expires-modal')">取消</button>
+                <button type="button" class="btn btn-primary" onclick="submitBatchUserExpires()">确认设置</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 批量设置客户并发 QPS Modal -->
+    <div id="batch-user-qps-modal" class="modal-backdrop" style="display:none" aria-hidden="true">
+        <div class="modal-card" style="max-width:440px" role="dialog" aria-modal="true">
+            <div class="row between" style="margin-bottom:16px">
+                <h3 class="modal-title" style="margin:0">批量并发 QPS 限流</h3>
+                <button type="button" class="toast-close" onclick="closeBatchModal('batch-user-qps-modal')" aria-label="关闭">&times;</button>
+            </div>
+            <p class="muted" style="margin-bottom:14px;font-size:13px">统一调整选中的 <strong class="users-table-selected-count">0</strong> 个客户并发 QPS 阀值。</p>
+            <div class="field" style="margin:12px 0">
+                <label>并发 QPS 限流</label>
+                <input type="number" id="batch-user-qps-val" value="2" min="1" max="1000" required>
+            </div>
+            <div class="modal-footer" style="margin-top:20px;justify-content:flex-end">
+                <button type="button" class="btn btn-secondary" onclick="closeBatchModal('batch-user-qps-modal')">取消</button>
+                <button type="button" class="btn btn-primary" onclick="submitBatchUserQps()">确认更新</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑客户账号弹窗 -->
+    <div id="admin-edit-user-modal-backdrop" class="modal-backdrop" style="display:none" aria-hidden="true">
+        <div class="modal-card" style="max-width:460px" role="dialog" aria-modal="true">
+            <div class="row between" style="margin-bottom:16px">
+                <h3 class="modal-title" style="margin:0">编辑客户账号</h3>
+                <button type="button" class="toast-close" onclick="closeAdminEditUserModal()" aria-label="关闭">&times;</button>
+            </div>
+            <form id="admin-edit-user-form" method="post" action="">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="field" style="margin-bottom:14px">
+                    <label>客户名称</label>
+                    <input type="text" id="admin-edit-user-username" disabled style="background:var(--bg-subtle);color:var(--ink-secondary)">
+                </div>
+
+                <div class="field" style="margin-bottom:14px">
+                    <div class="row between" style="margin-bottom:6px">
+                        <label style="margin:0">剩余积分</label>
+                        <label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;color:var(--brand)">
+                            <input type="checkbox" id="admin-edit-user-unlimited-credits" onchange="toggleUserUnlimitedCredits(this.checked)">
+                            设为无限制 (不限额)
+                        </label>
+                    </div>
+                    <input type="number" id="admin-edit-user-credits" name="credits" min="-1" max="10000000" placeholder="请输入积分数值">
+                </div>
+
+                <div class="field" style="margin-bottom:14px">
+                    <label>并发限制 (QPS)</label>
+                    <input type="number" id="admin-edit-user-qps" name="qps_limit" min="1" max="1000" required>
+                </div>
+
+                <div class="field" style="margin-bottom:14px">
+                    <div class="row between" style="margin-bottom:6px">
+                        <label style="margin:0">到期时间</label>
+                        <label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;color:var(--brand)">
+                            <input type="checkbox" id="admin-edit-user-unlimited-expires" onchange="toggleUserUnlimitedExpires(this.checked)">
+                            永久有效 (无到期时间)
+                        </label>
+                    </div>
+                    <input type="date" id="admin-edit-user-expires" name="expires_at">
+                </div>
+
+                <div class="modal-footer" style="margin-top:20px">
+                    <button type="button" class="btn btn-secondary" onclick="closeAdminEditUserModal()">取消</button>
+                    <button type="submit" class="btn btn-primary">保存修改</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 重置客户密码弹窗 -->
+    <div id="admin-reset-password-modal-backdrop" class="modal-backdrop" style="display:none" aria-hidden="true">
+        <div class="modal-card" style="max-width:440px" role="dialog" aria-modal="true">
+            <div class="row between" style="margin-bottom:16px">
+                <h3 class="modal-title" style="margin:0">重置客户密码</h3>
+                <button type="button" class="toast-close" onclick="closeAdminResetPasswordModal()"
+                    aria-label="关闭">&times;</button>
+            </div>
+            <form id="admin-reset-password-form" method="post" action="">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <p class="muted" style="margin:0 0 12px">正在为客户账号「<strong
+                        id="admin-reset-password-username"></strong>」重置密码。</p>
+                <div class="field" style="margin:12px 0">
+                    <label>新密码 <span class="muted">(至少 8 位)</span></label>
+                    <input type="password" id="admin-reset-password-input" name="new_password" minlength="8"
+                        placeholder="请输入新重置的密码" required autocomplete="new-password">
+                </div>
+                <div class="modal-footer" style="margin-top:20px">
+                    <button type="button" class="btn btn-secondary" onclick="closeAdminResetPasswordModal()">取消</button>
+                    <button type="submit" class="btn btn-danger">确认重置</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+
+<script>
+function toggleActionDropdown(triggerBtn, e) {
+    if (e) {
+        e.stopPropagation();
+        e.preventDefault();
+    }
+    const container = triggerBtn.closest('.action-dropdown');
+    if (!container) return;
+    const td = container.closest('.td-action');
+    const isOpen = container.classList.contains('open');
+    closeAllActionDropdowns();
+    if (!isOpen) {
+        container.classList.add('open');
+        if (td) td.classList.add('dropdown-active');
+    }
+}
+
+function closeAllActionDropdowns() {
+    document.querySelectorAll('.action-dropdown.open').forEach(el => {
+        el.classList.remove('open');
+    });
+    document.querySelectorAll('.td-action.dropdown-active').forEach(el => {
+        el.classList.remove('dropdown-active');
+    });
+}
+
+function openAdminEditUserModal(userId, username, credits, qps, expires) {
+    const m = document.getElementById('admin-edit-user-modal-backdrop');
+    const form = document.getElementById('admin-edit-user-form');
+    if (!m || !form) return;
+    form.action = '/admin/users/' + userId;
+    document.getElementById('admin-edit-user-username').value = username;
+
+    const unlimCreditsCb = document.getElementById('admin-edit-user-unlimited-credits');
+    const creditsInput = document.getElementById('admin-edit-user-credits');
+    if (credits === -1 || credits === '-1' || credits === null || credits === undefined || credits === '') {
+        unlimCreditsCb.checked = true;
+        creditsInput.value = '-1';
+        creditsInput.readOnly = true;
+        creditsInput.style.opacity = '0.5';
+    } else {
+        unlimCreditsCb.checked = false;
+        creditsInput.value = credits;
+        creditsInput.readOnly = false;
+        creditsInput.style.opacity = '1';
+    }
+
+    document.getElementById('admin-edit-user-qps').value = qps || 2;
+
+    const unlimExpiresCb = document.getElementById('admin-edit-user-unlimited-expires');
+    const expiresInput = document.getElementById('admin-edit-user-expires');
+    if (!expires) {
+        unlimExpiresCb.checked = true;
+        expiresInput.value = '';
+        expiresInput.readOnly = true;
+        expiresInput.style.opacity = '0.5';
+    } else {
+        unlimExpiresCb.checked = false;
+        expiresInput.value = expires;
+        expiresInput.readOnly = false;
+        expiresInput.style.opacity = '1';
+    }
+
+    m.style.display = 'flex';
+    void m.offsetHeight;
+    m.classList.add('modal-open');
+}
+
+function closeAdminEditUserModal() {
+    const m = document.getElementById('admin-edit-user-modal-backdrop');
+    if (!m) return;
+    m.classList.remove('modal-open');
+    setTimeout(() => { m.style.display = 'none'; }, 180);
+}
+
+function toggleUserUnlimitedCredits(isChecked) {
+    const input = document.getElementById('admin-edit-user-credits');
+    if (!input) return;
+    if (isChecked) {
+        input.dataset.prevVal = input.value !== '-1' ? input.value : '100';
+        input.value = '-1';
+        input.readOnly = true;
+        input.style.opacity = '0.5';
+    } else {
+        input.readOnly = false;
+        input.style.opacity = '1';
+        input.value = (input.dataset.prevVal && input.dataset.prevVal !== '-1') ? input.dataset.prevVal : '100';
+    }
+}
+
+function toggleUserUnlimitedExpires(isChecked) {
+    const input = document.getElementById('admin-edit-user-expires');
+    if (!input) return;
+    if (isChecked) {
+        input.dataset.prevVal = input.value;
+        input.value = '';
+        input.readOnly = true;
+        input.style.opacity = '0.5';
+    } else {
+        input.readOnly = false;
+        input.style.opacity = '1';
+        input.value = input.dataset.prevVal || '';
+    }
+}
+
+function handleBatchCreditsModeChange(mode) {
+    const amountWrap = document.getElementById('batch-credits-amount-wrap');
+    const notice = document.getElementById('batch-credits-unlimited-notice');
+    if (!amountWrap || !notice) return;
+    if (mode === 'unlimited') {
+        amountWrap.style.display = 'none';
+        notice.style.display = 'block';
+    } else {
+        amountWrap.style.display = 'block';
+        notice.style.display = 'none';
+    }
+}
+
+function openAdminResetPasswordModal(userId, username) {
+    const m = document.getElementById('admin-reset-password-modal-backdrop');
+    const form = document.getElementById('admin-reset-password-form');
+    const userLabel = document.getElementById('admin-reset-password-username');
+    const input = document.getElementById('admin-reset-password-input');
+    if (!m || !form || !input || !userLabel) return;
+    form.action = '/admin/users/' + userId + '/reset-password';
+    userLabel.textContent = username;
+    input.value = '';
+    m.style.display = 'flex';
+    void m.offsetHeight;
+    m.classList.add('modal-open');
+    input.focus();
+}
+
+function closeAdminResetPasswordModal() {
+    const m = document.getElementById('admin-reset-password-modal-backdrop');
+    if (!m) return;
+    m.classList.remove('modal-open');
+    setTimeout(() => { m.style.display = 'none'; }, 180);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const eum = document.getElementById('admin-edit-user-modal-backdrop');
+    if (eum) {
+        eum.addEventListener('click', (e) => {
+            if (e.target === eum) closeAdminEditUserModal();
+        });
+    }
+    const rpm = document.getElementById('admin-reset-password-modal-backdrop');
+    if (rpm) {
+        rpm.addEventListener('click', (e) => {
+            if (e.target === rpm) closeAdminResetPasswordModal();
+        });
+    }
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.action-dropdown')) {
+            closeAllActionDropdowns();
+        }
+    });
+});
+</script>
+{% endblock %}

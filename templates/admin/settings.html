@@ -1,0 +1,283 @@
+{% extends 'base_console.html' %}
+{% block title %}系统设置 · 管理员后台{% endblock %}
+{% block page_title %}系统设置{% endblock %}
+{% block console_content %}
+<main class="container">
+    <div id="settings" class="tab-view">
+        <div class="page-head">
+            <div>
+                <h1>系统设置</h1>
+                <div class="muted">管理服务全局开放状态、访问体验与新建账户的默认参数配置。（修改自动保存生效）</div>
+            </div>
+        </div>
+
+        <form method="post" action="{{ url_for('admin.update_settings') }}" id="admin-settings-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <!-- 分组 1：服务与访问控制 -->
+            <section class="card" style="margin-bottom:20px">
+                <div style="margin-bottom:16px;border-bottom:1px solid #f1f5f9;padding-bottom:12px">
+                    <h2 style="font-size:16px;margin:0;display:flex;align-items:center;gap:8px">
+                        <svg class="app-icon" style="width:18px;height:18px" aria-hidden="true">
+                            <use href="{{ url_for('static', filename='icons.svg') }}#icon-shield"></use>
+                        </svg> 服务与访问控制
+                    </h2>
+                </div>
+                <div class="settings-list">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-title">API 服务总开关</span>
+                            <span class="setting-desc">控制全局 API 解析接口是否开放并响应外部调用请求</span>
+                        </div>
+                        <div class="setting-control">
+                            <label class="switch">
+                                <input type="checkbox" id="global-api-toggle" name="global_api_enabled"
+                                    data-initial="{{ '1' if settings.get('global_api_enabled')=='1' else '0' }}"
+                                    {{ 'checked' if settings.get('global_api_enabled')=='1' }}
+                                    onchange="triggerSettingsSubmit(this)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-title">首页在线体验</span>
+                            <span class="setting-desc">允许访客在首页未登录状态下直接体验视频解析功能</span>
+                        </div>
+                        <div class="setting-control">
+                            <label class="switch">
+                                <input type="checkbox" name="demo_enabled" {{ 'checked' if
+                                    settings.get('demo_enabled')=='1' }} onchange="triggerSettingsSubmit(this)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-title">开放用户注册</span>
+                            <span class="setting-desc">允许新用户在登录页面自主申请与注册客户账号</span>
+                        </div>
+                        <div class="setting-control">
+                            <label class="switch">
+                                <input type="checkbox" name="registration_enabled" {{ 'checked' if
+                                    settings.get('registration_enabled')=='1' }} onchange="triggerSettingsSubmit(this)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 分组 2：新账号初始参数 -->
+            <section class="card" style="margin-bottom:20px">
+                <div style="margin-bottom:16px;border-bottom:1px solid #f1f5f9;padding-bottom:12px">
+                    <h2 style="font-size:16px;margin:0;display:flex;align-items:center;gap:8px">
+                        <svg class="app-icon" style="width:18px;height:18px" aria-hidden="true">
+                            <use href="{{ url_for('static', filename='icons.svg') }}#icon-user"></use>
+                        </svg> 新账号初始参数配置
+                    </h2>
+                </div>
+                <div class="settings-list">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-title">默认 QPS 限制</span>
+                            <span class="setting-desc">新账号注册时默认分配的每秒并发请求数上限 (1 ~ 1000)</span>
+                        </div>
+                        <div class="setting-control">
+                            <input style="width:100px;text-align:right" type="number" min="1" max="1000"
+                                name="default_user_qps" value="{{ settings.get('default_user_qps','2') }}"
+                                onchange="triggerSettingsSubmit(this)">
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-title">默认试用天数</span>
+                            <span class="setting-desc">新注册客户默认享有的系统试用时长 (0 ~ 365 天)</span>
+                        </div>
+                        <div class="setting-control">
+                            <input style="width:100px;text-align:right" type="number" min="0" max="365"
+                                name="default_trial_days" value="{{ settings.get('default_trial_days','7') }}"
+                                onchange="triggerSettingsSubmit(this)">
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-title">默认赠送积分</span>
+                            <span class="setting-desc">新注册客户初始化自动赠送的解析积分额度</span>
+                        </div>
+                        <div class="setting-control">
+                            <input style="width:100px;text-align:right" type="number" min="0" max="1000000"
+                                name="default_initial_credits"
+                                value="{{ settings.get('default_initial_credits','100') }}"
+                                onchange="triggerSettingsSubmit(this)">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 分组 3：API 响应水印与版权提示 -->
+            {% set tip_enabled = (settings.get('api_tip_enabled', '1') == '1') %}
+            <section class="card" style="margin-bottom:20px">
+                <div style="margin-bottom:16px;border-bottom:1px solid #f1f5f9;padding-bottom:12px">
+                    <h2 style="font-size:16px;margin:0;display:flex;align-items:center;gap:8px">
+                        <svg class="app-icon" style="width:18px;height:18px" aria-hidden="true">
+                            <use href="{{ url_for('static', filename='icons.svg') }}#icon-tag"></use>
+                        </svg> API 响应水印与版权提示
+                    </h2>
+                </div>
+                <div class="settings-list">
+                    <div class="setting-item" style="border-bottom:none;padding-bottom:0">
+                        <div class="setting-info">
+                            <span class="setting-title">API 响应版权信息</span>
+                            <span class="setting-desc">开启后将在所有 API 解析接口响应的 JSON 尾部包含 _tip 元数据字段</span>
+                        </div>
+                        <div class="setting-control">
+                            <label class="switch">
+                                <input type="checkbox" id="api-tip-toggle" name="api_tip_enabled" {{ 'checked' if tip_enabled }}
+                                    onchange="toggleApiTipDetails(this)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 联动折叠卡片：关闭时隐藏，开启时平滑展开 -->
+                    <div id="api-tip-collapse-panel" class="api-tip-subcard" style="{{ 'display:none;' if not tip_enabled else '' }}">
+                        <div class="api-tip-grid">
+                            <div class="api-tip-field">
+                                <label for="api_tip_author">作者</label>
+                                <input type="text" id="api_tip_author" name="api_tip_author"
+                                    value="{{ settings.get('api_tip_author', 'ucmao') }}"
+                                    placeholder="例如: ucmao"
+                                    oninput="updateApiTipPreview()"
+                                    onchange="triggerSettingsSubmit(this)">
+                            </div>
+                            <div class="api-tip-field">
+                                <label for="api_tip_website">官网地址</label>
+                                <input type="url" id="api_tip_website" name="api_tip_website"
+                                    value="{{ settings.get('api_tip_website', 'https://github.com/ucmao/media-parser') }}"
+                                    placeholder="例如: https://github.com/ucmao/media-parser"
+                                    oninput="updateApiTipPreview()"
+                                    onchange="triggerSettingsSubmit(this)">
+                            </div>
+                        </div>
+
+                        <div class="api-tip-field">
+                            <label for="api_tip_notice">提示文本</label>
+                            <input type="text" id="api_tip_notice" name="api_tip_notice"
+                                value="{{ settings.get('api_tip_notice', '本接口由开源项目 media-parser 提供服务') }}"
+                                placeholder="例如: 本接口由开源项目 media-parser 提供服务"
+                                oninput="updateApiTipPreview()"
+                                onchange="triggerSettingsSubmit(this)">
+                        </div>
+
+                        <div class="api-tip-preview-box">
+                            <div class="api-tip-preview-header">
+                                <span class="api-tip-preview-title">
+                                    <svg class="app-icon" style="width:13px;height:13px" aria-hidden="true">
+                                        <use href="{{ url_for('static', filename='icons.svg') }}#icon-code"></use>
+                                    </svg>
+                                    响应 JSON 效果预览
+                                </span>
+                                <span class="api-tip-preview-badge">实时联动</span>
+                            </div>
+                            <pre class="api-tip-code"><code id="api-tip-preview-code"></code></pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </form>
+    </div>
+</main>
+
+<script>
+window.toggleApiTipDetails = function (checkbox) {
+    const panel = document.getElementById('api-tip-collapse-panel');
+    if (panel) {
+        panel.style.display = checkbox.checked ? 'block' : 'none';
+    }
+    triggerSettingsSubmit(checkbox);
+};
+
+window.updateApiTipPreview = function () {
+    const authorEl = document.getElementById('api_tip_author');
+    const websiteEl = document.getElementById('api_tip_website');
+    const noticeEl = document.getElementById('api_tip_notice');
+    const previewEl = document.getElementById('api-tip-preview-code');
+    if (!previewEl) return;
+
+    const author = (authorEl && authorEl.value.trim()) || 'ucmao';
+    const website = (websiteEl && websiteEl.value.trim()) || 'https://github.com/ucmao/media-parser';
+    const notice = (noticeEl && noticeEl.value.trim()) || '本接口由开源项目 media-parser 提供服务';
+
+    const samplePayload = {
+        succ: true,
+        data: {
+            title: "示例短视频标题...",
+            url: "https://example.com/video.mp4"
+        },
+        _tip: {
+            author: author,
+            website: website,
+            notice: notice
+        }
+    };
+    previewEl.textContent = JSON.stringify(samplePayload, null, 2);
+};
+
+window.triggerSettingsSubmit = function (el) {
+    const form = (el && el.form) || document.getElementById('admin-settings-form');
+    if (form) {
+        if (typeof form.requestSubmit === 'function') {
+            form.requestSubmit();
+        } else {
+            form.submit();
+        }
+    }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    updateApiTipPreview();
+
+    const settingsForm = document.getElementById('admin-settings-form');
+    if (settingsForm) {
+        settingsForm.addEventListener('submit', async (e) => {
+            if (e.submitter && e.submitter.value === 'reset') return;
+            if (settingsForm.dataset.confirmed === 'true') {
+                delete settingsForm.dataset.confirmed;
+                return;
+            }
+
+            const globalApiToggle = document.getElementById('global-api-toggle');
+            if (globalApiToggle) {
+                const initial = globalApiToggle.dataset.initial === '1';
+                const isNowChecked = globalApiToggle.checked;
+
+                if (initial !== isNowChecked) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const title = isNowChecked ? '开启 API 服务总开关' : '暂停 API 服务总开关';
+                    const message = isNowChecked
+                        ? '提示：保存后将重新开启全局 API 解析服务，恢复所有外部接口调用响应。确定保存系统配置吗？'
+                        : '警告：保存后将暂停全局 API 解析服务，所有外部客户与系统发起的接口解析请求将立即被拦截拒绝！确定保存系统配置并暂停服务吗？';
+                    const confirmText = isNowChecked ? '确认开启' : '确认暂停';
+                    const type = isNowChecked ? 'primary' : 'danger';
+
+                    const ok = await window.confirmModal({ title, message, confirmText, type });
+                    if (ok) {
+                        settingsForm.dataset.confirmed = 'true';
+                        settingsForm.submit();
+                    } else {
+                        globalApiToggle.checked = initial;
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

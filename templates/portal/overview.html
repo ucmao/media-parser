@@ -1,0 +1,256 @@
+{% extends 'base_console.html' %}
+{% block title %}数据概览 · 客户控制台{% endblock %}
+{% block page_title %}概览{% endblock %}
+{% block console_content %}
+<main class="container">
+    {% if user_is_expired(g.user) %}
+    <div class="notice">当前账号尚未配置有效期或已经到期，请联系管理员开通。您仍可登录并查看历史记录。</div>
+    {% endif %}
+
+    <!-- 视图 1：数据概览 -->
+    <div id="overview" class="tab-view">
+        <div class="page-head">
+            <div>
+                <h1>你好，{{ g.user['username'] }}</h1>
+                <div class="muted">实时监控您的接口调取概况与账号限量。</div>
+            </div>
+            <div class="row" style="gap:10px;align-items:center;flex-wrap:wrap">
+                <span class="muted" style="font-size:13px">
+                    {% if g.user['role'] == 'admin' %}
+                    权限：<strong style="color:var(--ink)">永久有效</strong>
+                    {% elif user_is_expired(g.user) %}
+                    到期时间：<strong style="color:var(--danger)">{{ format_user_expiry(g.user) }}</strong>
+                    {% else %}
+                    有效期至：<strong style="color:var(--ink)">{{ format_user_expiry(g.user) }}</strong>
+                    {% endif %}
+                </span>
+                <span class="badge {{ 'off' if user_is_expired(g.user) else '' }}">
+                    {{ '未开通 / 已到期' if user_is_expired(g.user) else '服务有效' }}
+                </span>
+            </div>
+        </div>
+        <div class="stats">
+            <div class="card stat">
+                <div class="stat-head">
+                    <span class="stat-label">24 小时调用</span>
+                    <span class="stat-icon">{{ icon('chart') }}</span>
+                </div>
+                <strong>{{ stats['calls'] or 0 }}</strong>
+                <span class="stat-foot">近 24 小时接口请求</span>
+            </div>
+            <div class="card stat">
+                <div class="stat-head">
+                    <span class="stat-label">成功调用</span>
+                    <span class="stat-icon">{{ icon('check') }}</span>
+                </div>
+                <strong>{{ stats['successes'] or 0 }}</strong>
+                <span class="stat-foot">有效完成媒体直链解析</span>
+            </div>
+            <div class="card stat">
+                <div class="stat-head">
+                    <span class="stat-label">剩余解析积分</span>
+                    <span class="stat-icon">{{ icon('tag') }}</span>
+                </div>
+                <strong>{{ '不限制' if g.user['credits'] == -1 else (g.user['credits'] or 0) }}</strong>
+                <span class="stat-foot">接口解析额度</span>
+            </div>
+            <div class="card stat">
+                <div class="stat-head">
+                    <span class="stat-label">账号 QPS 上限</span>
+                    <span class="stat-icon">{{ icon('shield') }}</span>
+                </div>
+                <strong>{{ g.user['qps_limit'] }}</strong>
+                <span class="stat-foot">每秒并发请求阈值</span>
+            </div>
+        </div>
+
+        <!-- 动态周期筛选栏 -->
+        <div class="row between" style="margin-top:20px;align-items:center;flex-wrap:wrap;gap:12px">
+            <div class="period-tabs">
+                <a href="{{ url_for('portal.overview', days=7) }}" class="period-tab {{ 'active' if current_days == 7 else '' }}">近 7 天</a>
+                <a href="{{ url_for('portal.overview', days=30) }}" class="period-tab {{ 'active' if current_days == 30 else '' }}">近 30 天</a>
+                <a href="{{ url_for('portal.overview', days=90) }}" class="period-tab {{ 'active' if current_days == 90 else '' }}">近 90 天</a>
+                <a href="{{ url_for('portal.overview', days=180) }}" class="period-tab {{ 'active' if current_days == 180 else '' }}">近 180 天</a>
+                <a href="{{ url_for('portal.overview', days=0) }}" class="period-tab {{ 'active' if current_days == 0 else '' }}">全周期</a>
+            </div>
+        </div>
+
+        <!-- 贯穿一整行的 API 调用趋势折线图卡片 -->
+        <div class="card" style="margin-top:20px">
+            <div class="row between" style="margin-bottom:16px;flex-wrap:wrap;gap:12px">
+                <div>
+                    <h2>API 调用趋势</h2>
+                    <span class="muted">
+                        {% if current_days == 0 %}全周期您账号的每日接口请求总数与成功解析数（北京时间）{% else %}近 {{ current_days }}
+                        个北京时间自然日您账号的接口请求总数与成功解析数{% endif %}
+                    </span>
+                </div>
+                <div class="row" style="gap:16px;font-size:13px">
+                    <span class="row" style="gap:6px"><span
+                            style="width:10px;height:10px;border-radius:50%;background:#4f46e5;display:inline-block"></span>
+                        总调用量</span>
+                    <span class="row" style="gap:6px"><span
+                            style="width:10px;height:10px;border-radius:50%;background:#10b981;display:inline-block"></span>
+                        成功调用量</span>
+                </div>
+            </div>
+
+            <div class="chart-container" style="overflow-x:auto">
+                <div class="chart-tooltip"></div>
+                <svg viewBox="0 0 720 230"
+                    style="width:100%;min-width:550px;height:auto;display:block;font-family:inherit">
+                    <defs>
+                        <linearGradient id="callsGradPortal" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#4f46e5" stop-opacity="0.18" />
+                            <stop offset="100%" stop-color="#4f46e5" stop-opacity="0.0" />
+                        </linearGradient>
+                        <linearGradient id="succGradPortal" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#10b981" stop-opacity="0.18" />
+                            <stop offset="100%" stop-color="#10b981" stop-opacity="0.0" />
+                        </linearGradient>
+                    </defs>
+
+                    <!-- Y 轴网格辅助线与刻度 -->
+                    {% for tick in chart_data['y_ticks'] %}
+                    <line x1="45" y1="{{ tick['y'] }}" x2="675" y2="{{ tick['y'] }}" stroke="#f1f5f9" stroke-width="0.8"
+                        stroke-dasharray="3 3" />
+                    <text x="38" y="{{ tick['y'] + 3.5 }}" text-anchor="end" font-size="9.5" fill="#94a3b8">{{ tick['val'] }}</text>
+                    {% endfor %}
+
+                    <!-- X 轴基线 -->
+                    <line x1="45" y1="180" x2="675" y2="180" stroke="#e2e8f0" stroke-width="0.9" />
+
+                    <!-- 鼠标悬浮对齐线 -->
+                    <line class="chart-guide-line" x1="0" y1="20" x2="0" y2="180" stroke="#818cf8" stroke-width="1"
+                        stroke-dasharray="3 3" style="display:none;pointer-events:none" />
+
+                    <!-- 平滑渐变填充面 -->
+                    <path d="{{ chart_data['calls_area_path'] }}" fill="url(#callsGradPortal)" />
+                    <path d="{{ chart_data['successes_area_path'] }}" fill="url(#succGradPortal)" />
+
+                    <!-- 趋势平滑贝塞尔曲线 (纤细大厂风格) -->
+                    <path d="{{ chart_data['calls_path'] }}" fill="none" stroke="#4f46e5" stroke-width="1.5"
+                        stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="{{ chart_data['successes_path'] }}" fill="none" stroke="#10b981" stroke-width="1.3"
+                        stroke-linecap="round" stroke-linejoin="round" />
+
+                    <!-- 动态悬停聚焦光晕圆点 (初始隐藏) -->
+                    <circle class="chart-hover-dot calls-dot" cx="0" cy="0" r="3.5" fill="#4f46e5" stroke="#ffffff"
+                        stroke-width="1.8" style="display:none;pointer-events:none" />
+                    <circle class="chart-hover-dot succ-dot" cx="0" cy="0" r="3" fill="#10b981" stroke="#ffffff"
+                        stroke-width="1.6" style="display:none;pointer-events:none" />
+
+                    <!-- X 轴刻度与交互节点 -->
+                    {% for item in chart_data['trend'] %}
+                    {% if item['show_label'] %}
+                    <text x="{{ item['x'] }}" y="198" text-anchor="middle" font-size="9.5" font-weight="450" fill="#94a3b8">{{ item['short_date'] }}</text>
+                    {% endif %}
+
+                    <!-- 透明列触控透明矩形 -->
+                    <rect class="chart-col-trigger" x="{{ item['x'] - 20 }}" y="15" width="40" height="170"
+                        fill="transparent" style="cursor:pointer" data-date="{{ item['date'] }}"
+                        data-calls="{{ item['calls'] }}" data-successes="{{ item['successes'] }}"
+                        data-failures="{{ item['failures'] }}" data-cx="{{ item['x'] }}"
+                        data-cy-calls="{{ item['y_calls'] }}" data-cy-succ="{{ item['y_successes'] }}" />
+                    {% endfor %}
+                </svg>
+            </div>
+        </div>
+
+        <!-- 下方双栏：平台使用分布（左） + 密钥解析活跃榜 Top 10（右） -->
+        <div class="grid-2" style="margin-top:20px">
+            <!-- 左侧：平台使用分布 -->
+            <div class="card">
+                <div style="margin-bottom:16px">
+                    <h2>平台使用分布</h2>
+                    <span class="muted">
+                        {% if current_days == 0 %}全周期您账号各平台调取占比与分布（北京时间）{% else %}近 {{ current_days }}
+                        个北京时间自然日您账号各平台解析调取占比与分布{%
+                        endif %}
+                    </span>
+                </div>
+
+                {% if pie_data['total_calls'] == 0 %}
+                <div style="text-align:center;padding:50px 0;color:#94a3b8;font-size:13.5px">
+                    <svg style="width:40px;height:40px;margin-bottom:8px;fill:none;stroke:#cbd5e1" viewBox="0 0 24 24"
+                        stroke-width="1.5">
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M12 8v4l3 3" />
+                    </svg>
+                    <div>当前时间范围内暂无调用记录</div>
+                </div>
+                {% else %}
+                <div class="pie-wrapper" id="portal-platform-dist">
+                    <div class="pie-svg-box">
+                        <svg viewBox="0 0 200 200" style="width:100%;height:100%">
+                            {% for item in pie_data['items'] %}
+                            <path d="{{ item['path_d'] }}" fill="{{ item['color'] }}" class="pie-slice"
+                                data-platform="{{ item['platform'] }}" data-calls="{{ item['calls_formatted'] }}"
+                                data-percent="{{ item['percentage'] }}%">
+                                <title>{{ item['platform'] }}: {{ item['calls_formatted'] }} 次 ({{ item['percentage'] }}%)</title>
+                            </path>
+                            {% endfor %}
+                        </svg>
+                        <div class="pie-center-text">
+                            <div class="pie-center-lbl" id="portal-pie-lbl">总解析量</div>
+                            <div class="pie-center-val" id="portal-pie-val">{{ pie_data['total_calls_formatted'] or pie_data['total_calls'] }} 次</div>
+                        </div>
+                    </div>
+
+                    <!-- 下方自适应平铺胶囊图例网格 (支持50+平台) -->
+                    <div class="pie-pill-grid">
+                        {% for item in pie_data['items'] %}
+                        <div class="pie-pill-item" data-platform="{{ item['platform'] }}" data-calls="{{ item['calls_formatted'] }}" data-percent="{{ item['percentage'] }}%" title="{{ item['platform'] }}: {{ item['calls_formatted'] }} 次 ({{ item['percentage'] }}%)">
+                            <span class="pie-pill-dot" style="background:{{ item['color'] }}"></span>
+                            <span class="pie-pill-name">{{ item['platform'] }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- 右侧：密钥解析活跃榜 (Top 10) -->
+            <div class="card">
+                <div style="margin-bottom:16px">
+                    <h2>密钥调取活跃榜 (Top 10)</h2>
+                    <span class="muted">
+                        {% if current_days == 0 %}全周期调用量最高的 API 密钥（北京时间）{% else %}近 {{ current_days }} 个北京时间自然日调用量最高的
+                        API 密钥{% endif
+                        %}
+                    </span>
+                </div>
+
+                {% if not top_keys %}
+                <div style="text-align:center;padding:50px 0;color:#94a3b8;font-size:13.5px">
+                    <svg style="width:40px;height:40px;margin-bottom:8px;fill:none;stroke:#cbd5e1" viewBox="0 0 24 24"
+                        stroke-width="1.5">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                    <div>暂无 API 密钥调用排行数据</div>
+                </div>
+                {% else %}
+                <div class="ranking-list">
+                    {% for item in top_keys %}
+                    <div class="ranking-item">
+                        <div class="ranking-head">
+                            <span class="ranking-name">
+                                <span class="ranking-badge">{{ loop.index }}</span>
+                                {{ item['name'] }} <span class="muted font-mono" style="font-size:11px">({{
+                                    item['key_prefix'] }}...)</span>
+                            </span>
+                            <span class="ranking-val">{{ item['calls'] }} 次</span>
+                        </div>
+                        <div class="ranking-bar-bg">
+                            <div class="ranking-bar-fill" style="width: {{ item['pct'] }}%"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

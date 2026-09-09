@@ -431,7 +431,7 @@ class ManagementTest(unittest.TestCase):
             follow_redirects=False,
         )
         self.assertEqual(response.status_code, 302)
-        self.assertTrue(response.location.endswith("/admin#logs"))
+        self.assertTrue(response.location.endswith("/admin/logs"))
 
         # Follow redirect and verify flash message
         response = self.client.get(response.location, follow_redirects=True)
@@ -697,9 +697,83 @@ class ManagementTest(unittest.TestCase):
         )
         self.assertEqual(res.status_code, 200)
 
+    def test_portal_platforms_dashboard(self):
+        # Setup admin first, then register regular user
+        self.client.post("/auth/setup", data={"csrf_token": self.csrf(), "username": "admin", "password": "password123", "confirm_password": "password123"})
+        self.client.post("/auth/register", data={"csrf_token": self.csrf(), "username": "portal_viewer", "password": "password123", "confirm_password": "password123"})
+        self.client.post("/auth/login", data={"csrf_token": self.csrf(), "username": "portal_viewer", "password": "password123"})
+
         with self.app.app_context():
-            user = get_db().execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
-            self.assertEqual(user["credits"], 999)
+            db = get_db()
+            user = db.execute("SELECT id FROM users WHERE username='portal_viewer'").fetchone()
+            db.execute(
+                "INSERT INTO request_logs(user_id,platform,path,status_code,duration_ms,input_url,created_at) VALUES(?,?,?,?,?,?,?)",
+                (user["id"], "抖音", "/api/v1/parse", 200, 50, "https://v.douyin.com/abc", utcnow()),
+            )
+            db.commit()
+
+        # Access /console/platforms
+        res = self.client.get("/console/platforms")
+        self.assertEqual(res.status_code, 200)
+        body = res.get_data(as_text=True)
+        self.assertIn("支持平台", body)
+        self.assertIn("AcFun", body)
+        # Verify read-only nature: no edit forms or submit buttons for platform settings
+        self.assertNotIn('action="/admin/platforms', body)
+
+        # Search filter
+        res_search = self.client.get("/console/platforms?platforms_q=抖音")
+        self.assertEqual(res_search.status_code, 200)
+        self.assertIn("抖音", res_search.get_data(as_text=True))
+
+    def test_console_topbar_api_status(self):
+        self.client.post("/auth/setup", data={"csrf_token": self.csrf(), "username": "admin", "password": "password123", "confirm_password": "password123"})
+        self.client.post("/auth/login", data={"csrf_token": self.csrf(), "username": "admin", "password": "password123"})
+
+        # API is enabled by default
+        res = self.client.get("/admin/overview")
+        self.assertEqual(res.status_code, 200)
+        body = res.get_data(as_text=True)
+        self.assertIn("status-pill online", body)
+        self.assertIn("API 正常", body)
+
+        # Disable API via settings (omit global_api_enabled to simulate unchecked checkbox)
+        self.client.post(
+            "/admin/settings",
+            data={
+                "csrf_token": self.csrf(),
+            },
+            follow_redirects=True,
+        )
+
+        # Verify topbar now reflects maintenance mode
+        res_maint = self.client.get("/admin/overview")
+        self.assertEqual(res_maint.status_code, 200)
+        body_maint = res_maint.get_data(as_text=True)
+        self.assertIn("status-pill offline", body_maint)
+        self.assertIn("API 维护中", body_maint)
+
+    def test_customer_login_with_admin_next_param(self):
+        # Register a customer
+        with self.app.app_context():
+            db = get_db()
+            from werkzeug.security import generate_password_hash
+            db.execute(
+                "INSERT INTO users(username,password_hash,role,qps_limit,created_at) VALUES(?,?,?,?,?)",
+                ("customer_leo", generate_password_hash("password123"), "user", 2, utcnow()),
+            )
+            db.commit()
+
+        # Login as customer with next pointing to /admin/overview
+        response = self.client.post(
+            "/auth/login?next=/admin/overview",
+            data={"csrf_token": self.csrf(), "username": "customer_leo", "password": "password123"},
+            follow_redirects=False,
+        )
+        self.assertEqual(response.status_code, 302)
+        # Should redirect directly to portal dashboard (/console or /console/overview), not admin
+        self.assertTrue(response.location.endswith("/console") or response.location.endswith("/console/overview"))
+        self.assertNotIn("/admin", response.location)
 
 
 if __name__ == "__main__":

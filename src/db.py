@@ -455,7 +455,7 @@ def get_platform_distribution(user_id=None, days=7):
     items = []
     if total_calls > 0:
         cx, cy = 100, 100
-        r_out, r_in = 86, 62
+        r_out, r_in = 88, 64
         current_angle = 0.0  # radians
 
         for idx, row in enumerate(rows):

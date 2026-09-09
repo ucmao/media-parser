@@ -17,33 +17,37 @@
     <aside class="sidebar">
         <div>
             <div class="sidebar-head">
-                <a class="brand" href="{{ url_for('web.index') }}">
+                <a class="brand" href="{{ url_for('web.index') }}" target="_blank">
                     <img src="{{ url_for('static', filename='images/logo-web.png') }}" alt="Logo">
                     <span>Media Parser</span>
                 </a>
-                <span class="role-badge">{{ '超级管理员' if g.user['role']=='admin' else '客户控制台' }}</span>
+                <span class="role-badge">{{ '管理后台' if g.user['role']=='admin' else '客户控制台' }}</span>
             </div>
             <nav class="sidebar-nav">
                 {% if g.user['role'] == 'admin' %}
                 <div class="nav-group-title">系统管理</div>
-                <a href="#overview" class="nav-item active"><i class="nav-icon">{{ icon('chart') }}</i><span>概览</span></a>
-                <a href="#settings" class="nav-item"><i class="nav-icon">{{ icon('settings') }}</i><span>系统设置</span></a>
+                <a href="{{ url_for('admin.overview') }}" class="nav-item {{ 'active' if active_nav == 'overview' }}"><i class="nav-icon">{{ icon('chart') }}</i><span>概览</span></a>
+                <a href="{{ url_for('admin.settings') }}" class="nav-item {{ 'active' if active_nav == 'settings' }}"><i class="nav-icon">{{ icon('settings') }}</i><span>系统设置</span></a>
                 
                 <div class="nav-group-title">业务管理</div>
-                <a href="#users" class="nav-item"><i class="nav-icon">{{ icon('users') }}</i><span>客户账号</span></a>
-                <a href="#keys" class="nav-item"><i class="nav-icon">{{ icon('key') }}</i><span>API 密钥</span></a>
-                <a href="#platforms" class="nav-item"><i class="nav-icon">{{ icon('globe') }}</i><span>解析平台</span></a>
+                <a href="{{ url_for('admin.users') }}" class="nav-item {{ 'active' if active_nav == 'users' }}"><i class="nav-icon">{{ icon('users') }}</i><span>客户账号</span></a>
+                <a href="{{ url_for('admin.keys') }}" class="nav-item {{ 'active' if active_nav == 'keys' }}"><i class="nav-icon">{{ icon('key') }}</i><span>API 密钥</span></a>
+                <a href="{{ url_for('admin.platforms') }}" class="nav-item {{ 'active' if active_nav == 'platforms' }}"><i class="nav-icon">{{ icon('globe') }}</i><span>支持平台</span></a>
                 
                 <div class="nav-group-title">运维监控</div>
-                <a href="#logs" class="nav-item"><i class="nav-icon">{{ icon('scroll') }}</i><span>运行日志</span></a>
+                <a href="{{ url_for('admin.logs') }}" class="nav-item {{ 'active' if active_nav == 'logs' }}"><i class="nav-icon">{{ icon('scroll') }}</i><span>运行日志</span></a>
+
+                <div class="nav-group-title">参考文档</div>
+                <a href="{{ url_for('admin.docs') }}" class="nav-item {{ 'active' if active_nav == 'docs' }}"><i class="nav-icon">{{ icon('book') }}</i><span>开发者文档</span></a>
                 {% else %}
                 <div class="nav-group-title">概览与统计</div>
-                <a href="#overview" class="nav-item active"><i class="nav-icon">{{ icon('chart') }}</i><span>概览</span></a>
-                <a href="#logs" class="nav-item"><i class="nav-icon">{{ icon('scroll') }}</i><span>请求日志</span></a>
+                <a href="{{ url_for('portal.overview') }}" class="nav-item {{ 'active' if active_nav == 'overview' }}"><i class="nav-icon">{{ icon('chart') }}</i><span>概览</span></a>
+                <a href="{{ url_for('portal.logs') }}" class="nav-item {{ 'active' if active_nav == 'logs' }}"><i class="nav-icon">{{ icon('scroll') }}</i><span>请求日志</span></a>
                 
                 <div class="nav-group-title">开发者中心</div>
-                <a href="#keys" class="nav-item"><i class="nav-icon">{{ icon('key') }}</i><span>API 密钥</span></a>
-                <a href="#docs" class="nav-item"><i class="nav-icon">{{ icon('book') }}</i><span>开发者文档</span></a>
+                <a href="{{ url_for('portal.keys') }}" class="nav-item {{ 'active' if active_nav == 'keys' }}"><i class="nav-icon">{{ icon('key') }}</i><span>API 密钥</span></a>
+                <a href="{{ url_for('portal.platforms') }}" class="nav-item {{ 'active' if active_nav == 'platforms' }}"><i class="nav-icon">{{ icon('globe') }}</i><span>支持平台</span></a>
+                <a href="{{ url_for('portal.docs') }}" class="nav-item {{ 'active' if active_nav == 'docs' }}"><i class="nav-icon">{{ icon('book') }}</i><span>开发者文档</span></a>
                 {% endif %}
             </nav>
         </div>
@@ -91,7 +95,7 @@
         <header class="main-topbar">
             <div class="topbar-left">
                 <div class="topbar-breadcrumb">
-                    <a href="{{ url_for('web.index') }}">Media Parser</a>
+                    <a href="{{ url_for('web.index') }}" target="_blank">Media Parser</a>
                     <span class="topbar-separator">/</span>
                     <span>{{ '管理后台' if g.user['role']=='admin' else '控制台' }}</span>
                     <span class="topbar-separator">/</span>
@@ -99,11 +103,11 @@
                 <h1 class="page-title" id="active-page-title">{% block page_title %}{% endblock %}</h1>
             </div>
             <div class="topbar-right">
+                {% if is_api_enabled() %}
                 <span class="status-pill online"><span class="status-dot pulse"></span>API 正常</span>
-                <a href="{{ url_for('web.index') }}" target="_blank" class="topbar-link" title="前往首页在线体验">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                    <span>在线体验</span>
-                </a>
+                {% else %}
+                <span class="status-pill offline"><span class="status-dot"></span>API 维护中</span>
+                {% endif %}
             </div>
         </header>
         {% block console_content %}{% endblock %}
@@ -162,46 +166,6 @@
 {% endif %}
 {% endblock %}
 <script>
-function switchConsoleTab() {
-    let hash = window.location.hash.replace('#', '') || 'overview';
-    const views = document.querySelectorAll('.tab-view');
-    const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
-    const titleEl = document.getElementById('active-page-title');
-    let matchedNav = null;
-
-    navItems.forEach(item => {
-        const itemHash = (item.getAttribute('href') || '').replace('#', '');
-        if (itemHash === hash) {
-            item.classList.add('active');
-            matchedNav = item;
-        } else {
-            item.classList.remove('active');
-        }
-    });
-
-    if (!matchedNav && navItems.length > 0) {
-        navItems[0].classList.add('active');
-        matchedNav = navItems[0];
-        hash = (matchedNav.getAttribute('href') || '').replace('#', '') || 'overview';
-    }
-
-    if (titleEl && matchedNav) {
-        const spanText = matchedNav.querySelector('span');
-        if (spanText) {
-            titleEl.textContent = spanText.textContent;
-        }
-    }
-
-    views.forEach(view => {
-        const viewId = view.getAttribute('id');
-        if (viewId === hash) {
-            view.style.display = 'block';
-        } else {
-            view.style.display = 'none';
-        }
-    });
-}
-
 function initChartInteractions() {
     document.querySelectorAll('.chart-container').forEach(container => {
         const tooltip = container.querySelector('.chart-tooltip');
@@ -557,7 +521,7 @@ function initDonutInteractions() {
             centerLbl.style.fontWeight = '600';
             centerLbl.style.color = 'var(--brand)';
             centerVal.textContent = `${calls} 次`;
-            centerVal.style.fontSize = calls.length > 7 ? '17px' : '20px';
+            centerVal.style.fontSize = calls.length > 7 ? '16px' : '18px';
 
             slices.forEach(s => {
                 if (s.dataset.platform === platform) s.classList.add('active');
@@ -596,9 +560,7 @@ function initDonutInteractions() {
     });
 }
 
-window.addEventListener('hashchange', switchConsoleTab);
 window.addEventListener('DOMContentLoaded', () => {
-    switchConsoleTab();
     initChartInteractions();
     initDonutInteractions();
     initToasts();
@@ -611,5 +573,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 </script>
+<script src="{{ url_for('static', filename='js/table_manager.js') }}"></script>
 </body>
 </html>

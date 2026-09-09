@@ -1,0 +1,336 @@
+{% extends 'base_console.html' %}
+{% block title %}支持平台 · 管理员后台{% endblock %}
+{% block page_title %}支持平台{% endblock %}
+{% block console_content %}
+<main class="container">
+    <div id="platforms" class="tab-view">
+        <section class="card">
+            <div style="margin-bottom:16px">
+                <div class="row" style="gap:10px;align-items:center">
+                    <h2 style="margin:0">支持平台</h2>
+                    <span class="badge" style="font-weight:600">{{ platforms_table.pagination.total_count }} 个平台</span>
+                </div>
+                <span class="muted" style="display:block;margin-top:6px;font-size:13px">配置各短视频与音频平台的开放状态与单 Key QPS 限流。</span>
+            </div>
+
+            <!-- 筛选与搜索工具栏 -->
+            <form method="get" action="{{ url_for('admin.platforms') }}" class="table-toolbar table-filter-form" style="margin-bottom:14px">
+                <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">
+                    <input type="text" name="platforms_q" placeholder="搜索平台名称或域名..." value="{{ platforms_table.query_params.q }}" class="filter-input-text">
+                    <select name="platforms_status" onchange="this.form.submit()">
+                        <option value="">全部状态</option>
+                        <option value="enabled" {{ 'selected' if request.args.get('platforms_status') == 'enabled' }}>正常开放</option>
+                        <option value="disabled" {{ 'selected' if request.args.get('platforms_status') == 'disabled' }}>已暂停</option>
+                        <option value="limited" {{ 'selected' if request.args.get('platforms_status') == 'limited' }}>已设限流</option>
+                    </select>
+                    <button type="button" class="btn btn-secondary btn-small" onclick="resetTableFilter('platforms')">重置</button>
+                </div>
+            </form>
+
+            <div class="table-wrap">
+                <table id="platforms-table" style="width:100%;min-width:820px">
+                    <thead>
+                        <tr>
+                            <th style="width:44px;text-align:center">
+                                <div class="batch-select-dropdown" data-table="platforms-table" data-total="{{ platforms_table.pagination.total_count }}">
+                                    <input type="checkbox" class="table-select-all" data-table="platforms-table" title="全选当前页">
+                                    <button type="button" class="batch-dropdown-trigger" title="选择范围" aria-label="选择范围">
+                                        <svg class="batch-chevron-icon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="6 9 12 15 18 9"></polyline>
+                                        </svg>
+                                    </button>
+                                    <div class="batch-dropdown-menu">
+                                        <button type="button" class="batch-dropdown-item" data-action="current-page">选择当前页</button>
+                                        <button type="button" class="batch-dropdown-item" data-action="all">选择全部</button>
+                                    </div>
+                                </div>
+                            </th>
+                            <th class="th-sortable" onclick="handleSort('platforms', 'name')" style="white-space:nowrap;width:150px">
+                                平台名称 <span class="sort-icon {{ 'active' if platforms_table.sorting.sort_by=='name' }}">{{ '↑' if platforms_table.sorting.sort_by=='name' and platforms_table.sorting.order=='asc' else ('↓' if platforms_table.sorting.sort_by=='name' else '↕') }}</span>
+                            </th>
+                            <th class="th-sortable" onclick="handleSort('platforms', 'domains')" style="min-width:280px">
+                                匹配域名 <span class="sort-icon {{ 'active' if platforms_table.sorting.sort_by=='domains' }}">{{ '↑' if platforms_table.sorting.sort_by=='domains' and platforms_table.sorting.order=='asc' else ('↓' if platforms_table.sorting.sort_by=='domains' else '↕') }}</span>
+                            </th>
+                            <th class="th-sortable" onclick="handleSort('platforms', 'qps')" style="white-space:nowrap;width:100px">
+                                QPS 限制 <span class="sort-icon {{ 'active' if platforms_table.sorting.sort_by=='qps' }}">{{ '↑' if platforms_table.sorting.sort_by=='qps' and platforms_table.sorting.order=='asc' else ('↓' if platforms_table.sorting.sort_by=='qps' else '↕') }}</span>
+                            </th>
+                            <th class="th-sortable" onclick="handleSort('platforms', 'calls')" style="white-space:nowrap;width:140px">
+                                24h 调用 <span class="sort-icon {{ 'active' if platforms_table.sorting.sort_by=='calls' }}">{{ '↑' if platforms_table.sorting.sort_by=='calls' and platforms_table.sorting.order=='asc' else ('↓' if platforms_table.sorting.sort_by=='calls' else '↕') }}</span>
+                            </th>
+                            <th class="th-sortable" onclick="handleSort('platforms', 'status')" style="white-space:nowrap;width:95px;text-align:center">
+                                状态 <span class="sort-icon {{ 'active' if platforms_table.sorting.sort_by=='status' }}">{{ '↑' if platforms_table.sorting.sort_by=='status' and platforms_table.sorting.order=='asc' else ('↓' if platforms_table.sorting.sort_by=='status' else '↕') }}</span>
+                            </th>
+                            <th class="th-action" style="width:80px">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="platforms-tbody">
+                        {% for item in platforms %}
+                        <tr class="platform-row"
+                            data-name="{{ item.name }}"
+                            data-domains="{{ item.domains | join(' ') }}"
+                            data-domain-count="{{ item.domain_count }}"
+                            data-calls="{{ item.calls_24h }}"
+                            data-success-rate="{{ item.success_rate_24h }}"
+                            data-qps="{{ item.qps_limit or 0 }}"
+                            data-enabled="{{ '1' if item.enabled else '0' }}"
+                            data-limited="{{ '1' if item.qps_limit else '0' }}">
+                            <td style="text-align:center">
+                                <input type="checkbox" class="row-checkbox" value="{{ item.name }}">
+                            </td>
+                            <td style="white-space:nowrap">
+                                <strong style="font-size:14px;color:var(--ink)">{{ item.name }}</strong>
+                            </td>
+                            <td>
+                                <div class="domain-tag-list" style="display:flex;flex-wrap:wrap;gap:5px;align-items:center">
+                                    {% for dom in item.domains[:4] %}
+                                    <span class="domain-tag" title="{{ dom }}">{{ dom }}</span>
+                                    {% endfor %}
+                                    {% if item.domains|length > 4 %}
+                                    <span class="domain-more-toggle" onclick="toggleMoreDomains(this)" title="点击展开全部 {{ item.domains|length }} 个域名">+{{ item.domains|length - 4 }} 更多</span>
+                                    <span class="domain-extra-list" style="display:none;flex-wrap:wrap;gap:5px">
+                                        {% for dom in item.domains[4:] %}
+                                        <span class="domain-tag" title="{{ dom }}">{{ dom }}</span>
+                                        {% endfor %}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td style="white-space:nowrap">
+                                {% if item.qps_limit %}
+                                <strong style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;color:var(--ink)">{{ item.qps_limit }}</strong> <span class="muted" style="font-size:12px">QPS</span>
+                                {% else %}
+                                <span class="muted" style="font-size:13px">无限制</span>
+                                {% endif %}
+                            </td>
+                            <td style="white-space:nowrap">
+                                {% if item.calls_24h > 0 %}
+                                <div style="display:flex;flex-direction:column;gap:2px">
+                                    <div>
+                                        <strong style="font-size:13.5px;color:var(--ink)">{{ item.calls_24h }}</strong>
+                                        <span class="muted" style="font-size:12px">次</span>
+                                    </div>
+                                    <span class="muted" style="font-size:11.5px">{{ item.success_rate_24h }}% 成功率</span>
+                                </div>
+                                {% else %}
+                                <span class="muted" style="font-size:13px;letter-spacing:1px" title="近 24 小时无调用记录">—</span>
+                                {% endif %}
+                            </td>
+                            <td style="text-align:center;white-space:nowrap">
+                                <span class="badge {{ '' if item.enabled else 'off' }}" style="font-size:11.5px;padding:3px 9px">
+                                    <span style="width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block"></span>
+                                    {{ '开放中' if item.enabled else '已暂停' }}
+                                </span>
+                            </td>
+                            <td class="td-action" style="white-space:nowrap;text-align:right">
+                                <button type="button" class="btn btn-secondary btn-small" style="padding:0 12px;height:28px"
+                                    onclick="openEditPlatformModal('{{ item.name|e }}', {{ 'true' if item.enabled else 'false' }}, '{{ item.qps_limit or '' }}', '{{ url_for('admin.update_platform', platform=item.name) }}')">
+                                    编辑
+                                </button>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="muted" style="text-align:center">暂无符合条件的支持平台</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 分页控件 -->
+            <div class="pagination-bar">
+                <div class="pagination-info">
+                    <span>共 {{ platforms_table.pagination.total_count }} 个平台</span>
+                    <div class="page-size-selector">
+                        <span>每页</span>
+                        <select onchange="handlePageSizeChange('platforms', this.value)">
+                            {% for size in platforms_table.pagination.page_sizes %}
+                            <option value="{{ size }}" {{ 'selected' if platforms_table.pagination.page_size == size }}>{{ size }} 条</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="pagination-pages">
+                    <a href="javascript:void(0)" class="page-btn {{ 'disabled' if not platforms_table.pagination.has_prev }}" onclick="handlePageChange('platforms', {{ platforms_table.pagination.page - 1 }})">上一页</a>
+                    <span style="font-size:13px;margin:0 6px">第 {{ platforms_table.pagination.page }} / {{ platforms_table.pagination.total_pages }} 页</span>
+                    <a href="javascript:void(0)" class="page-btn {{ 'disabled' if not platforms_table.pagination.has_next }}" onclick="handlePageChange('platforms', {{ platforms_table.pagination.page + 1 }})">下一页</a>
+                </div>
+            </div>
+
+            <!-- 批量操作悬浮胶囊工具栏 -->
+            <div id="platforms-table-floating-toolbar" class="batch-floating-toolbar">
+                <div class="batch-toolbar-summary">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <span>已选 <strong class="platforms-table-selected-count">0</strong> 项</span>
+                </div>
+                <div class="batch-toolbar-divider"></div>
+                <button type="button" class="batch-btn batch-btn-primary" onclick="executeBatchAction('platforms-table', '/admin/platforms/batch', 'enable')">批量开启</button>
+                <button type="button" class="batch-btn" onclick="executeBatchAction('platforms-table', '/admin/platforms/batch', 'disable')">批量暂停</button>
+                <button type="button" class="batch-btn" onclick="openBatchModal('batch-platform-qps-modal', 'platforms-table')">批量 QPS 限流</button>
+                <div class="batch-toolbar-divider"></div>
+                <button type="button" class="batch-btn batch-btn-clear" onclick="clearTableSelection('platforms-table')" title="取消选择">&times; 清空</button>
+            </div>
+        </section>
+    </div>
+
+    <!-- 编辑单个支持平台 Modal -->
+    <div id="edit-platform-modal" class="modal-backdrop" style="display:none" aria-hidden="true">
+        <div class="modal-card" style="max-width:440px" role="dialog" aria-modal="true">
+            <form id="edit-platform-form" method="post" action="">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="row between" style="margin-bottom:16px">
+                    <div class="row" style="gap:8px;align-items:center">
+                        <span class="badge brand" id="edit-platform-badge">配置</span>
+                        <h3 class="modal-title" id="edit-platform-title" style="margin:0">编辑支持平台</h3>
+                    </div>
+                    <button type="button" class="toast-close" onclick="closeEditPlatformModal()" aria-label="关闭">&times;</button>
+                </div>
+                
+                <div class="field" style="margin-bottom:16px">
+                    <label style="margin-bottom:6px;display:block;font-weight:600">服务开放状态</label>
+                    <div class="row" style="gap:10px;align-items:center;padding:10px 12px;background:var(--bg-subtle);border-radius:var(--radius-md);border:1px solid var(--line)">
+                        <label class="switch switch-sm" style="margin:0">
+                            <input type="checkbox" id="edit-platform-enabled" name="enabled" value="1" onchange="updateEditPlatformStatusLabel(this.checked)">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="edit-platform-status-badge" class="badge">开放中</span>
+                        <span class="muted" style="font-size:12px;margin-left:auto">暂停后将拒绝解析请求</span>
+                    </div>
+                </div>
+
+                <div class="field" style="margin-bottom:20px">
+                    <label for="edit-platform-qps" style="margin-bottom:6px;display:block;font-weight:600">单 Key QPS 限制</label>
+                    <div style="position:relative">
+                        <input type="number" id="edit-platform-qps" name="qps_limit" placeholder="留空表示不限制" min="1" max="1000" style="width:100%;padding-right:48px">
+                        <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--ink-muted);pointer-events:none">QPS</span>
+                    </div>
+                    <p class="muted" style="margin-top:6px;font-size:12px">限制单个 API Key 请求此平台的每秒频率上限，留空表示不限制。</p>
+                </div>
+
+                <div class="modal-footer" style="justify-content:flex-end;gap:8px">
+                    <button type="button" class="btn btn-secondary" onclick="closeEditPlatformModal()">取消</button>
+                    <button type="submit" class="btn btn-primary">保存设置</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 批量覆盖 支持平台 QPS Modal -->
+    <div id="batch-platform-qps-modal" class="modal-backdrop" style="display:none" aria-hidden="true">
+        <div class="modal-card" style="max-width:440px" role="dialog" aria-modal="true">
+            <div class="row between" style="margin-bottom:16px">
+                <h3 class="modal-title" style="margin:0">批量支持平台 QPS 限流</h3>
+                <button type="button" class="toast-close" onclick="closeBatchModal('batch-platform-qps-modal')" aria-label="关闭">&times;</button>
+            </div>
+            <p class="muted" style="margin-bottom:14px;font-size:13px">批量设置选中的 <strong class="platforms-table-selected-count">0</strong> 个支持平台的单 Key 限流阀值。</p>
+            <div class="field" style="margin:12px 0">
+                <label>单 Key 限制 QPS (留空表示不限制)</label>
+                <input type="number" id="batch-platform-qps-val" placeholder="留空表示不限制" min="1" max="1000">
+            </div>
+            <div class="modal-footer" style="margin-top:20px;justify-content:flex-end">
+                <button type="button" class="btn btn-secondary" onclick="closeBatchModal('batch-platform-qps-modal')">取消</button>
+                <button type="button" class="btn btn-primary" onclick="submitBatchPlatformQps()">确认更新</button>
+            </div>
+        </div>
+    </div>
+</main>
+
+<style>
+.domain-tag {
+    display: inline-block;
+    padding: 1.5px 6px;
+    font-size: 11.5px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    background: var(--bg-subtle);
+    color: var(--ink-secondary);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-xs);
+    white-space: nowrap;
+    max-width: 240px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+}
+.domain-more-toggle {
+    display: inline-block;
+    padding: 1.5px 6px;
+    font-size: 11px;
+    font-weight: 600;
+    background: var(--brand-light);
+    color: var(--brand);
+    border: 1px solid var(--brand-border);
+    border-radius: var(--radius-xs);
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.15s ease;
+}
+.domain-more-toggle:hover {
+    background: var(--brand-light-hover);
+}
+</style>
+
+<script>
+function openEditPlatformModal(name, enabled, qpsLimit, updateUrl) {
+    const modal = document.getElementById('edit-platform-modal');
+    const form = document.getElementById('edit-platform-form');
+    const title = document.getElementById('edit-platform-title');
+    const enabledInput = document.getElementById('edit-platform-enabled');
+    const qpsInput = document.getElementById('edit-platform-qps');
+
+    if (!modal || !form) return;
+
+    form.action = updateUrl;
+    title.textContent = `编辑「${name}」平台设置`;
+    enabledInput.checked = Boolean(enabled);
+    qpsInput.value = qpsLimit || '';
+    updateEditPlatformStatusLabel(Boolean(enabled));
+
+    modal.style.display = 'flex';
+    void modal.offsetHeight;
+    modal.classList.add('modal-open');
+}
+
+function closeEditPlatformModal() {
+    const modal = document.getElementById('edit-platform-modal');
+    if (!modal) return;
+    modal.classList.remove('modal-open');
+    setTimeout(() => { modal.style.display = 'none'; }, 180);
+}
+
+function updateEditPlatformStatusLabel(isEnabled) {
+    const badge = document.getElementById('edit-platform-status-badge');
+    if (!badge) return;
+    if (isEnabled) {
+        badge.className = 'badge';
+        badge.textContent = '开放中';
+    } else {
+        badge.className = 'badge off';
+        badge.textContent = '已暂停';
+    }
+}
+
+// 点击遮罩外部自动关闭
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('edit-platform-modal');
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeEditPlatformModal();
+        });
+    }
+});
+
+function toggleMoreDomains(btn) {
+    const extraList = btn.nextElementSibling;
+    if (!extraList) return;
+    const isHidden = extraList.style.display === 'none' || window.getComputedStyle(extraList).display === 'none';
+    if (isHidden) {
+        extraList.style.display = 'inline-flex';
+        btn.textContent = '收起';
+    } else {
+        extraList.style.display = 'none';
+        const count = extraList.querySelectorAll('.domain-tag').length;
+        btn.textContent = `+${count} 更多`;
+    }
+}
+</script>
+{% endblock %}
