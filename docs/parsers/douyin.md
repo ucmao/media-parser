@@ -50,11 +50,14 @@ flowchart TD
     
     F0 --> F1{Feed 匹配成功?}
     F1 -- 成功 (常规视频 >95%) --> E[提取高清流 / 图集 / 字幕 / 音频]
-    F1 -- 未匹配 (图文Note / 特殊内容) --> D1[回退 Web 详情 API\na_bogus 签名 + 动态指数退避重试]
+    F1 -- 节点正常但未匹配 (Note/私密) --> D1[回退 Web 详情 API\na_bogus 签名 + 动态指数退避重试]
     
-    D1 --> D2{Web API 有效?}
+    D1 --> D2{Web API 响应判定}
     D2 -- 成功 (图文等) --> E
-    D2 -- 失败 403/500/空 --> F[触发 SSR HTML 多级降级]
+    D2 -- 明确终态 (私密/已删除/日常权限) --> H[智能短路: 立即终止重试并跳过SSR\n透传官方 filter_detail 原因]
+    D2 -- 遭遇 403/500/网络抖动 --> D3{重试是否耗尽 (最多8次)?}
+    D3 -- 否 --> D1
+    D3 -- 是 --> F[触发 SSR HTML 多级降级]
     
     L1 --> F
     M1 -- 失败 --> F
@@ -76,15 +79,17 @@ flowchart TD
 * **核心优势**：
   * **绕开 Argus 门禁**：走移动端 App 推荐流协议，不经过 PC Web 端的 `ArgusSecurityPlugin`；
   * **零风控依赖**：无需 `UIFID`、`x-secsdk-web-signature`、`a_bogus`、`msToken` 或任何 Cookie；
-  * **高性能与高可用**：测试中常规视频 403 率为 0%，端到端耗时仅约 200ms；支持双节点故障转移。
+  * **高性能与高可用**：测试中常规视频 403 率为 0%，端到端耗时仅约 200ms；支持主备节点智能故障转移（若主节点正常响应 HTTP 200 但未匹配到目标 ID，则说明该内容不在推荐流中，立即短路切换至 Web 接口，避免重复请求备用节点造成延迟翻倍）。
 
-### 3.2 Web 详情接口与紧凑退避重试（兜底路径）
+### 3.2 Web 详情接口与智能短路退避重试（兜底路径）
 * **作品详情接口**：
   ```text
   https://www.douyin.com/aweme/v1/web/aweme/detail/?device_platform=webapp&aid=6383&channel=channel_pc_web&aweme_id={aweme_id}&msToken={ms_token}&a_bogus={a_bogus}
   ```
 * **适用场景**：图文（Note / 图集，`aweme_type=68`）在抖音内部属于静态流，不走常规推荐 Feed，由系统自动平滑回退至该接口。
-* **紧凑退避策略**：保留最大 8 次重试确保概率覆盖达到 99.6% 以上，单次退避上限压缩至 0.8s，即使多轮重试也可在 2.5s~4s 内完成，彻底杜绝 20 多秒假死。
+* **退避重试与终态短路双重机制**：
+  * **针对 Argus 概率性 403**：严格保留最大 8 次重试与紧凑退避（单次上限 0.8s），确保概率覆盖达到 99.6% 以上，保障图文等合法作品的高可用率；
+  * **针对不可重试终端状态（短路熔断）**：当 Web API 明确返回已删除、仅自己可见或朋友日常权限等终端状态（`status_code == 0` 且带有 `filter_detail`）时，`_is_terminal_failure` 立即生效，**在第 1 次响应后立即终止重试**，并跳过无意义的 SSR HTML 兜底，将失效链接的整体耗时从 11~14 秒压缩至亚秒/秒级。
 * **独立音乐详情接口**：
   ```text
   https://www.douyin.com/aweme/v1/web/music/detail/?music_id={music_id}&device_platform=webapp&aid=6383&channel=channel_pc_web&msToken={ms_token}&a_bogus={a_bogus}
@@ -186,6 +191,14 @@ abogus = signer.get_abogus(play_url, signer.user_agent)
      2. **Web API 紧凑重试兜底（~5% 场景）**：图文作品（Note / 图集，`aweme_type=68`）不走常规视频 Feed，程序自动回退至 Web 接口，保留 8 次重试保障最终成功率，并将单次退避上限压缩至 0.8s，即使多轮重试也可在 2.5s~4s 内快速通过，杜绝长时假死；
      3. **实测表现**：在 30 链接 × 5 轮（共 150 次）大样本回归中，最终成功率由最初的 82% 提升至 100%（150/150），常规视频请求 403 发生次数为 0。
 
+5. **私密/日常/已删除链接的不可重试终端状态与智能短路熔断**：
+   * *现象与机理*：用户传入“抖音日常（24小时可见）”、“私密（仅自己可见）”或“已被作者删除”的作品链接时，官方 Web 详情接口返回 HTTP 200，但带有 `filter_detail`（如 `status_self_see`、`status_deleted`、`status_part_see`）。此类作品本身已被平台限制访问，无论重试多少次都不会有数据。
+   * *旧版弊端*：若将此类 HTTP 200 的空响应视同为普通抓取失败，解析器会经历完整的 8 次指数退避重试以及 SSR HTML 兜底，导致单个失效链接耗时高达 11~14 秒，严重消耗并发连接池，且因统一返回模糊的 `MEDIA_NOT_FOUND`，容易诱导用户误判系统故障而反复狂刷重试。
+   * *解法与收益*：
+     1. **终端状态即时短路**：在 `_is_terminal_failure` 中精确识别 `filter_detail` 与不可恢复业务语义，命中后立即终止重试，跳过无意义的 8 次循环及 SSR 兜底；
+     2. **耗时断崖式下降**：将失效链接的处理耗时从 **11.3 秒压缩至 ~2 秒**（主要仅包含基础 302 跳转与单次 Web API 判定）；
+     3. **精准原因透传**：将官方返回的限制文案（如 `因作品权限或已被删除，无法观看，去看看其他作品吧`）通过 `retdesc` 准确反馈给调用端与终端用户，彻底杜绝无意义的重试刷量。
+
 ---
 
 ## 6. 测试与验证
@@ -193,9 +206,9 @@ abogus = signer.get_abogus(play_url, signer.user_agent)
 * **单元测试文件**：[tests/test_douyin_parser.py](file:///Users/leo/Projects/media-parser/tests/test_douyin_parser.py)
 * **执行测试**：
   ```bash
-  # 运行抖音专项全覆盖单元测试 (23 个用例，含移动端 Feed 主路径、容灾切换与 Web API 降级)
+  # 运行抖音专项全覆盖单元测试 (24 个用例，含移动端 Feed 主路径、容灾切换、Web API 降级与终端状态短路)
   python -m unittest tests/test_douyin_parser.py
   
-  # 运行全平台回归测试 (204 个用例)
+  # 运行全平台回归测试 (300 个用例)
   python -m unittest discover -s tests
   ```

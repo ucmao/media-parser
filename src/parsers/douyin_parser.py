@@ -185,6 +185,36 @@ class DouyinParser(BaseParser):
                 logger.warning(f"Failed to get dynamic ttwid: {e}")
                 return None
 
+    def _is_terminal_failure(self, data):
+        """
+        判断接口响应是否为明确的不可重试终端状态（如作品已被删除、仅自己可见、朋友日常权限限制等）。
+        当命中终态时，无需经历 8 次指数退避重试，可直接短路退出以节省系统资源与等待耗时。
+        """
+        if not isinstance(data, dict):
+            return False
+
+        # 1. 含有明确的 filter_detail 过滤原因（如 status_self_see, status_deleted, status_part_see 等）
+        filter_detail = data.get('filter_detail')
+        if isinstance(filter_detail, dict):
+            if filter_detail.get('filter_reason') or filter_detail.get('detail_msg') or filter_detail.get('notice'):
+                return True
+
+        # 2. status_code 为 0 且明确带有 filter_detail
+        if data.get('status_code') == 0 and 'filter_detail' in data and data.get('filter_detail') is not None:
+            return True
+
+        # 3. status_msg 或 filter_msg 含有明确的不可恢复业务语义
+        status_msg = str(data.get('status_msg') or '')
+        terminal_keywords = ('已删除', '不存在', '私密', '权限', '无法查看', '不见了')
+        if any(kw in status_msg for kw in terminal_keywords):
+            return True
+
+        filter_msg = str((data.get('filter_detail') or {}).get('detail_msg') or '')
+        if any(kw in filter_msg for kw in terminal_keywords):
+            return True
+
+        return False
+
     def _request_api_with_retry(self, base_api, referer, validate, max_attempts=None):
         """
         带指数退避 + 抖动的抖音 Web 接口请求，用于抵御 Argus 网关的概率性 403。
@@ -218,6 +248,15 @@ class DouyinParser(BaseParser):
                     data = response.json()
                     if validate(data):
                         return data
+                    if self._is_terminal_failure(data):
+                        filter_msg = ((data.get('filter_detail') or {}).get('detail_msg')
+                                      or (data.get('filter_detail') or {}).get('notice')
+                                      or data.get('status_msg')
+                                      or "作品权限受限或已被删除")
+                        filter_reason = (data.get('filter_detail') or {}).get('filter_reason') or "terminal_status"
+                        logger.info(f"抖音接口返回明确的不可重试终端状态 ({filter_reason}: {filter_msg})，立即终止重试: {base_api.split('?')[0]}")
+                        self._terminal_filter_detail = data.get('filter_detail') or {"filter_reason": filter_reason, "detail_msg": filter_msg}
+                        return None
             except Exception as e:
                 logger.debug(f"请求抖音接口异常 (第 {attempt + 1}/{attempts} 次): {e}")
 
@@ -263,6 +302,8 @@ class DouyinParser(BaseParser):
                     if matched:
                         logger.info(f"Successfully fetched Douyin video detail via mobile feed API: {aweme_id}")
                         return {"aweme_detail": matched}
+                    # 节点响应正常(200)但未匹配到作品(如 Note 图文或私密作品)，无需再去备用节点重复请求
+                    break
             except Exception as e:
                 logger.debug(f"Mobile feed API failed on {endpoint}: {e}")
                 continue
@@ -592,6 +633,11 @@ class DouyinParser(BaseParser):
         )
         if data:
             return data
+
+        # 如果 Web API 已明确返回终端过滤状态（如私密/已删除/日常不可见），无需再进行耗时的 SSR HTML 抓取
+        if getattr(self, '_terminal_filter_detail', None):
+            logger.info(f"作品确认处于明确的不可用终端状态，跳过 SSR HTML 兜底解析: {self.real_url}")
+            return None
 
         # 3. 多级容灾降级：当 API 失败时，从页面 SSR HTML 提取数据
         logger.info(f"抖音 a_bogus API 未返回有效详情，触发 SSR HTML 兜底解析: {self.real_url}")

@@ -723,6 +723,36 @@ class DouyinParserTest(unittest.TestCase):
                 self.assertEqual(parser.data["aweme_detail"]["desc"], "Web API 兜底图文")
                 mock_web_api.assert_called_once()
 
+    def test_terminal_failure_stops_retry_immediately(self):
+        aweme_id = "7683421854267204985"
+        terminal_payload = {
+            "status_code": 0,
+            "aweme_detail": None,
+            "filter_detail": {
+                "aweme_id": aweme_id,
+                "detail_msg": "因作品权限或已被删除，无法观看，去看看其他作品吧",
+                "filter_reason": "status_self_see",
+                "notice": "抱歉，作品不见了"
+            }
+        }
+        mock_resp = Mock(status_code=200, text=json.dumps(terminal_payload))
+        mock_resp.json.return_value = terminal_payload
+
+        with patch.object(DouyinParser, "_request_mobile_feed", return_value=None):
+            with patch.object(DouyinParser, "fetch_html_content") as mock_ssr:
+                with patch("requests.Session.get", return_value=mock_resp) as mock_get:
+                    parser = DouyinParser(f"https://www.douyin.com/video/{aweme_id}")
+                    # 应该在第 1 次拿到 terminal 响应后立即退出，不能重试 8 次
+                    self.assertEqual(mock_get.call_count, 1)
+                    # 应该跳过 SSR 兜底
+                    mock_ssr.assert_not_called()
+                    self.assertIsNone(parser.data)
+                    self.assertEqual(
+                        parser._terminal_filter_detail.get("filter_reason"),
+                        "status_self_see"
+                    )
+
 
 if __name__ == "__main__":
     unittest.main()
+

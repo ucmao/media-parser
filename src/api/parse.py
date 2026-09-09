@@ -134,6 +134,12 @@ def _execute_parse(text, access):
             if platform in ('视频号', '微信视频号'):
                 response, status = make_response(400, '解析失败：该链接需要配置腾讯元宝 YUANBAO_COOKIE 凭证后重试', None, False, 'WECHAT_CHANNELS_COOKIE_REQUIRED'), 400
                 return response, status
+            terminal_detail = getattr(parser, '_terminal_filter_detail', None)
+            if isinstance(terminal_detail, dict):
+                detail_msg = terminal_detail.get('detail_msg') or terminal_detail.get('notice')
+                if isinstance(detail_msg, str) and detail_msg.strip():
+                    response, status = make_response(400, detail_msg.strip(), None, False, 'MEDIA_NOT_FOUND'), 400
+                    return response, status
             response, status = make_response(400, '提取媒体内容失败，请检查链接或稍后重试', None, False, 'MEDIA_NOT_FOUND'), 400
             return response, status
 
