@@ -133,6 +133,9 @@ class DoubaoParser(BaseParser):
         if clean_video_urls:
             video_urls = clean_video_urls
 
+        if not video_urls and not image_urls:
+            self.no_media_in_content = True
+
         return {
             "title": self._find_title(roots) or "豆包对话分享",
             "video_url": video_urls[0] if video_urls else None,

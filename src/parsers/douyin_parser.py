@@ -256,6 +256,7 @@ class DouyinParser(BaseParser):
                         filter_reason = (data.get('filter_detail') or {}).get('filter_reason') or "terminal_status"
                         logger.info(f"抖音接口返回明确的不可重试终端状态 ({filter_reason}: {filter_msg})，立即终止重试: {base_api.split('?')[0]}")
                         self._terminal_filter_detail = data.get('filter_detail') or {"filter_reason": filter_reason, "detail_msg": filter_msg}
+                        self.terminal_error = self._terminal_filter_detail
                         return None
             except Exception as e:
                 logger.debug(f"请求抖音接口异常 (第 {attempt + 1}/{attempts} 次): {e}")

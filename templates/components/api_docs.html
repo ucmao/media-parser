@@ -132,19 +132,24 @@
                                     <td class="px-3.5 py-2.5 text-slate-600">请求是否成功：<code class="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded font-mono border border-emerald-200/60">true</code> 成功；<code class="text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded font-mono border border-rose-200/60">false</code> 失败。</td>
                                 </tr>
                                 <tr>
-                                    <td class="px-3.5 py-2.5"><code class="font-mono text-xs font-semibold text-slate-800 bg-slate-100/90 px-2 py-0.5 rounded border border-slate-200/60">code</code></td>
-                                    <td class="px-3.5 py-2.5 text-slate-500">Integer / String</td>
-                                    <td class="px-3.5 py-2.5 text-slate-600">状态码。成功时固定为 <code class="font-mono text-xs px-1.5 py-0.5 rounded bg-slate-100 text-slate-800 border border-slate-200/50">200</code>，失败时为对应错误标识。</td>
+                                    <td class="px-3.5 py-2.5"><code class="font-mono text-xs font-semibold text-slate-800 bg-slate-100/90 px-2 py-0.5 rounded border border-slate-200/60">retcode</code></td>
+                                    <td class="px-3.5 py-2.5 text-slate-500">Integer</td>
+                                    <td class="px-3.5 py-2.5 text-slate-600">业务响应状态码。成功时为 <code class="font-mono text-xs px-1.5 py-0.5 rounded bg-slate-100 text-slate-800 border border-slate-200/50">200</code>，失败时为对应 HTTP 状态（如 400, 401, 402, 429, 503 等）。</td>
                                 </tr>
                                 <tr>
-                                    <td class="px-3.5 py-2.5"><code class="font-mono text-xs font-semibold text-slate-800 bg-slate-100/90 px-2 py-0.5 rounded border border-slate-200/60">message</code></td>
+                                    <td class="px-3.5 py-2.5"><code class="font-mono text-xs font-semibold text-slate-800 bg-slate-100/90 px-2 py-0.5 rounded border border-slate-200/60">retdesc</code></td>
                                     <td class="px-3.5 py-2.5 text-slate-500">String</td>
-                                    <td class="px-3.5 py-2.5 text-slate-600">提示信息或异常错误原因。</td>
+                                    <td class="px-3.5 py-2.5 text-slate-600">提示信息或官方/系统异常原因说明。</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-3.5 py-2.5"><code class="font-mono text-xs font-semibold text-slate-800 bg-slate-100/90 px-2 py-0.5 rounded border border-slate-200/60">error_code</code></td>
+                                    <td class="px-3.5 py-2.5 text-slate-500">String</td>
+                                    <td class="px-3.5 py-2.5 text-slate-600">失败时返回的机器可读标准错误标识（如 <code class="font-mono text-[11px]">MEDIA_DELETED_OR_PRIVATE</code>、<code class="font-mono text-[11px]">NO_MEDIA_IN_CONTENT</code>、<code class="font-mono text-[11px]">RATE_LIMITED</code> 等，详见第 5 节）。</td>
                                 </tr>
                                 <tr>
                                     <td class="px-3.5 py-2.5"><code class="font-mono text-xs font-semibold text-slate-800 bg-slate-100/90 px-2 py-0.5 rounded border border-slate-200/60">data</code></td>
-                                    <td class="px-3.5 py-2.5 text-slate-500">Object</td>
-                                    <td class="px-3.5 py-2.5 text-slate-600">解析成功返回的媒体实体数据对象。</td>
+                                    <td class="px-3.5 py-2.5 text-slate-500">Object / null</td>
+                                    <td class="px-3.5 py-2.5 text-slate-600">解析成功返回的媒体实体数据对象，失败时为 <code class="font-mono text-xs text-slate-400">null</code>。</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -267,42 +272,62 @@
                                 <tr>
                                     <td class="px-3.5 py-2.5"><span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-mono font-medium bg-rose-50 text-rose-700 border border-rose-200/60">400</span></td>
                                     <td class="px-3.5 py-2.5"><code class="font-mono text-xs font-semibold text-slate-800 bg-slate-100/90 px-2 py-0.5 rounded border border-slate-200/60">PLATFORM_NOT_SUPPORTED</code></td>
-                                    <td class="px-3.5 py-2.5 text-slate-600 leading-relaxed">目标平台域名不在支持列表中，或属于仅好友可见的私密作品。</td>
+                                    <td class="px-3.5 py-2.5 text-slate-600 leading-relaxed">目标平台域名不在支持列表中。</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-3.5 py-2.5"><span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-mono font-medium bg-rose-50 text-rose-700 border border-rose-200/60">400</span></td>
+                                    <td class="px-3.5 py-2.5"><code class="font-mono text-xs font-semibold text-slate-800 bg-slate-100/90 px-2 py-0.5 rounded border border-slate-200/60">MEDIA_DELETED_OR_PRIVATE</code></td>
+                                    <td class="px-3.5 py-2.5 text-slate-600 leading-relaxed">目标内容为私密作品、仅好友可见的日常/动态，或已被作者删除下架。</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-3.5 py-2.5"><span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-mono font-medium bg-rose-50 text-rose-700 border border-rose-200/60">400</span></td>
+                                    <td class="px-3.5 py-2.5"><code class="font-mono text-xs font-semibold text-slate-800 bg-slate-100/90 px-2 py-0.5 rounded border border-slate-200/60">NO_MEDIA_IN_CONTENT</code></td>
+                                    <td class="px-3.5 py-2.5 text-slate-600 leading-relaxed">目标分享内容（如 AI 问答对话）仅包含文本，未包含图片或视频多媒体资源。</td>
                                 </tr>
                                 <tr>
                                     <td class="px-3.5 py-2.5"><span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-mono font-medium bg-rose-50 text-rose-700 border border-rose-200/60">400</span></td>
                                     <td class="px-3.5 py-2.5"><code class="font-mono text-xs font-semibold text-slate-800 bg-slate-100/90 px-2 py-0.5 rounded border border-slate-200/60">MEDIA_NOT_FOUND</code></td>
-                                    <td class="px-3.5 py-2.5 text-slate-600 leading-relaxed">源视频已被创作者删除、设为私密，或触发了平台风控验证。</td>
+                                    <td class="px-3.5 py-2.5 text-slate-600 leading-relaxed">未能从该链接提取到媒体内容，请检查链接有效性或稍后重试。</td>
                                 </tr>
                                 <tr>
                                     <td class="px-3.5 py-2.5"><span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-mono font-medium bg-rose-50 text-rose-700 border border-rose-200/60">400</span></td>
                                     <td class="px-3.5 py-2.5"><code class="font-mono text-xs font-semibold text-slate-800 bg-slate-100/90 px-2 py-0.5 rounded border border-slate-200/60">COOKIE_REQUIRED</code></td>
-                                    <td class="px-3.5 py-2.5 text-slate-600 leading-relaxed">目标平台需要服务端 Cookie。请在管理后台「系统设置 - Cookie管理」中配置有效凭据。</td>
+                                    <td class="px-3.5 py-2.5 text-slate-600 leading-relaxed">目标平台需要服务端 Cookie 凭据校验（如小红书 <code class="font-mono text-[11px]">XIAOHONGSHU_COOKIE_REQUIRED</code>、拼多多 <code class="font-mono text-[11px]">PINDUODUO_COOKIE_REQUIRED</code>、微信视频号 <code class="font-mono text-[11px]">WECHAT_CHANNELS_COOKIE_REQUIRED</code> 等）。请在管理后台「系统设置 - Cookie管理」中配置有效凭据。</td>
                                 </tr>
                                 <tr>
                                     <td class="px-3.5 py-2.5"><span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-mono font-medium bg-amber-50 text-amber-700 border border-amber-200/60">401</span></td>
-                                    <td class="px-3.5 py-2.5"><code class="font-mono text-xs font-semibold text-slate-800 bg-slate-100/90 px-2 py-0.5 rounded border border-slate-200/60">INVALID_KEY</code></td>
-                                    <td class="px-3.5 py-2.5 text-slate-600 leading-relaxed">未提供 API Key，或 Key 已被禁用、删除。</td>
+                                    <td class="px-3.5 py-2.5"><code class="font-mono text-xs font-semibold text-slate-800 bg-slate-100/90 px-2 py-0.5 rounded border border-slate-200/60">API_KEY_REQUIRED</code></td>
+                                    <td class="px-3.5 py-2.5 text-slate-600 leading-relaxed">请求头或查询参数中未提供 API Key 凭证。</td>
                                 </tr>
                                 <tr>
                                     <td class="px-3.5 py-2.5"><span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-mono font-medium bg-amber-50 text-amber-700 border border-amber-200/60">401</span></td>
-                                    <td class="px-3.5 py-2.5"><code class="font-mono text-xs font-semibold text-slate-800 bg-slate-100/90 px-2 py-0.5 rounded border border-slate-200/60">EXPIRED_USER</code></td>
+                                    <td class="px-3.5 py-2.5"><code class="font-mono text-xs font-semibold text-slate-800 bg-slate-100/90 px-2 py-0.5 rounded border border-slate-200/60">INVALID_API_KEY</code></td>
+                                    <td class="px-3.5 py-2.5 text-slate-600 leading-relaxed">提供的 API Key 不存在或已被删除。</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-3.5 py-2.5"><span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-mono font-medium bg-amber-50 text-amber-700 border border-amber-200/60">403</span></td>
+                                    <td class="px-3.5 py-2.5"><code class="font-mono text-xs font-semibold text-slate-800 bg-slate-100/90 px-2 py-0.5 rounded border border-slate-200/60">API_KEY_DISABLED</code></td>
+                                    <td class="px-3.5 py-2.5 text-slate-600 leading-relaxed">该 API Key 或关联的客户账号已被管理员停用。</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-3.5 py-2.5"><span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-mono font-medium bg-amber-50 text-amber-700 border border-amber-200/60">403</span></td>
+                                    <td class="px-3.5 py-2.5"><code class="font-mono text-xs font-semibold text-slate-800 bg-slate-100/90 px-2 py-0.5 rounded border border-slate-200/60">ACCOUNT_EXPIRED</code></td>
                                     <td class="px-3.5 py-2.5 text-slate-600 leading-relaxed">账号使用期限已到期，请联系管理员续期。</td>
                                 </tr>
                                 <tr>
                                     <td class="px-3.5 py-2.5"><span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-mono font-medium bg-amber-50 text-amber-700 border border-amber-200/60">402</span></td>
                                     <td class="px-3.5 py-2.5"><code class="font-mono text-xs font-semibold text-slate-800 bg-slate-100/90 px-2 py-0.5 rounded border border-slate-200/60">INSUFFICIENT_CREDITS</code></td>
-                                    <td class="px-3.5 py-2.5 text-slate-600 leading-relaxed">账号可用点数已耗尽（剩余 0 点），请充值或调整额度。</td>
+                                    <td class="px-3.5 py-2.5 text-slate-600 leading-relaxed">账号可用解析积分已耗尽（剩余 0 点），请充值或调整额度。</td>
                                 </tr>
                                 <tr>
                                     <td class="px-3.5 py-2.5"><span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-mono font-medium bg-yellow-50 text-yellow-800 border border-yellow-200/60">429</span></td>
                                     <td class="px-3.5 py-2.5"><code class="font-mono text-xs font-semibold text-slate-800 bg-slate-100/90 px-2 py-0.5 rounded border border-slate-200/60">RATE_LIMITED</code></td>
-                                    <td class="px-3.5 py-2.5 text-slate-600 leading-relaxed">超出并发 QPS 阈值，请在客户端增加重试与指数退避。</td>
+                                    <td class="px-3.5 py-2.5 text-slate-600 leading-relaxed">超出当前账号、API Key 或平台的并发 QPS 阈值，请在客户端增加重试与指数退避。</td>
                                 </tr>
                                 <tr>
                                     <td class="px-3.5 py-2.5"><span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-mono font-medium bg-slate-100 text-slate-700 border border-slate-200/60">503</span></td>
                                     <td class="px-3.5 py-2.5"><code class="font-mono text-xs font-semibold text-slate-800 bg-slate-100/90 px-2 py-0.5 rounded border border-slate-200/60">API_DISABLED</code></td>
-                                    <td class="px-3.5 py-2.5 text-slate-600 leading-relaxed">系统全局 API 服务被超级管理员临时维护关闭。</td>
+                                    <td class="px-3.5 py-2.5 text-slate-600 leading-relaxed">系统全局 API 服务或特定平台被管理员临时维护关闭。</td>
                                 </tr>
                             </tbody>
                         </table>

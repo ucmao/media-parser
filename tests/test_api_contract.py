@@ -124,6 +124,21 @@ class ApiContractTest(unittest.TestCase):
             with self.subTest(url=url):
                 self.assert_bad_request(self.post_with_parser(empty_parser, url), message, error_code)
 
+    def test_terminal_deleted_or_private_error_contract(self):
+        terminal_parser = self.parser(video_url=None, video_list=[], image_list=[])
+        terminal_parser.terminal_error = {
+            "filter_reason": "status_self_see",
+            "detail_msg": "因作品权限或已被删除，无法观看，去看看其他作品吧"
+        }
+        response = self.post_with_parser(terminal_parser, "https://www.douyin.com/video/1")
+        self.assert_bad_request(response, "因作品权限或已被删除，无法观看，去看看其他作品吧", "MEDIA_DELETED_OR_PRIVATE")
+
+    def test_no_media_in_content_error_contract(self):
+        text_parser = self.parser(video_url=None, video_list=[], image_list=[], title="豆包对话分享")
+        text_parser.no_media_in_content = True
+        response = self.post_with_parser(text_parser, "https://www.doubao.com/thread/123")
+        self.assert_bad_request(response, "该分享内容仅包含文本对话，未包含图片或视频资源", "NO_MEDIA_IN_CONTENT")
+
     def test_normalizes_and_deduplicates_media_urls(self):
         parser = self.parser(
             video_url="http://cdn.example/main.mp4",

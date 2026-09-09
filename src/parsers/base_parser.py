@@ -10,6 +10,8 @@ class BaseParser:
         self.headers = None
         self.html_content = None
         self.session = requests.Session()
+        self.terminal_error = None
+        self.no_media_in_content = False
 
     def get_real_video_url(self):
         raise NotImplementedError
