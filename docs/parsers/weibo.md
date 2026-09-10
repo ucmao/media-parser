@@ -28,7 +28,8 @@
 ### 2.2 视频流、直播回放与图文分支提取
 * **分支 1 (视频专页 `1034:xxx` 与直播回放 `1022:xxx`)**：
   * 识别 `fid=1034:...`、`/tv/show/1034:...` 以及 `/l/wblive/p/show/1022:...`；
-  * 初始化访客凭证后调用组件接口 `https://weibo.com/tv/api/component`，通过 `Component_Play_Playinfo` 提取最高清播放直链。
+  * 初始化访客凭证后，针对视频先调用组件接口 `https://weibo.com/tv/api/component` (`Component_Play_Playinfo`)；
+  * 针对微博直播（`1022:...`）链接，若组件接口未返回媒体数据，进一步请求 `https://weibo.com/l/!/2/wblive/room/show_pc_live.json?live_id=1022:...` 提取直播/回放地址（`replay_origin_url` / `live_origin_hls_url`）、封面及主播信息。
 * **分支 2 (标准微博动态 `statuses/show`)**：
   * 从 `page_info.media_info.playback_list` 获取不同分辨率的 MP4 直链；
   * 从 `pic_infos` 遍历提取 `large` 或 `original` 档位高清原图。

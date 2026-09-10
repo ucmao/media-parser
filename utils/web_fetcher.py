@@ -212,7 +212,28 @@ class UrlParser:
         elif platform == "即梦AI":
             query_params = parse_qs(parsed_url.query)
             preserved_params = []
-            for key in ('item_id', 'id'):
+            for key in (
+                'item_id',
+                'id',
+                'published_item_id',
+                'search_keyword',
+                'share_token',
+                'share_sec_uid',
+                'share_sec_did',
+                'share_campaign_key',
+                'share_category',
+                'share_from',
+                'ct',
+                'ab_vid',
+                'scene',
+                'reward_type',
+                'is_self_create_apperance',
+                'author_id',
+                'template_type_id',
+                'workDetailType',
+                'itemType',
+                'act_key',
+            ):
                 value = query_params.get(key, [None])[0]
                 if value is not None:
                     preserved_params.append((key, value))

@@ -82,6 +82,25 @@ class WeiboParserTest(unittest.TestCase):
         self.assertEqual(parser._extract_video_oid(), "1022:2321325311149536575703")
         self.assertEqual(parser._extract_id(), "2321325311149536575703")
 
+    def test_wblive_fields(self):
+        parser = WeiboParser.__new__(WeiboParser)
+        parser.post_data = {
+            "title": "直播标题",
+            "cover": "https://wx2.sinaimg.cn/large/cover.jpg",
+            "replay_origin_url": "http://live.video.weibocdn.com/replay.m3u8",
+            "user": {
+                "screenName": "主播昵称",
+                "uid": 123456,
+                "avatar": "https://tvax1.sinaimg.cn/avatar.jpg"
+            }
+        }
+        self.assertEqual(parser.get_real_video_url(), "http://live.video.weibocdn.com/replay.m3u8")
+        self.assertEqual(parser.get_cover_photo_url(), "https://wx2.sinaimg.cn/large/cover.jpg")
+        self.assertEqual(parser.get_title_content(), "直播标题")
+        self.assertEqual(parser.get_author_info()["nickname"], "主播昵称")
+        self.assertEqual(parser.get_author_info()["author_id"], "123456")
+        self.assertEqual(parser.get_author_info()["avatar"], "https://tvax1.sinaimg.cn/avatar.jpg")
+
 
 if __name__ == "__main__":
     unittest.main()

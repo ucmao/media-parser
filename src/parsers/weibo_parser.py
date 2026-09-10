@@ -198,9 +198,26 @@ class WeiboParser(BaseParser):
             )
             data = response.json()
             if data.get("code") == "100000":
-                return data.get("data", {}).get("Component_Play_Playinfo", {})
+                play_info = data.get("data", {}).get("Component_Play_Playinfo")
+                if play_info:
+                    return play_info
         except Exception as exc:
             logger.warning(f"Weibo video component fetch failed: {exc}")
+
+        if self.video_oid and self.video_oid.startswith("1022:"):
+            try:
+                response = self.session.get(
+                    "https://weibo.com/l/!/2/wblive/room/show_pc_live.json",
+                    params={"live_id": self.video_oid},
+                    headers={**self.headers, "Referer": self.real_url},
+                    timeout=10,
+                )
+                data = response.json()
+                if data.get("code") == 100000 and data.get("data"):
+                    return data.get("data")
+            except Exception as exc:
+                logger.warning(f"Weibo live room fetch failed: {exc}")
+
         return {}
 
     def _fallback_fetch_ajax(self):
@@ -236,6 +253,14 @@ class WeiboParser(BaseParser):
 
     def get_real_video_url(self):
         try:
+            live_url = (
+                self.post_data.get('replay_origin_url')
+                or self.post_data.get('live_origin_hls_url')
+                or self.post_data.get('live_origin_flv_url')
+            )
+            if live_url:
+                return f"https:{live_url}" if live_url.startswith("//") else live_url
+
             urls = self.post_data.get("urls", {})
             if urls:
                 url = next((value for value in urls.values() if value), None)
@@ -268,6 +293,7 @@ class WeiboParser(BaseParser):
             self.post_data.get('text_raw', '')
             or self.post_data.get('text', '')
             or self.post_data.get('content', '')
+            or self.post_data.get('title', '')
         )
         # Simple cleanup if there is HTML
         content = re.sub(r'<[^>]+>', '', content)
@@ -275,7 +301,7 @@ class WeiboParser(BaseParser):
 
     def get_cover_photo_url(self):
         try:
-            cover = self.post_data.get("cover_image")
+            cover = self.post_data.get("cover") or self.post_data.get("cover_image")
             if cover:
                 return f"https:{cover}" if cover.startswith("//") else cover
             page_info = self.post_data.get('page_info', {})
@@ -298,9 +324,9 @@ class WeiboParser(BaseParser):
             if not user and not self.post_data.get("author"):
                 return None
             return {
-                "nickname": user.get('screen_name', '') or self.post_data.get("author", ""),
-                "author_id": str(user.get('id', '') or self.post_data.get("author_id", "")),
-                "avatar": user.get('avatar_hd', '') or user.get('profile_image_url', '') or self.post_data.get("avatar", "")
+                "nickname": user.get('screen_name', '') or user.get('screenName', '') or self.post_data.get("author", ""),
+                "author_id": str(user.get('id', '') or user.get('uid', '') or self.post_data.get("author_id", "")),
+                "avatar": user.get('avatar_hd', '') or user.get('profile_image_url', '') or user.get('avatar', '') or self.post_data.get("avatar", "")
             }
         except:
             return None
