@@ -4,9 +4,15 @@
 <main class="min-h-screen flex items-center justify-center p-4 bg-slate-50 relative selection:bg-indigo-100 selection:text-indigo-900">
     <div class="w-full max-w-md">
         <div class="text-center mb-8">
+            {% if homepage_enabled %}
             <a href="{{ url_for('web.index') }}" title="返回首页" class="inline-flex items-center justify-center mb-3">
                 <img src="{{ url_for('static', filename='images/logo-web.png') }}" alt="Media Parser Logo" class="w-12 h-12 rounded-2xl border border-slate-200 bg-white p-1 shadow-sm hover:scale-105 transition">
             </a>
+            {% else %}
+            <div class="inline-flex items-center justify-center mb-3">
+                <img src="{{ url_for('static', filename='images/logo-web.png') }}" alt="Media Parser Logo" class="w-12 h-12 rounded-2xl border border-slate-200 bg-white p-1 shadow-sm">
+            </div>
+            {% endif %}
             <h2 class="text-xl font-bold text-slate-900 tracking-tight">Media Parser 控制台</h2>
             <p class="text-xs text-slate-500 mt-1">多平台媒体解析与开放 API</p>
         </div>
@@ -52,12 +58,14 @@
             </form>
         </div>
 
+        {% if homepage_enabled %}
         <div class="text-center mt-6">
             <a href="{{ url_for('web.index') }}" class="text-xs text-slate-500 hover:text-slate-800 transition inline-flex items-center gap-1.5 font-medium">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
                 返回首页在线体验
             </a>
         </div>
+        {% endif %}
     </div>
 </main>
 

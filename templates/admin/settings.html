@@ -39,12 +39,14 @@
 
                     <div class="py-3.5 first:pt-0 last:pb-0 flex items-center justify-between gap-4">
                         <div>
-                            <div class="font-medium text-slate-900">首页在线体验</div>
-                            <div class="text-xs text-slate-500 mt-0.5">允许访客在首页未登录状态下直接体验视频解析功能</div>
+                            <div class="font-medium text-slate-900">开放公开首页</div>
+                            <div class="text-xs text-slate-500 mt-0.5">允许访客访问产品宣传主页；关闭后访问根路径直接跳转至登录页（私密模式）</div>
                         </div>
                         <div class="shrink-0">
-                            <label class="switch-toggle" title="切换首页在线体验状态">
-                                <input type="checkbox" name="demo_enabled" {{ 'checked' if settings.get('demo_enabled')=='1' }} onchange="triggerSettingsSubmit(this)">
+                            <label class="switch-toggle" title="切换公开首页状态">
+                                <input type="checkbox" id="homepage-toggle" name="homepage_enabled"
+                                    {{ 'checked' if settings.get('homepage_enabled', '1')=='1' }}
+                                    onchange="triggerSettingsSubmit(this)">
                                 <span class="switch-slider"></span>
                             </label>
                         </div>
@@ -52,12 +54,13 @@
 
                     <div class="py-3.5 first:pt-0 last:pb-0 flex items-center justify-between gap-4">
                         <div>
-                            <div class="font-medium text-slate-900">开放用户注册</div>
-                            <div class="text-xs text-slate-500 mt-0.5">允许新用户在登录页面自主申请与注册客户账号</div>
+                            <div class="font-medium text-slate-900">首页在线体验</div>
+                            <div class="text-xs text-slate-500 mt-0.5">允许访客在首页未登录状态下直接体验视频解析功能</div>
                         </div>
                         <div class="shrink-0">
-                            <label class="switch-toggle" title="切换用户自主注册开关">
-                                <input type="checkbox" name="registration_enabled" {{ 'checked' if settings.get('registration_enabled')=='1' }} onchange="triggerSettingsSubmit(this)">
+                            <label class="switch-toggle" title="切换首页在线体验状态">
+                                <input type="checkbox" name="demo_enabled" {{ 'checked' if
+                                    settings.get('demo_enabled')=='1' }} onchange="triggerSettingsSubmit(this)">
                                 <span class="switch-slider"></span>
                             </label>
                         </div>
@@ -65,45 +68,112 @@
                 </div>
             </section>
 
-            <!-- 分组 2：新账号初始参数 -->
+            <!-- 分组 2：用户注册与新账号配置 -->
+            {% set registration_enabled = (settings.get('registration_enabled', '1') == '1') %}
             <section class="bg-white rounded-xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-5">
                 <div class="border-b border-slate-100 pb-3">
                     <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
                         <span class="text-brand flex items-center justify-center">{{ icon('user', 'w-4 h-4') }}</span>
-                        新账号初始参数配置
+                        用户注册与新账号配置
                     </h2>
                 </div>
-                <div class="divide-y divide-slate-100 text-sm">
-                    <div class="py-3.5 first:pt-0 last:pb-0 flex items-center justify-between gap-4">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between gap-4">
                         <div>
-                            <div class="font-medium text-slate-900">默认 QPS 限制</div>
-                            <div class="text-xs text-slate-500 mt-0.5">新账号注册时默认分配的每秒并发请求数上限 (1 ~ 1000)</div>
+                            <div class="font-medium text-slate-900 text-sm">开放用户注册</div>
+                            <div class="text-xs text-slate-500 mt-0.5">允许新用户在登录页面自主申请与注册客户账号</div>
                         </div>
-                        <div class="relative rounded-lg w-28 shrink-0">
-                            <input type="number" min="1" max="1000" name="default_user_qps" value="{{ settings.get('default_user_qps','2') }}" onchange="triggerSettingsSubmit(this)" class="w-full pl-3 pr-11 py-1.5 text-xs text-right font-mono font-bold rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-slate-50/50">
-                            <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-[11px] font-semibold text-slate-400">QPS</span>
+                        <div class="shrink-0">
+                            <label class="switch-toggle" title="切换用户注册开关">
+                                <input type="checkbox" id="registration-toggle" name="registration_enabled" {{ 'checked'
+                                    if registration_enabled }} onchange="toggleRegistrationDetails(this)">
+                                <span class="switch-slider"></span>
+                            </label>
                         </div>
                     </div>
 
-                    <div class="py-3.5 first:pt-0 last:pb-0 flex items-center justify-between gap-4">
-                        <div>
-                            <div class="font-medium text-slate-900">默认试用天数</div>
-                            <div class="text-xs text-slate-500 mt-0.5">新注册客户默认享有的系统试用时长 (0 ~ 365 天)</div>
+                    <!-- 联动折叠卡片：新注册初始参数 -->
+                    <div id="registration-collapse-panel" class="pt-4 border-t border-slate-100 space-y-3.5"
+                        style="{{ 'display:none;' if not registration_enabled else '' }}">
+                        <div class="text-xs font-semibold text-slate-700 mb-2 flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-brand"></span>
+                            新注册账号默认初始参数
                         </div>
-                        <div class="relative rounded-lg w-28 shrink-0">
-                            <input type="number" min="0" max="365" name="default_trial_days" value="{{ settings.get('default_trial_days','7') }}" onchange="triggerSettingsSubmit(this)" class="w-full pl-3 pr-8 py-1.5 text-xs text-right font-mono font-bold rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-slate-50/50">
-                            <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-[11px] font-semibold text-slate-400">天</span>
-                        </div>
-                    </div>
+                        <div class="divide-y divide-slate-100 text-sm">
+                            <div class="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-4">
+                                <div>
+                                    <div class="font-medium text-slate-900">默认 QPS 限制</div>
+                                    <div class="text-xs text-slate-500 mt-0.5">新账号注册时默认分配的每秒并发请求数上限 (1 ~ 1000)</div>
+                                </div>
+                                <div class="relative w-28 shrink-0">
+                                    <input type="number" min="1" max="1000" data-default="2" name="default_user_qps"
+                                        value="{{ settings.get('default_user_qps','2') }}"
+                                        oninput="validateNumberClamp(this)" onblur="normalizeNumberOnBlur(this)"
+                                        onchange="triggerSettingsSubmit(this)"
+                                        class="w-full pl-3 pr-10 py-1.5 text-xs text-right font-mono font-bold rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-slate-50/50">
+                                    <span
+                                        class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-[11px] font-semibold text-slate-400">QPS</span>
+                                </div>
+                            </div>
 
-                    <div class="py-3.5 first:pt-0 last:pb-0 flex items-center justify-between gap-4">
-                        <div>
-                            <div class="font-medium text-slate-900">默认赠送积分</div>
-                            <div class="text-xs text-slate-500 mt-0.5">新注册客户初始化自动赠送的解析积分额度</div>
-                        </div>
-                        <div class="relative rounded-lg w-32 shrink-0">
-                            <input type="number" min="0" max="1000000" name="default_initial_credits" value="{{ settings.get('default_initial_credits','100') }}" onchange="triggerSettingsSubmit(this)" class="w-full pl-3 pr-8 py-1.5 text-xs text-right font-mono font-bold rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-slate-50/50">
-                            <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-[11px] font-semibold text-slate-400">点</span>
+                            <div class="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-4">
+                                <div>
+                                    <div class="font-medium text-slate-900">默认试用天数</div>
+                                    <div class="text-xs text-slate-500 mt-0.5">新注册客户默认试用时长 (1 ~ 9999 天，或勾选永久有效)</div>
+                                </div>
+                                <div class="flex items-center gap-3 shrink-0">
+                                    <div class="relative w-28">
+                                        <input type="number" min="1" max="9999" data-default="365"
+                                            id="input_default_trial_days" name="default_trial_days"
+                                            value="{{ '365' if settings.get('default_trial_days') == '0' else settings.get('default_trial_days', '365') }}"
+                                            {{ 'disabled' if settings.get('default_trial_days')=='0' }}
+                                            oninput="validateNumberClamp(this)" onblur="normalizeNumberOnBlur(this)"
+                                            onchange="triggerSettingsSubmit(this)"
+                                            class="w-full pl-3 pr-8 py-1.5 text-xs text-right font-mono font-bold rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition disabled:opacity-40 disabled:bg-slate-100 disabled:cursor-not-allowed bg-slate-50/50">
+                                        <span
+                                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-[11px] font-semibold text-slate-400">天</span>
+                                    </div>
+                                    <label
+                                        class="inline-flex items-center gap-1.5 cursor-pointer select-none text-xs font-medium text-slate-600 hover:text-slate-900">
+                                        <input type="checkbox" id="chk_unlimited_trial" name="chk_unlimited_trial"
+                                            value="1" {{ 'checked' if settings.get('default_trial_days')=='0' }}
+                                            onchange="toggleUnlimitedDays(this)"
+                                            class="rounded border-slate-300 text-brand focus:ring-brand/20 h-4 w-4">
+                                        <span>永久有效</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-4">
+                                <div>
+                                    <div class="font-medium text-slate-900">默认赠送积分</div>
+                                    <div class="text-xs text-slate-500 mt-0.5">新注册客户初始赠送的解析积分额度 (0 ~ 99999999，或勾选不限制)
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3 shrink-0">
+                                    <div class="relative w-32">
+                                        <input type="text" inputmode="numeric" min="0" max="99999999" data-default="100"
+                                            data-thousands="true" id="input_default_initial_credits"
+                                            name="default_initial_credits"
+                                            value="{{ '{:,}'.format(settings.get('default_initial_credits', '100')|int) if settings.get('default_initial_credits') != '-1' else '100' }}"
+                                            {{ 'disabled' if settings.get('default_initial_credits')=='-1' }}
+                                            onfocus="this.value = unformatThousands(this.value)"
+                                            oninput="validateNumberClamp(this)" onblur="normalizeNumberOnBlur(this)"
+                                            onchange="triggerSettingsSubmit(this)"
+                                            class="w-full pl-3 pr-8 py-1.5 text-xs text-right font-mono font-bold rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition disabled:opacity-40 disabled:bg-slate-100 disabled:cursor-not-allowed bg-slate-50/50">
+                                        <span
+                                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-[11px] font-semibold text-slate-400">点</span>
+                                    </div>
+                                    <label
+                                        class="inline-flex items-center gap-1.5 cursor-pointer select-none text-xs font-medium text-slate-600 hover:text-slate-900">
+                                        <input type="checkbox" id="chk_unlimited_credits" name="chk_unlimited_credits"
+                                            value="1" {{ 'checked' if settings.get('default_initial_credits')=='-1' }}
+                                            onchange="toggleUnlimitedCredits(this)"
+                                            class="rounded border-slate-300 text-brand focus:ring-brand/20 h-4 w-4">
+                                        <span>不限积分</span>
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -126,39 +196,62 @@
                         </div>
                         <div class="shrink-0">
                             <label class="switch-toggle" title="切换 API 响应版权信息">
-                                <input type="checkbox" id="api-tip-toggle" name="api_tip_enabled" {{ 'checked' if tip_enabled }} onchange="toggleApiTipDetails(this)">
+                                <input type="checkbox" id="api-tip-toggle" name="api_tip_enabled" {{ 'checked' if
+                                    tip_enabled }} onchange="toggleApiTipDetails(this)">
                                 <span class="switch-slider"></span>
                             </label>
                         </div>
                     </div>
 
                     <!-- 联动折叠卡片 -->
-                    <div id="api-tip-collapse-panel" class="pt-4 border-t border-slate-100 space-y-4" style="{{ 'display:none;' if not tip_enabled else '' }}">
+                    <div id="api-tip-collapse-panel" class="pt-4 border-t border-slate-100 space-y-4"
+                        style="{{ 'display:none;' if not tip_enabled else '' }}">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="space-y-1.5">
-                                <label for="api_tip_author" class="block text-xs font-semibold text-slate-700">作者</label>
-                                <input type="text" id="api_tip_author" name="api_tip_author" value="{{ settings.get('api_tip_author', 'ucmao') }}" placeholder="例如: ucmao" oninput="updateApiTipPreview()" onchange="triggerSettingsSubmit(this)" class="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-slate-50/50">
+                                <label for="api_tip_author"
+                                    class="block text-xs font-semibold text-slate-700">作者</label>
+                                <input type="text" id="api_tip_author" name="api_tip_author"
+                                    value="{{ settings.get('api_tip_author', 'ucmao') }}" placeholder="例如: ucmao"
+                                    oninput="updateApiTipPreview()" onchange="triggerSettingsSubmit(this)"
+                                    class="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-slate-50/50">
                             </div>
                             <div class="space-y-1.5">
-                                <label for="api_tip_website" class="block text-xs font-semibold text-slate-700">官网地址</label>
-                                <input type="url" id="api_tip_website" name="api_tip_website" value="{{ settings.get('api_tip_website', 'https://github.com/ucmao/media-parser') }}" placeholder="例如: https://github.com/ucmao/media-parser" oninput="updateApiTipPreview()" onchange="triggerSettingsSubmit(this)" class="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-slate-50/50">
+                                <label for="api_tip_website"
+                                    class="block text-xs font-semibold text-slate-700">官网地址</label>
+                                <input type="url" id="api_tip_website" name="api_tip_website"
+                                    value="{{ settings.get('api_tip_website', 'https://github.com/ucmao/media-parser') }}"
+                                    placeholder="例如: https://github.com/ucmao/media-parser"
+                                    oninput="updateApiTipPreview()" onchange="triggerSettingsSubmit(this)"
+                                    class="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-slate-50/50">
                             </div>
                         </div>
 
                         <div class="space-y-1.5">
                             <label for="api_tip_notice" class="block text-xs font-semibold text-slate-700">提示文本</label>
-                            <input type="text" id="api_tip_notice" name="api_tip_notice" value="{{ settings.get('api_tip_notice', '本接口由开源项目 media-parser 提供服务') }}" placeholder="例如: 本接口由开源项目 media-parser 提供服务" oninput="updateApiTipPreview()" onchange="triggerSettingsSubmit(this)" class="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-slate-50/50">
+                            <input type="text" id="api_tip_notice" name="api_tip_notice"
+                                value="{{ settings.get('api_tip_notice', '本接口由开源项目 media-parser 提供服务') }}"
+                                placeholder="例如: 本接口由开源项目 media-parser 提供服务" oninput="updateApiTipPreview()"
+                                onchange="triggerSettingsSubmit(this)"
+                                class="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-slate-50/50">
                         </div>
 
-                        <details class="rounded-xl overflow-hidden bg-slate-50/70 border border-slate-200 transition-all">
-                            <summary class="px-4 py-2.5 bg-slate-100/70 hover:bg-slate-100 border-b border-slate-200/80 cursor-pointer select-none font-sans font-semibold text-xs text-slate-700 flex items-center justify-between transition-colors">
+                        <details
+                            class="rounded-xl overflow-hidden bg-slate-50/70 border border-slate-200 transition-all">
+                            <summary
+                                class="px-4 py-2.5 bg-slate-100/70 hover:bg-slate-100 border-b border-slate-200/80 cursor-pointer select-none font-sans font-semibold text-xs text-slate-700 flex items-center justify-between transition-colors">
                                 <span class="flex items-center gap-2">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-500"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                        class="text-slate-500">
+                                        <polyline points="16 18 22 12 16 6" />
+                                        <polyline points="8 6 2 12 8 18" />
+                                    </svg>
                                     <span>响应 JSON 效果预览</span>
                                 </span>
                                 <span class="text-[11px] text-slate-400 font-normal">点击展开/收起 ▾</span>
                             </summary>
-                            <pre class="p-4 overflow-x-auto text-xs font-mono text-slate-800 bg-slate-50/40 leading-relaxed custom-scroll"><code id="api-tip-preview-code"></code></pre>
+                            <pre
+                                class="p-4 overflow-x-auto text-xs font-mono text-slate-800 bg-slate-50/40 leading-relaxed custom-scroll"><code id="api-tip-preview-code"></code></pre>
                         </details>
                     </div>
                 </div>
@@ -168,113 +261,261 @@
 </main>
 
 <script>
-window.toggleApiTipDetails = function (checkbox) {
-    const panel = document.getElementById('api-tip-collapse-panel');
-    if (panel) {
-        panel.style.display = checkbox.checked ? 'block' : 'none';
-    }
-    triggerSettingsSubmit(checkbox);
-};
+    window.toggleRegistrationDetails = function (checkbox) {
+        const panel = document.getElementById('registration-collapse-panel');
+        if (panel) {
+            panel.style.display = checkbox.checked ? 'block' : 'none';
+        }
+        triggerSettingsSubmit(checkbox);
+    };
 
-function highlightJson(json) {
-    if (typeof json !== 'string') {
-        json = JSON.stringify(json, null, 2);
-    }
-    return json
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-        .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
-            let cls = 'hl-num';
-            if (/^"/.test(match)) {
-                if (/:$/.test(match)) {
-                    cls = 'hl-type';
-                } else {
-                    cls = 'hl-str';
+    window.toggleApiTipDetails = function (checkbox) {
+        const panel = document.getElementById('api-tip-collapse-panel');
+        if (panel) {
+            panel.style.display = checkbox.checked ? 'block' : 'none';
+        }
+        triggerSettingsSubmit(checkbox);
+    };
+
+    function highlightJson(json) {
+        if (typeof json !== 'string') {
+            json = JSON.stringify(json, null, 2);
+        }
+        return json
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+                let cls = 'hl-num';
+                if (/^"/.test(match)) {
+                    if (/:$/.test(match)) {
+                        cls = 'hl-type';
+                    } else {
+                        cls = 'hl-str';
+                    }
+                } else if (/true|false/.test(match)) {
+                    cls = 'hl-kw';
+                } else if (/null/.test(match)) {
+                    cls = 'hl-cmt';
                 }
-            } else if (/true|false/.test(match)) {
-                cls = 'hl-kw';
-            } else if (/null/.test(match)) {
-                cls = 'hl-cmt';
+                return '<span class="' + cls + '">' + match + '</span>';
+            });
+    }
+
+    window.updateApiTipPreview = function () {
+        const authorEl = document.getElementById('api_tip_author');
+        const websiteEl = document.getElementById('api_tip_website');
+        const noticeEl = document.getElementById('api_tip_notice');
+        const previewEl = document.getElementById('api-tip-preview-code');
+        if (!previewEl) return;
+
+        const author = (authorEl && authorEl.value.trim()) || 'ucmao';
+        const website = (websiteEl && websiteEl.value.trim()) || 'https://github.com/ucmao/media-parser';
+        const notice = (noticeEl && noticeEl.value.trim()) || '本接口由开源项目 media-parser 提供服务';
+
+        const samplePayload = {
+            succ: true,
+            data: {
+                title: "示例短视频标题...",
+                url: "https://example.com/video.mp4"
+            },
+            _tip: {
+                author: author,
+                website: website,
+                notice: notice
             }
-            return '<span class="' + cls + '">' + match + '</span>';
-        });
-}
+        };
+        previewEl.innerHTML = highlightJson(samplePayload);
+    };
 
-window.updateApiTipPreview = function () {
-    const authorEl = document.getElementById('api_tip_author');
-    const websiteEl = document.getElementById('api_tip_website');
-    const noticeEl = document.getElementById('api_tip_notice');
-    const previewEl = document.getElementById('api-tip-preview-code');
-    if (!previewEl) return;
+    window.formatThousands = function (val) {
+        if (val === null || val === undefined || val === '') return '';
+        const raw = String(val).replace(/,/g, '').trim();
+        const num = parseInt(raw, 10);
+        return isNaN(num) ? raw : num.toLocaleString('en-US');
+    };
 
-    const author = (authorEl && authorEl.value.trim()) || 'ucmao';
-    const website = (websiteEl && websiteEl.value.trim()) || 'https://github.com/ucmao/media-parser';
-    const notice = (noticeEl && noticeEl.value.trim()) || '本接口由开源项目 media-parser 提供服务';
+    window.unformatThousands = function (val) {
+        if (val === null || val === undefined) return '';
+        return String(val).replace(/,/g, '').trim();
+    };
 
-    const samplePayload = {
-        succ: true,
-        data: {
-            title: "示例短视频标题...",
-            url: "https://example.com/video.mp4"
-        },
-        _tip: {
-            author: author,
-            website: website,
-            notice: notice
+    window.toggleUnlimitedDays = function (checkbox) {
+        const input = document.getElementById('input_default_trial_days');
+        if (!input) return;
+        if (checkbox.checked) {
+            input.dataset.prevValue = input.value && input.value !== '0' ? input.value : '365';
+            input.disabled = true;
+        } else {
+            input.disabled = false;
+            input.value = input.dataset.prevValue && input.dataset.prevValue !== '0' ? input.dataset.prevValue : '365';
+            input.focus();
+        }
+        triggerSettingsSubmit(checkbox);
+    };
+
+    window.toggleUnlimitedCredits = function (checkbox) {
+        const input = document.getElementById('input_default_initial_credits');
+        if (!input) return;
+        if (checkbox.checked) {
+            const raw = window.unformatThousands(input.value);
+            input.dataset.prevValue = raw && raw !== '-1' ? raw : '100';
+            input.disabled = true;
+        } else {
+            input.disabled = false;
+            const prev = input.dataset.prevValue && input.dataset.prevValue !== '-1' ? input.dataset.prevValue : '100';
+            input.value = window.formatThousands(prev);
+            input.focus();
+        }
+        triggerSettingsSubmit(checkbox);
+    };
+
+    window.validateNumberClamp = function (input) {
+        if (input.value === '' || input.value === '-') return;
+        const raw = window.unformatThousands(input.value);
+        const max = input.hasAttribute('max') ? parseInt(input.getAttribute('max'), 10) : null;
+        let num = parseInt(raw, 10);
+        if (!isNaN(num) && max !== null && num > max) {
+            input.value = input.dataset.thousands === 'true' ? window.formatThousands(max) : max;
         }
     };
-    previewEl.innerHTML = highlightJson(samplePayload);
-};
 
-window.triggerSettingsSubmit = function (el) {
-    const form = (el && el.form) || document.getElementById('admin-settings-form');
-    if (form) {
-        if (typeof form.requestSubmit === 'function') {
-            form.requestSubmit();
-        } else {
-            form.submit();
+    window.normalizeNumberOnBlur = function (input) {
+        const min = input.hasAttribute('min') ? parseInt(input.getAttribute('min'), 10) : null;
+        const max = input.hasAttribute('max') ? parseInt(input.getAttribute('max'), 10) : null;
+        const def = input.dataset.default || (min !== null ? String(min) : '0');
+        const isThousands = input.dataset.thousands === 'true';
+
+        const raw = window.unformatThousands(input.value);
+        if (raw === '' || isNaN(parseInt(raw, 10))) {
+            input.value = isThousands ? window.formatThousands(def) : def;
+            triggerSettingsSubmit(input);
+            return;
         }
+
+        let num = parseInt(raw, 10);
+        if (min !== null && num < min) num = min;
+        if (max !== null && num > max) num = max;
+
+        const formatted = isThousands ? window.formatThousands(num) : String(num);
+        if (input.value !== formatted) {
+            input.value = formatted;
+            triggerSettingsSubmit(input);
+        }
+    };
+
+    let lastTriggeredElement = null;
+
+    function getSpecificSuccessToast(el) {
+        if (!el) return '系统设置已保存';
+        const name = el.name || el.id;
+        if (name === 'global_api_enabled' || el.id === 'global-api-toggle') {
+            return el.checked ? '已开启全局 API 解析服务' : '已暂停全局 API 解析服务';
+        }
+        if (name === 'homepage_enabled' || el.id === 'homepage-toggle') {
+            return el.checked ? '已开放公开产品主页' : '已关闭公开首页（进入私密模式）';
+        }
+        if (name === 'demo_enabled') {
+            return el.checked ? '已开启首页在线解析体验' : '已关闭首页在线解析体验';
+        }
+        if (name === 'registration_enabled' || el.id === 'registration-toggle') {
+            return el.checked ? '已开放用户自主注册' : '已关闭用户自主注册';
+        }
+        if (name === 'default_user_qps' || name === 'default_trial_days' || name === 'chk_unlimited_trial' || name === 'default_initial_credits' || name === 'chk_unlimited_credits') {
+            return '新账号默认初始参数已更新';
+        }
+        if (name === 'api_tip_enabled' || el.id === 'api-tip-toggle') {
+            return el.checked ? '已开启 API 响应版权提示' : '已关闭 API 响应版权提示';
+        }
+        if (name === 'api_tip_author' || name === 'api_tip_website' || name === 'api_tip_notice') {
+            return 'API 版权提示内容已更新';
+        }
+        return '系统设置已保存';
     }
-};
 
-document.addEventListener('DOMContentLoaded', () => {
-    updateApiTipPreview();
-
-    const settingsForm = document.getElementById('admin-settings-form');
-    if (settingsForm) {
-        settingsForm.addEventListener('submit', async (e) => {
-            if (e.submitter && e.submitter.value === 'reset') return;
-            if (settingsForm.dataset.confirmed === 'true') {
-                delete settingsForm.dataset.confirmed;
-                return;
+    window.triggerSettingsSubmit = function (el) {
+        lastTriggeredElement = el || null;
+        const form = (el && el.form) || document.getElementById('admin-settings-form');
+        if (form) {
+            if (typeof form.requestSubmit === 'function') {
+                form.requestSubmit();
+            } else {
+                form.dispatchEvent(new Event('submit', { cancelable: true }));
             }
+        }
+    };
 
-            const globalApiToggle = document.getElementById('global-api-toggle');
-            if (globalApiToggle) {
-                const initial = globalApiToggle.dataset.initial === '1';
-                const isNowChecked = globalApiToggle.checked;
+    document.addEventListener('DOMContentLoaded', () => {
+        updateApiTipPreview();
 
-                if (initial !== isNowChecked) {
-                    e.preventDefault();
-                    e.stopPropagation();
+        const settingsForm = document.getElementById('admin-settings-form');
+        if (settingsForm) {
+            settingsForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
 
-                    const title = isNowChecked ? '开启 API 服务总开关' : '暂停 API 服务总开关';
-                    const message = isNowChecked
-                        ? '提示：保存后将重新开启全局 API 解析服务，恢复所有外部接口调用响应。确定保存系统配置吗？'
-                        : '警告：保存后将暂停全局 API 解析服务，所有外部客户与系统发起的接口解析请求将立即被拦截拒绝！确定保存系统配置并暂停服务吗？';
-                    const confirmText = isNowChecked ? '确认开启' : '确认暂停';
-                    const type = isNowChecked ? 'primary' : 'danger';
+                const globalApiToggle = document.getElementById('global-api-toggle');
+                if (globalApiToggle) {
+                    const initial = globalApiToggle.dataset.initial === '1';
+                    const isNowChecked = globalApiToggle.checked;
 
-                    const ok = await window.confirmModal({ title, message, confirmText, type });
-                    if (ok) {
-                        settingsForm.dataset.confirmed = 'true';
-                        settingsForm.submit();
-                    } else {
-                        globalApiToggle.checked = initial;
+                    if (initial !== isNowChecked) {
+                        const title = isNowChecked ? '开启 API 服务总开关' : '暂停 API 服务总开关';
+                        const message = isNowChecked
+                            ? '提示：保存后将重新开启全局 API 解析服务，恢复所有外部接口调用响应。确定保存系统配置吗？'
+                            : '警告：保存后将暂停全局 API 解析服务，所有外部客户与系统发起的接口解析请求将立即被拦截拒绝！确定保存系统配置并暂停服务吗？';
+                        const confirmText = isNowChecked ? '确认开启' : '确认暂停';
+                        const type = isNowChecked ? 'primary' : 'danger';
+
+                        const ok = await window.confirmModal({ title, message, confirmText, type });
+                        if (!ok) {
+                            globalApiToggle.checked = initial;
+                            return;
+                        }
                     }
                 }
-            }
-        });
-    }
-});
+
+                try {
+                    const formData = new FormData(settingsForm);
+                    const chkTrial = document.getElementById('chk_unlimited_trial');
+                    if (chkTrial && chkTrial.checked) {
+                        formData.set('default_trial_days', '0');
+                        formData.set('chk_unlimited_trial', '1');
+                    }
+                    const chkCredits = document.getElementById('chk_unlimited_credits');
+                    if (chkCredits && chkCredits.checked) {
+                        formData.set('default_initial_credits', '-1');
+                        formData.set('chk_unlimited_credits', '1');
+                    }
+
+                    const res = await fetch(settingsForm.action || window.location.href, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        const toastMsg = getSpecificSuccessToast(lastTriggeredElement);
+                        if (window.showToast) {
+                            window.showToast(toastMsg, 'success', 2200);
+                        }
+                        if (globalApiToggle) {
+                            globalApiToggle.dataset.initial = globalApiToggle.checked ? '1' : '0';
+                        }
+                    } else {
+                        if (window.showToast) {
+                            window.showToast('保存失败，请刷新重试', 'error');
+                        }
+                    }
+                } catch (err) {
+                    console.error('Settings save error:', err);
+                    if (window.showToast) {
+                        window.showToast('网络请求异常，保存失败', 'error');
+                    }
+                }
+            });
+        }
+    });
 </script>
 {% endblock %}

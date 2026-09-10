@@ -157,21 +157,35 @@
                     <div class="pie-svg-box relative w-56 h-56 mx-auto">
                         <svg viewBox="0 0 200 200" class="w-full h-full">
                             {% for item in pie_data['items'] %}
-                            <path d="{{ item['path_d'] }}" fill="{{ item['color'] }}" class="pie-slice transition-opacity hover:opacity-80 cursor-pointer" data-platform="{{ item['platform'] }}" data-calls="{{ item['calls_formatted'] }}" data-percent="{{ item['percentage'] }}%">
-                                <title>{{ item['platform'] }}: {{ item['calls_formatted'] }} 次 ({{ item['percentage'] }}%)</title>
+                            <path d="{{ item['path_d'] }}" fill="{{ item['color'] }}" class="pie-slice transition-opacity hover:opacity-80 cursor-pointer" 
+                                  data-platform="{{ item['platform'] }}" 
+                                  data-calls="{{ item['calls_formatted'] }}" 
+                                  data-percent="{{ item['percentage'] }}%"
+                                  data-successes="{{ item['successes_formatted'] }}"
+                                  data-failures="{{ item['failures_formatted'] }}"
+                                  data-rate="{{ item['success_rate'] }}%"
+                                  data-color="{{ item['color'] }}">
                             </path>
                             {% endfor %}
                         </svg>
-                        <div class="pie-center-text absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
-                            <div class="pie-center-lbl text-xs text-slate-500 font-medium" id="admin-pie-lbl">总解析量</div>
-                            <div class="pie-center-val text-xl font-bold text-slate-900 mt-0.5" id="admin-pie-val">{{ pie_data['total_calls_formatted'] or pie_data['total_calls'] }} 次</div>
+                        <div class="pie-center-text absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center select-none px-2">
+                            <div class="pie-center-lbl text-xs text-slate-500 font-medium truncate max-w-[140px] transition-colors duration-150" id="admin-pie-lbl">总解析量</div>
+                            <div class="pie-center-val text-xl font-bold text-slate-900 mt-0.5 tracking-tight transition-all duration-150" id="admin-pie-val">{{ pie_data['total_calls_formatted'] or pie_data['total_calls'] }} 次</div>
+                            <div class="pie-center-sub text-[11px] text-slate-400 mt-0.5 min-h-[16px] font-medium transition-colors duration-150" id="admin-pie-sub"></div>
                         </div>
                     </div>
 
                     <!-- 紧凑点状图例 -->
                     <div class="flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1 mt-5 pt-3 border-t border-slate-100">
                         {% for item in pie_data['items'] %}
-                        <div class="pie-pill-item inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md hover:bg-slate-100 cursor-pointer transition text-xs font-medium text-slate-600 hover:text-slate-900 select-none" data-platform="{{ item['platform'] }}" data-calls="{{ item['calls_formatted'] }}" data-percent="{{ item['percentage'] }}%" title="{{ item['platform'] }}: {{ item['calls_formatted'] }} 次 ({{ item['percentage'] }}%)">
+                        <div class="pie-pill-item inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md hover:bg-slate-100 cursor-pointer transition text-xs font-medium text-slate-600 hover:text-slate-900 select-none" 
+                             data-platform="{{ item['platform'] }}" 
+                             data-calls="{{ item['calls_formatted'] }}" 
+                             data-percent="{{ item['percentage'] }}%"
+                             data-successes="{{ item['successes_formatted'] }}"
+                             data-failures="{{ item['failures_formatted'] }}"
+                             data-rate="{{ item['success_rate'] }}%"
+                             data-color="{{ item['color'] }}">
                             <span class="w-2 h-2 rounded-full shrink-0" style="background:{{ item['color'] }}"></span>
                             <span class="truncate">{{ item['platform'] }}</span>
                         </div>

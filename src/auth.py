@@ -157,7 +157,7 @@ def register():
                 flash("两次输入的密码不一致", "error")
             else:
                 try:
-                    trial_days = int(setting("default_trial_days", "7"))
+                    trial_days = int(setting("default_trial_days", "365"))
                     initial_credits = int(setting("default_initial_credits", "100"))
                     expires_at = None
                     if trial_days > 0:
@@ -168,12 +168,20 @@ def register():
                         (username, generate_password_hash(password), int(setting("default_user_qps", "2")), expires_at, initial_credits, utcnow()),
                     )
                     db.commit()
-                    if trial_days > 0 and initial_credits > 0:
-                        msg = f"注册成功！已自动开启 {trial_days} 天免费试用并赠送 {initial_credits} 积分，请登录"
-                    elif trial_days > 0:
-                        msg = f"注册成功！已自动开启 {trial_days} 天免费试用，请登录"
+                    if trial_days > 0:
+                        if initial_credits == -1:
+                            msg = f"注册成功！已自动开启 {trial_days} 天免费试用并享有无限解析额度，请登录"
+                        elif initial_credits > 0:
+                            msg = f"注册成功！已自动开启 {trial_days} 天免费试用并赠送 {initial_credits} 积分，请登录"
+                        else:
+                            msg = f"注册成功！已自动开启 {trial_days} 天免费试用，请登录"
                     else:
-                        msg = "注册成功，请等待管理员开通"
+                        if initial_credits == -1:
+                            msg = "注册成功！账号永久有效并享有无限解析额度，请登录"
+                        elif initial_credits > 0:
+                            msg = f"注册成功！账号永久有效并赠送 {initial_credits} 积分，请登录"
+                        else:
+                            msg = "注册成功！账号永久有效，请登录"
                     flash(msg, "success")
                     return redirect(url_for("auth.login"))
                 except Exception as exc:
@@ -186,6 +194,8 @@ def register():
 @bp.route("/login", methods=("GET", "POST"))
 def login():
     has_admin = bool(get_db().execute("SELECT 1 FROM users WHERE role='admin'").fetchone())
+    homepage_enabled = (setting("homepage_enabled", "1") == "1")
+    registration_enabled = (setting("registration_enabled", "1") == "1")
     if request.method == "POST":
         if not validate_csrf():
             flash("页面已过期，请重试", "error")
@@ -193,7 +203,12 @@ def login():
             username = request.form.get("username", "").strip()
             if auth_rate_limited("login", username):
                 flash("登录尝试过于频繁，请稍后再试", "error")
-                return render_template("auth/login.html", has_admin=has_admin), 429
+                return render_template(
+                    "auth/login.html",
+                    has_admin=has_admin,
+                    homepage_enabled=homepage_enabled,
+                    registration_enabled=registration_enabled,
+                ), 429
             user = get_db().execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
             if user is None or not check_password_hash(user["password_hash"], request.form.get("password", "")):
                 flash("用户名或密码错误", "error")
@@ -212,7 +227,12 @@ def login():
                 ):
                     target = url_for("admin.dashboard") if user["role"] == "admin" else url_for("portal.dashboard")
                 return redirect(target)
-    return render_template("auth/login.html", has_admin=has_admin)
+    return render_template(
+        "auth/login.html",
+        has_admin=has_admin,
+        homepage_enabled=homepage_enabled,
+        registration_enabled=registration_enabled,
+    )
 
 
 @bp.post("/logout")
@@ -257,7 +277,7 @@ def user_is_expired(user):
     if user["role"] == "admin":
         return False
     if not user["expires_at"]:
-        return True
+        return False
     try:
         return datetime.fromisoformat(user["expires_at"]).replace(tzinfo=timezone.utc) <= datetime.now(timezone.utc)
     except ValueError:
@@ -267,13 +287,11 @@ def user_is_expired(user):
 def format_user_expiry(user):
     if not user:
         return "-"
-    if user["role"] == "admin":
+    if user["role"] == "admin" or not user["expires_at"]:
         return "永久有效"
-    if not user["expires_at"]:
-        return "未开通"
     formatted = format_local_date(user["expires_at"])
     if formatted == "-":
-        return "未开通"
+        return "永久有效"
     if user_is_expired(user):
         return f"{formatted} (已到期)"
     return formatted

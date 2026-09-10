@@ -604,20 +604,33 @@ function initDonutInteractions() {
     document.querySelectorAll('.pie-wrapper').forEach(wrapper => {
         const centerVal = wrapper.querySelector('.pie-center-val');
         const centerLbl = wrapper.querySelector('.pie-center-lbl');
+        const centerSub = wrapper.querySelector('.pie-center-sub');
         if (!centerVal || !centerLbl) return;
 
         const defaultVal = centerVal.textContent;
         const defaultLbl = centerLbl.textContent;
+        const defaultSub = centerSub ? centerSub.textContent : '';
 
         const slices = wrapper.querySelectorAll('.pie-slice');
         const pills = wrapper.querySelectorAll('.pie-pill-item');
 
-        function activate(platform, calls, percent) {
+        function activate(el) {
+            const platform = el.dataset.platform;
+            const calls = el.dataset.calls || '0';
+            const percent = el.dataset.percent || '0%';
+            const rate = el.dataset.rate || '100.0%';
+            const color = el.dataset.color || '#4f46e5';
+
             centerLbl.textContent = `${platform} (${percent})`;
             centerLbl.style.fontWeight = '600';
-            centerLbl.style.color = '#4f46e5';
+            centerLbl.style.color = color;
+
             centerVal.textContent = `${calls} 次`;
             centerVal.style.fontSize = calls.length > 7 ? '18px' : '20px';
+
+            if (centerSub) {
+                centerSub.innerHTML = `<span style="color:#94a3b8;font-size:10.5px;font-weight:400">成功率</span> <span style="color:#475569;font-weight:600">${rate}</span>`;
+            }
 
             slices.forEach(s => {
                 if (s.dataset.platform === platform) s.classList.add('active');
@@ -636,23 +649,25 @@ function initDonutInteractions() {
             centerVal.textContent = defaultVal;
             centerVal.style.fontSize = '';
 
+            if (centerSub) {
+                centerSub.innerHTML = defaultSub;
+            }
+
             slices.forEach(s => s.classList.remove('active'));
             pills.forEach(p => p.classList.remove('active'));
         }
 
         slices.forEach(slice => {
-            slice.addEventListener('mouseenter', () => {
-                activate(slice.dataset.platform, slice.dataset.calls, slice.dataset.percent);
-            });
+            slice.addEventListener('mouseenter', () => activate(slice));
             slice.addEventListener('mouseleave', reset);
         });
 
         pills.forEach(pill => {
-            pill.addEventListener('mouseenter', () => {
-                activate(pill.dataset.platform, pill.dataset.calls, pill.dataset.percent);
-            });
+            pill.addEventListener('mouseenter', () => activate(pill));
             pill.addEventListener('mouseleave', reset);
         });
+
+        wrapper.addEventListener('mouseleave', reset);
     });
 }
 

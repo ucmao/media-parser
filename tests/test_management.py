@@ -139,11 +139,33 @@ class ManagementTest(unittest.TestCase):
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.get_json()["error_code"], "API_KEY_REQUIRED")
 
-    def test_unconfigured_expiry_rejects_key(self):
-        raw_key, _, _ = self.create_customer_and_key(expires=False)
+    def test_expired_account_rejects_key(self):
+        raw_key = "mp_test_key_expired"
+        with self.app.app_context():
+            db = get_db()
+            past_expiry = (datetime.now(timezone.utc) - timedelta(days=1)).isoformat(timespec="seconds")
+            cursor = db.execute(
+                "INSERT INTO users(username,password_hash,expires_at,qps_limit,created_at) VALUES(?,?,?,?,?)",
+                ("expired_user", "unused", past_expiry, 2, utcnow()),
+            )
+            user_id = cursor.lastrowid
+            db.execute(
+                "INSERT INTO api_keys(user_id,name,key_hash,key_prefix,created_at) VALUES(?,?,?,?,?)",
+                (user_id, "test", hash_api_key(raw_key), raw_key[:11], utcnow()),
+            )
+            db.commit()
         response = self.client.get("/api/v1/parse", query_string={"key": raw_key, "url": "https://example.com"})
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.get_json()["error_code"], "ACCOUNT_EXPIRED")
+
+    def test_permanent_account_accepts_key(self):
+        raw_key, _, _ = self.create_customer_and_key(expires=False)
+        with patch("src.api.parse.WebFetcher.fetch_redirect_url", return_value="https://www.douyin.com/video/1"), patch(
+            "src.api.parse.ParserFactory.create_parser", return_value=self.parser()
+        ):
+            response = self.client.get("/api/v1/parse", query_string={"key": raw_key, "url": "https://example.com"})
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.get_json()["succ"])
 
     def test_valid_key_can_call_get_api(self):
         raw_key, _, _ = self.create_customer_and_key()
@@ -295,10 +317,33 @@ class ManagementTest(unittest.TestCase):
             follow_redirects=True,
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIn("7 天免费试用", response.get_data(as_text=True))
+        self.assertIn("365 天免费试用", response.get_data(as_text=True))
         with self.app.app_context():
             user = get_db().execute("SELECT * FROM users WHERE username='new_trial_user'").fetchone()
             self.assertIsNotNone(user["expires_at"])
+
+    def test_registration_permanent_and_unlimited_credits(self):
+        from src.db import set_setting
+        from src.auth import user_is_expired, format_user_expiry
+        with self.app.app_context():
+            set_setting("default_trial_days", 0)
+            set_setting("default_initial_credits", -1)
+            get_db().commit()
+
+        response = self.client.post(
+            "/auth/register",
+            data={"csrf_token": self.csrf(), "username": "perm_user", "password": "password123", "confirm_password": "password123"},
+            follow_redirects=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("永久有效", response.get_data(as_text=True))
+        self.assertIn("无限解析额度", response.get_data(as_text=True))
+        with self.app.app_context():
+            user = get_db().execute("SELECT * FROM users WHERE username='perm_user'").fetchone()
+            self.assertIsNone(user["expires_at"])
+            self.assertEqual(user["credits"], -1)
+            self.assertFalse(user_is_expired(user))
+            self.assertEqual(format_user_expiry(user), "永久有效")
 
     def test_legacy_key_hash_compatibility(self):
         import hashlib, hmac
@@ -465,7 +510,8 @@ class ManagementTest(unittest.TestCase):
                 "demo_enabled": "1",
                 "registration_enabled": "1",
                 "default_user_qps": "5",
-                "default_trial_days": "14",
+                "default_trial_days": "9999",
+                "default_initial_credits": "-1",
                 "api_tip_enabled": "1",
                 "api_tip_author": "custom_author",
                 "api_tip_website": "https://example.com/api",
@@ -477,6 +523,8 @@ class ManagementTest(unittest.TestCase):
 
         with self.app.app_context():
             from src.db import setting
+            self.assertEqual(setting("default_trial_days"), "9999")
+            self.assertEqual(setting("default_initial_credits"), "-1")
             self.assertEqual(setting("api_tip_author"), "custom_author")
             self.assertEqual(setting("api_tip_website"), "https://example.com/api")
             self.assertEqual(setting("api_tip_notice"), "自定义接口服务文案")

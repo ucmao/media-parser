@@ -613,7 +613,8 @@ function closeBatchModal(modalId) {
 
 function submitBatchUserCredits() {
     let mode = document.getElementById('batch-credits-mode')?.value || 'add';
-    let amount = document.getElementById('batch-credits-amount')?.value || '0';
+    let rawAmount = document.getElementById('batch-credits-amount')?.value || '0';
+    let amount = String(rawAmount).replace(/,/g, '').trim();
     if (mode === 'unlimited') {
         mode = 'set';
         amount = '-1';

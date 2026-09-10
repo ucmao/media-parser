@@ -3,7 +3,7 @@ from datetime import datetime, time, timedelta, timezone
 import io
 from zoneinfo import ZoneInfo
 
-from flask import Blueprint, Response, flash, g, redirect, render_template, request, session, url_for
+from flask import Blueprint, Response, flash, g, jsonify, redirect, render_template, request, session, url_for
 
 from werkzeug.security import generate_password_hash
 
@@ -19,6 +19,13 @@ bp = Blueprint("admin", __name__, url_prefix="/admin")
 def _positive_int(value, default=1, maximum=1000):
     try:
         return max(1, min(int(value), maximum))
+    except (TypeError, ValueError):
+        return default
+
+
+def _non_negative_int(value, default=0, maximum=9999):
+    try:
+        return max(0, min(int(value), maximum))
     except (TypeError, ValueError):
         return default
 
@@ -112,19 +119,38 @@ def settings():
 @csrf_protected
 def update_settings():
     db = get_db()
-    for name in ("global_api_enabled", "demo_enabled", "registration_enabled", "api_tip_enabled"):
+    for name in ("global_api_enabled", "homepage_enabled", "demo_enabled", "registration_enabled", "api_tip_enabled"):
         set_setting(name, "1" if request.form.get(name) else "0")
     set_setting("default_user_qps", _positive_int(request.form.get("default_user_qps"), 2))
-    set_setting("default_trial_days", _positive_int(request.form.get("default_trial_days"), 7, 365))
-    try:
-        init_cred = int(request.form.get("default_initial_credits", 100))
-    except (TypeError, ValueError):
-        init_cred = 100
-    set_setting("default_initial_credits", init_cred)
+
+    if request.form.get("chk_unlimited_trial") == "1" or request.form.get("default_trial_days") == "0":
+        set_setting("default_trial_days", 0)
+    else:
+        set_setting("default_trial_days", _non_negative_int(request.form.get("default_trial_days"), 365, 9999))
+
+    if request.form.get("chk_unlimited_credits") == "1" or request.form.get("default_initial_credits") == "-1":
+        set_setting("default_initial_credits", -1)
+    else:
+        try:
+            raw_val = request.form.get("default_initial_credits")
+            if raw_val is None or str(raw_val).strip() == "":
+                init_cred = 100
+            else:
+                raw_cred = int(str(raw_val).replace(",", "").strip())
+                init_cred = -1 if raw_cred == -1 else max(0, min(raw_cred, 99999999))
+        except (TypeError, ValueError):
+            init_cred = 100
+        set_setting("default_initial_credits", init_cred)
+
     set_setting("api_tip_author", (request.form.get("api_tip_author") or "").strip() or "ucmao")
     set_setting("api_tip_website", (request.form.get("api_tip_website") or "").strip() or "https://github.com/ucmao/media-parser")
     set_setting("api_tip_notice", (request.form.get("api_tip_notice") or "").strip() or "本接口由开源项目 media-parser 提供服务")
     db.commit()
+
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest" or "application/json" in request.headers.get("Accept", "")
+    if is_ajax:
+        return jsonify({"succ": True, "message": "系统设置已自动保存"})
+
     flash("系统设置已保存", "success")
     return redirect(url_for("admin.settings"))
 
@@ -213,7 +239,7 @@ def update_user(user_id):
             flash("到期日期格式无效", "error")
             return redirect(url_for("admin.users"))
 
-    credits_raw = request.form.get("credits", "").strip()
+    credits_raw = request.form.get("credits", "").replace(",", "").strip()
     try:
         user_credits = int(credits_raw) if credits_raw else None
     except ValueError:
@@ -317,7 +343,8 @@ def batch_users():
         elif action == "adjust_credits":
             mode = request.form.get("credits_mode", "add")
             try:
-                amount = int(request.form.get("credits_amount", 0))
+                amount_raw = str(request.form.get("credits_amount", 0)).replace(",", "").strip()
+                amount = int(amount_raw)
             except ValueError:
                 amount = 0
 

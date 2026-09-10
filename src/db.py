@@ -109,10 +109,11 @@ def init_db():
         db.execute("ALTER TABLE users ADD COLUMN credits INTEGER NOT NULL DEFAULT 100")
     defaults = {
         "global_api_enabled": "1",
+        "homepage_enabled": "1",
         "demo_enabled": "1",
         "registration_enabled": "1",
         "default_user_qps": "2",
-        "default_trial_days": "7",
+        "default_trial_days": "365",
         "default_initial_credits": "100",
         "api_tip_enabled": "1",
         "api_tip_author": "ucmao",
@@ -468,6 +469,8 @@ def get_platform_distribution(user_id=None, days=7):
             name = row["platform_name"]
             calls = row["calls"]
             successes = row["successes"] or 0
+            failures = max(0, calls - successes)
+            success_rate = round((successes / calls) * 100, 1) if calls > 0 else 0.0
             percentage = round((calls / total_calls) * 100, 1)
             color = PALETTE[idx % len(PALETTE)]
 
@@ -504,14 +507,27 @@ def get_platform_distribution(user_id=None, days=7):
                 "calls": calls,
                 "calls_formatted": f"{calls:,}",
                 "successes": successes,
+                "successes_formatted": f"{successes:,}",
+                "failures": failures,
+                "failures_formatted": f"{failures:,}",
+                "success_rate": success_rate,
                 "percentage": percentage,
                 "color": color,
                 "path_d": path_d,
             })
 
+    total_successes = sum(r["successes"] or 0 for r in rows) if rows else 0
+    total_failures = max(0, total_calls - total_successes)
+    total_success_rate = round((total_successes / total_calls) * 100, 1) if total_calls > 0 else 0.0
+
     return {
         "total_calls": total_calls,
         "total_calls_formatted": f"{total_calls:,}",
+        "total_successes": total_successes,
+        "total_successes_formatted": f"{total_successes:,}",
+        "total_failures": total_failures,
+        "total_failures_formatted": f"{total_failures:,}",
+        "total_success_rate": total_success_rate,
         "platform_count": len(rows),
         "items": items,
     }
