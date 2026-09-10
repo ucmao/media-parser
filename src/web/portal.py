@@ -111,6 +111,7 @@ def keys():
         where_clauses=keys_where,
         where_params=keys_params,
         request_args=request.args,
+        default_page_size=20,
         prefix="keys_",
     )
 
@@ -129,10 +130,48 @@ def keys():
 @csrf_protected
 def batch_keys():
     db = get_db()
-    ids_raw = request.form.get("ids", "").strip()
     action = request.form.get("action", "").strip()
+    select_mode = request.form.get("select_mode", "page").strip()
 
-    if not ids_raw or not action:
+    if not action:
+        flash("未指定批量操作类型", "error")
+        return redirect(url_for("portal.keys"))
+
+    if select_mode == "all":
+        keys_where = ["user_id = ?"]
+        keys_params = [g.user["id"]]
+        if k_q := (request.form.get("keys_q") or request.form.get("q") or "").strip():
+            keys_where.append("name LIKE ?")
+            keys_params.append(f"%{k_q}%")
+        if k_active := (request.form.get("keys_active") or request.form.get("active") or "").strip():
+            try:
+                val = int(k_active)
+                keys_where.append("active = ?")
+                keys_params.append(val)
+            except ValueError:
+                pass
+
+        where_sql = " WHERE " + " AND ".join(keys_where)
+        matched_count = db.execute(f"SELECT COUNT(*) as c FROM api_keys{where_sql}", keys_params).fetchone()["c"]
+
+        if action == "enable":
+            db.execute(f"UPDATE api_keys SET active=1{where_sql}", keys_params)
+            flash(f"已批量启用符合筛选条件的全部 {matched_count} 个 API Key", "success")
+        elif action == "disable":
+            db.execute(f"UPDATE api_keys SET active=0{where_sql}", keys_params)
+            flash(f"已批量停用符合筛选条件的全部 {matched_count} 个 API Key", "success")
+        elif action == "delete":
+            db.execute(f"DELETE FROM api_keys{where_sql}", keys_params)
+            flash(f"已批量删除符合筛选条件的全部 {matched_count} 个 API Key", "success")
+        else:
+            flash("不支持的批量操作类型", "error")
+            return redirect(url_for("portal.keys"))
+
+        db.commit()
+        return redirect(url_for("portal.keys"))
+
+    ids_raw = request.form.get("ids", "").strip()
+    if not ids_raw:
         flash("请先勾选需要批量操作的 API Key", "error")
         return redirect(url_for("portal.keys"))
 
@@ -156,6 +195,9 @@ def batch_keys():
     elif action == "delete":
         db.execute(f"DELETE FROM api_keys WHERE id IN ({placeholders}) AND user_id=?", key_ids + [g.user["id"]])
         flash(f"已批量删除选中的 {len(key_ids)} 个 API Key", "success")
+    else:
+        flash("不支持的批量操作类型", "error")
+        return redirect(url_for("portal.keys"))
 
     db.commit()
     return redirect(url_for("portal.keys"))

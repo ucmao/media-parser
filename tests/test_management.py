@@ -788,5 +788,137 @@ class ManagementTest(unittest.TestCase):
         self.assertNotIn("/admin", response.location)
 
 
+    def test_batch_logs_select_all(self):
+        self.client.post("/auth/setup", data={"csrf_token": self.csrf(), "username": "admin", "password": "password123", "confirm_password": "password123"})
+        self.client.post("/auth/login", data={"csrf_token": self.csrf(), "username": "admin", "password": "password123"})
+
+        with self.app.app_context():
+            db = get_db()
+            for i in range(3):
+                db.execute(
+                    "INSERT INTO request_logs(path,platform,status_code,duration_ms,created_at) VALUES(?,?,?,?,?)",
+                    ("/api/v1/parse", "抖音", 500, 10, utcnow()),
+                )
+            for i in range(2):
+                db.execute(
+                    "INSERT INTO request_logs(path,platform,status_code,duration_ms,created_at) VALUES(?,?,?,?,?)",
+                    ("/api/v1/parse", "快手", 200, 10, utcnow()),
+                )
+            db.commit()
+
+        # Batch delete filtered by platform 抖音
+        response = self.client.post(
+            "/admin/logs/batch",
+            data={
+                "csrf_token": self.csrf(),
+                "select_mode": "all",
+                "logs_platform": "抖音",
+                "action": "delete",
+            },
+            follow_redirects=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("已批量删除符合筛选条件的全部 3 条日志记录", response.get_data(as_text=True))
+
+        with self.app.app_context():
+            count = get_db().execute("SELECT COUNT(*) count FROM request_logs").fetchone()["count"]
+            self.assertEqual(count, 2)
+
+    def test_batch_users_select_all(self):
+        self.client.post("/auth/setup", data={"csrf_token": self.csrf(), "username": "admin", "password": "password123", "confirm_password": "password123"})
+        self.client.post("/auth/login", data={"csrf_token": self.csrf(), "username": "admin", "password": "password123"})
+
+        with self.app.app_context():
+            db = get_db()
+            from werkzeug.security import generate_password_hash
+            db.execute(
+                "INSERT INTO users(username,password_hash,role,active,credits,created_at) VALUES(?,?,?,?,?,?)",
+                ("u1", generate_password_hash("p"), "user", 1, 100, utcnow()),
+            )
+            db.execute(
+                "INSERT INTO users(username,password_hash,role,active,credits,created_at) VALUES(?,?,?,?,?,?)",
+                ("u2", generate_password_hash("p"), "user", 1, 200, utcnow()),
+            )
+            db.commit()
+
+        # Batch adjust credits in all mode
+        response = self.client.post(
+            "/admin/users/batch",
+            data={
+                "csrf_token": self.csrf(),
+                "select_mode": "all",
+                "action": "adjust_credits",
+                "credits_mode": "add",
+                "credits_amount": "50",
+            },
+            follow_redirects=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("已批量更新符合筛选条件的全部 2 个客户账号积分", response.get_data(as_text=True))
+
+        with self.app.app_context():
+            u1 = get_db().execute("SELECT credits FROM users WHERE username='u1'").fetchone()
+            u2 = get_db().execute("SELECT credits FROM users WHERE username='u2'").fetchone()
+            self.assertEqual(u1["credits"], 150)
+            self.assertEqual(u2["credits"], 250)
+
+    def test_batch_keys_select_all(self):
+        self.client.post("/auth/setup", data={"csrf_token": self.csrf(), "username": "admin", "password": "password123", "confirm_password": "password123"})
+        self.client.post("/auth/login", data={"csrf_token": self.csrf(), "username": "admin", "password": "password123"})
+
+        with self.app.app_context():
+            db = get_db()
+            admin_id = db.execute("SELECT id FROM users WHERE username='admin'").fetchone()["id"]
+            db.execute("INSERT INTO api_keys(user_id,name,key_hash,key_prefix,active,created_at) VALUES(?,?,?,?,?,?)", (admin_id, "k1", "h1", "p1", 1, utcnow()))
+            db.execute("INSERT INTO api_keys(user_id,name,key_hash,key_prefix,active,created_at) VALUES(?,?,?,?,?,?)", (admin_id, "k2", "h2", "p2", 1, utcnow()))
+            db.commit()
+
+        # Batch disable in all mode
+        response = self.client.post(
+            "/admin/keys/batch",
+            data={
+                "csrf_token": self.csrf(),
+                "select_mode": "all",
+                "action": "disable",
+            },
+            follow_redirects=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("已批量停用符合筛选条件的全部 2 个 API Key", response.get_data(as_text=True))
+
+        with self.app.app_context():
+            active_count = get_db().execute("SELECT COUNT(*) c FROM api_keys WHERE active=1").fetchone()["c"]
+            self.assertEqual(active_count, 0)
+
+    def test_portal_batch_keys_select_all(self):
+        # Register user
+        self.client.post("/auth/register", data={"csrf_token": self.csrf(), "username": "portal_user", "password": "password123", "confirm_password": "password123"})
+        self.client.post("/auth/login", data={"csrf_token": self.csrf(), "username": "portal_user", "password": "password123"})
+
+        with self.app.app_context():
+            db = get_db()
+            uid = db.execute("SELECT id FROM users WHERE username='portal_user'").fetchone()["id"]
+            db.execute("INSERT INTO api_keys(user_id,name,key_hash,key_prefix,active,created_at) VALUES(?,?,?,?,?,?)", (uid, "pk1", "h1", "p1", 1, utcnow()))
+            db.execute("INSERT INTO api_keys(user_id,name,key_hash,key_prefix,active,created_at) VALUES(?,?,?,?,?,?)", (uid, "pk2", "h2", "p2", 1, utcnow()))
+            db.commit()
+
+        response = self.client.post(
+            "/console/keys/batch",
+            data={
+                "csrf_token": self.csrf(),
+                "select_mode": "all",
+                "action": "delete",
+            },
+            follow_redirects=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("已批量删除符合筛选条件的全部 2 个 API Key", response.get_data(as_text=True))
+
+        with self.app.app_context():
+            count = get_db().execute("SELECT COUNT(*) c FROM api_keys WHERE user_id=?", (uid,)).fetchone()["c"]
+            self.assertEqual(count, 0)
+
+
 if __name__ == "__main__":
     unittest.main()
+

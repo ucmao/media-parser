@@ -172,6 +172,7 @@ def users():
         where_clauses=users_where,
         where_params=users_params,
         request_args=request.args,
+        default_page_size=20,
         prefix="users_",
     )
 
@@ -279,10 +280,82 @@ def reset_password(user_id):
 @csrf_protected
 def batch_users():
     db = get_db()
-    ids_raw = request.form.get("ids", "").strip()
     action = request.form.get("action", "").strip()
+    select_mode = request.form.get("select_mode", "page").strip()
 
-    if not ids_raw or not action:
+    if not action:
+        flash("未指定批量操作类型", "error")
+        return redirect(url_for("admin.users"))
+
+    if select_mode == "all":
+        users_where, users_params = [], []
+        if u_q := (request.form.get("users_q") or request.form.get("q") or "").strip():
+            users_where.append("u.username LIKE ?")
+            users_params.append(f"%{u_q}%")
+        if u_role := (request.form.get("users_role") or request.form.get("role") or "").strip():
+            users_where.append("u.role = ?")
+            users_params.append(u_role)
+        if u_active := (request.form.get("users_active") or request.form.get("active") or "").strip():
+            try:
+                val = int(u_active)
+                users_where.append("u.active = ?")
+                users_params.append(val)
+            except ValueError:
+                pass
+        users_where.append("u.role != 'admin'")
+
+        where_sql = " WHERE " + " AND ".join(users_where)
+        subquery = f"SELECT u.id FROM users u{where_sql}"
+        matched_count = db.execute(f"SELECT COUNT(*) as c FROM users WHERE id IN ({subquery})", users_params).fetchone()["c"]
+
+        if action == "enable":
+            db.execute(f"UPDATE users SET active=1 WHERE id IN ({subquery})", users_params)
+            flash(f"已批量启用符合筛选条件的全部 {matched_count} 个客户账号", "success")
+        elif action == "disable":
+            db.execute(f"UPDATE users SET active=0 WHERE id IN ({subquery})", users_params)
+            flash(f"已批量停用符合筛选条件的全部 {matched_count} 个客户账号", "success")
+        elif action == "adjust_credits":
+            mode = request.form.get("credits_mode", "add")
+            try:
+                amount = int(request.form.get("credits_amount", 0))
+            except ValueError:
+                amount = 0
+
+            if mode == "set":
+                db.execute(f"UPDATE users SET credits=? WHERE id IN ({subquery})", [amount] + users_params)
+            elif mode == "add":
+                db.execute(f"UPDATE users SET credits=credits+? WHERE id IN ({subquery}) AND credits!=-1", [amount] + users_params)
+            elif mode == "deduct":
+                db.execute(f"UPDATE users SET credits=MAX(0, credits-?) WHERE id IN ({subquery}) AND credits!=-1", [amount] + users_params)
+            flash(f"已批量更新符合筛选条件的全部 {matched_count} 个客户账号积分", "success")
+        elif action == "set_qps":
+            try:
+                qps = _positive_int(request.form.get("qps_limit"), 2)
+                db.execute(f"UPDATE users SET qps_limit=? WHERE id IN ({subquery})", [qps] + users_params)
+                flash(f"已批量设置符合筛选条件的全部 {matched_count} 个客户并发 QPS 为 {qps}", "success")
+            except ValueError:
+                flash("QPS 格式无效", "error")
+        elif action == "set_expires":
+            expires = request.form.get("expires_at", "").strip()
+            expires_at = None
+            if expires:
+                try:
+                    local_end = datetime.combine(datetime.strptime(expires, "%Y-%m-%d").date(), time.max)
+                    expires_at = local_end.replace(tzinfo=ZoneInfo("Asia/Shanghai")).astimezone(timezone.utc).isoformat(timespec="seconds")
+                except ValueError:
+                    flash("到期日期格式无效", "error")
+                    return redirect(url_for("admin.users"))
+            db.execute(f"UPDATE users SET expires_at=? WHERE id IN ({subquery})", [expires_at] + users_params)
+            flash(f"已批量设置符合筛选条件的全部 {matched_count} 个客户账号到期时间", "success")
+        else:
+            flash("不支持的批量操作类型", "error")
+            return redirect(url_for("admin.users"))
+
+        db.commit()
+        return redirect(url_for("admin.users"))
+
+    ids_raw = request.form.get("ids", "").strip()
+    if not ids_raw:
         flash("请先勾选需要批量操作的客户账号", "error")
         return redirect(url_for("admin.users"))
 
@@ -383,6 +456,7 @@ def keys():
         where_clauses=keys_where,
         where_params=keys_params,
         request_args=request.args,
+        default_page_size=20,
         prefix="keys_",
     )
     all_users = db.execute("SELECT id, username, role, active FROM users ORDER BY id ASC").fetchall()
@@ -468,10 +542,57 @@ def delete_key(key_id):
 @csrf_protected
 def batch_keys():
     db = get_db()
-    ids_raw = request.form.get("ids", "").strip()
     action = request.form.get("action", "").strip()
+    select_mode = request.form.get("select_mode", "page").strip()
 
-    if not ids_raw or not action:
+    if not action:
+        flash("未指定批量操作类型", "error")
+        return redirect(url_for("admin.keys"))
+
+    if select_mode == "all":
+        keys_where, keys_params = [], []
+        if k_q := (request.form.get("keys_q") or request.form.get("q") or "").strip():
+            keys_where.append("(k.name LIKE ? OR u.username LIKE ?)")
+            keys_params.extend([f"%{k_q}%", f"%{k_q}%"])
+        if k_user_id := (request.form.get("keys_user_id") or request.form.get("user_id") or "").strip():
+            if k_user_id.isdigit():
+                keys_where.append("k.user_id = ?")
+                keys_params.append(int(k_user_id))
+        if k_active := (request.form.get("keys_active") or request.form.get("active") or "").strip():
+            try:
+                val = int(k_active)
+                keys_where.append("k.active = ?")
+                keys_params.append(val)
+            except ValueError:
+                pass
+
+        where_sql = (" WHERE " + " AND ".join(keys_where)) if keys_where else ""
+        subquery = f"SELECT k.id FROM api_keys k LEFT JOIN users u ON u.id=k.user_id{where_sql}"
+        matched_count = db.execute(f"SELECT COUNT(*) as c FROM api_keys WHERE id IN ({subquery})", keys_params).fetchone()["c"]
+
+        if action == "enable":
+            db.execute(f"UPDATE api_keys SET active=1 WHERE id IN ({subquery})", keys_params)
+            flash(f"已批量启用符合筛选条件的全部 {matched_count} 个 API Key", "success")
+        elif action == "disable":
+            db.execute(f"UPDATE api_keys SET active=0 WHERE id IN ({subquery})", keys_params)
+            flash(f"已批量停用符合筛选条件的全部 {matched_count} 个 API Key", "success")
+        elif action == "set_qps":
+            qps_raw = request.form.get("qps_limit", "").strip()
+            qps = _positive_int(qps_raw) if qps_raw else None
+            db.execute(f"UPDATE api_keys SET qps_limit=? WHERE id IN ({subquery})", [qps] + keys_params)
+            flash(f"已批量更新符合筛选条件的全部 {matched_count} 个 API Key 限流", "success")
+        elif action == "delete":
+            db.execute(f"DELETE FROM api_keys WHERE id IN ({subquery})", keys_params)
+            flash(f"已批量彻底删除符合筛选条件的全部 {matched_count} 个 API Key", "success")
+        else:
+            flash("不支持的批量操作类型", "error")
+            return redirect(url_for("admin.keys"))
+
+        db.commit()
+        return redirect(url_for("admin.keys"))
+
+    ids_raw = request.form.get("ids", "").strip()
+    if not ids_raw:
         flash("请先勾选需要批量操作的 API Key", "error")
         return redirect(url_for("admin.keys"))
 
@@ -500,6 +621,9 @@ def batch_keys():
     elif action == "delete":
         db.execute(f"DELETE FROM api_keys WHERE id IN ({placeholders})", key_ids)
         flash(f"已批量彻底删除选中的 {len(key_ids)} 个 API Key", "success")
+    else:
+        flash("不支持的批量操作类型", "error")
+        return redirect(url_for("admin.keys"))
 
     db.commit()
     return redirect(url_for("admin.keys"))
@@ -649,10 +773,71 @@ def update_platform(platform):
 @csrf_protected
 def batch_platforms():
     db = get_db()
-    names_raw = request.form.get("names", "").strip()
     action = request.form.get("action", "").strip()
+    select_mode = request.form.get("select_mode", "page").strip()
 
-    if not names_raw or not action:
+    if not action:
+        flash("未指定批量操作类型", "error")
+        return redirect(url_for("admin.platforms"))
+
+    if select_mode == "all":
+        configured = {row["platform"]: row for row in db.execute("SELECT * FROM platform_settings")}
+        platform_to_domains = {}
+        for domain, pname in DOMAIN_TO_NAME.items():
+            platform_to_domains.setdefault(pname, []).append(domain)
+
+        platforms_list = []
+        for name in sorted(set(DOMAIN_TO_NAME.values())):
+            row = configured.get(name)
+            enabled = True if row is None else bool(row["enabled"])
+            qps_limit = None if row is None else row["qps_limit"]
+            platforms_list.append({
+                "name": name,
+                "enabled": enabled,
+                "qps_limit": qps_limit,
+                "domains": platform_to_domains.get(name, []),
+            })
+
+        p_q = (request.form.get("platforms_q") or request.form.get("q") or "").strip().lower()
+        p_status = (request.form.get("platforms_status") or request.form.get("status") or "").strip()
+
+        filtered_platforms = []
+        for p in platforms_list:
+            if p_q:
+                match_name = p_q in p["name"].lower()
+                match_domains = any(p_q in d.lower() for d in p["domains"])
+                if not (match_name or match_domains):
+                    continue
+            if p_status == "enabled" and not p["enabled"]:
+                continue
+            elif p_status == "disabled" and p["enabled"]:
+                continue
+            elif p_status == "limited" and not p["qps_limit"]:
+                continue
+            filtered_platforms.append(p)
+
+        platform_names = [p["name"] for p in filtered_platforms]
+        if not platform_names:
+            flash("未找到符合筛选条件的支持平台", "error")
+            return redirect(url_for("admin.platforms"))
+
+        qps_raw = request.form.get("qps_limit", "").strip()
+        qps = _positive_int(qps_raw) if qps_raw else None
+
+        for name in platform_names:
+            if action == "enable":
+                db.execute("INSERT INTO platform_settings(platform,enabled,qps_limit) VALUES(?,1,NULL) ON CONFLICT(platform) DO UPDATE SET enabled=1", (name,))
+            elif action == "disable":
+                db.execute("INSERT INTO platform_settings(platform,enabled,qps_limit) VALUES(?,0,NULL) ON CONFLICT(platform) DO UPDATE SET enabled=0", (name,))
+            elif action == "set_qps":
+                db.execute("INSERT INTO platform_settings(platform,enabled,qps_limit) VALUES(?,1,?) ON CONFLICT(platform) DO UPDATE SET qps_limit=excluded.qps_limit", (name, qps))
+
+        db.commit()
+        flash(f"已成功批量更新符合筛选条件的全部 {len(platform_names)} 个支持平台配置", "success")
+        return redirect(url_for("admin.platforms"))
+
+    names_raw = request.form.get("names", "").strip()
+    if not names_raw:
         flash("请先勾选需要批量操作的支持平台", "error")
         return redirect(url_for("admin.platforms"))
 
@@ -875,10 +1060,51 @@ def delete_log(log_id):
 @csrf_protected
 def batch_logs():
     db = get_db()
-    ids_raw = request.form.get("ids", "").strip()
     action = request.form.get("action", "").strip()
+    select_mode = request.form.get("select_mode", "page").strip()
 
-    if not ids_raw or not action:
+    if not action:
+        flash("未指定批量操作类型", "error")
+        return redirect(url_for("admin.logs"))
+
+    if select_mode == "all":
+        where_clauses, params = [], []
+        if l_q := (request.form.get("logs_q") or request.form.get("q") or "").strip():
+            where_clauses.append("(l.input_url LIKE ? OR u.username LIKE ? OR l.error_code LIKE ?)")
+            params.extend([f"%{l_q}%", f"%{l_q}%", f"%{l_q}%"])
+        if l_status := (request.form.get("logs_status") or request.form.get("status_code") or "").strip():
+            if l_status == "200":
+                where_clauses.append("l.status_code < 400")
+            elif l_status == "error":
+                where_clauses.append("l.status_code >= 400")
+            elif l_status.isdigit():
+                where_clauses.append("l.status_code = ?")
+                params.append(int(l_status))
+        if l_platform := (request.form.get("logs_platform") or request.form.get("platform") or "").strip():
+            where_clauses.append("l.platform = ?")
+            params.append(l_platform)
+        if utc_start := _parse_shanghai_to_utc_iso(request.form.get("logs_start_date") or request.form.get("start_date") or "", is_end=False):
+            where_clauses.append("l.created_at >= ?")
+            params.append(utc_start)
+        if utc_end := _parse_shanghai_to_utc_iso(request.form.get("logs_end_date") or request.form.get("end_date") or "", is_end=True):
+            where_clauses.append("l.created_at <= ?")
+            params.append(utc_end)
+
+        where_sql = (" WHERE " + " AND ".join(where_clauses)) if where_clauses else ""
+        subquery = f"SELECT l.id FROM request_logs l LEFT JOIN users u ON u.id=l.user_id LEFT JOIN api_keys k ON k.id=l.api_key_id{where_sql}"
+        matched_count = db.execute(f"SELECT COUNT(*) as c FROM request_logs WHERE id IN ({subquery})", params).fetchone()["c"]
+
+        if action == "delete":
+            db.execute(f"DELETE FROM request_logs WHERE id IN ({subquery})", params)
+            db.commit()
+            flash(f"已批量删除符合筛选条件的全部 {matched_count} 条日志记录", "success")
+        else:
+            flash("不支持的批量操作类型", "error")
+
+        return redirect(url_for("admin.logs"))
+
+    ids_raw = request.form.get("ids", "").strip()
+    if not ids_raw:
         flash("请先勾选需要批量操作的日志条目", "error")
         return redirect(url_for("admin.logs"))
 
@@ -896,6 +1122,8 @@ def batch_logs():
     if action == "delete":
         db.execute(f"DELETE FROM request_logs WHERE id IN ({placeholders})", log_ids)
         flash(f"已批量删除选中的 {len(log_ids)} 条日志记录", "success")
+    else:
+        flash("不支持的批量操作类型", "error")
 
     db.commit()
     return redirect(url_for("admin.logs"))

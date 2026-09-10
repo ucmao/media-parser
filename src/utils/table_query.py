@@ -11,10 +11,11 @@ def parse_table_params(
     default_order: str = "desc",
     default_page_size: int = 50,
     prefix: str = "",
+    cookies: Dict[str, str] = None,
 ) -> Dict[str, Any]:
     """
     从请求参数中解析通用表格参数（页码、每页条数、排序字段、排序方向、关键字等）。
-    前缀参数用于同页面多个表格区分（如 logs_page vs users_page）。
+    支持从浏览器持久化 Cookie 中自动恢复用户上次选择的每页条数偏好。
     """
     page_key = f"{prefix}page" if prefix else "page"
     page_size_key = f"{prefix}page_size" if prefix else "page_size"
@@ -27,8 +28,27 @@ def parse_table_params(
     except (TypeError, ValueError):
         page = 1
 
+    # 尝试从请求上下文或参数中获取 Cookie 偏好
+    if cookies is None:
+        try:
+            from flask import has_request_context, request
+            if has_request_context() and hasattr(request, "cookies"):
+                cookies = request.cookies
+        except Exception:
+            cookies = None
+
+    clean_prefix = prefix.rstrip("_") if prefix else "default"
+    cookie_key = f"mp_page_size_{clean_prefix}"
+    pref_size = None
+    if cookies and cookie_key in cookies:
+        try:
+            pref_size = int(cookies[cookie_key])
+        except (TypeError, ValueError):
+            pref_size = None
+
+    raw_size = args.get(page_size_key, pref_size if pref_size is not None else default_page_size)
     try:
-        page_size = int(args.get(page_size_key, default_page_size))
+        page_size = int(raw_size)
         if page_size not in ALLOWED_PAGE_SIZES:
             page_size = default_page_size
     except (TypeError, ValueError):

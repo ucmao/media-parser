@@ -1,0 +1,124 @@
+{% macro render_pagination(table_data, prefix='', unit='条数据') %}
+{% set p = table_data.pagination %}
+<div class="pagination-bar flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-4 border-t border-slate-100 text-xs text-slate-500 select-none">
+    <!-- 左侧：总数与每页容量 (统一 32px 高度体系) -->
+    <div class="pagination-info flex items-center gap-3">
+        <span class="text-slate-500">共 <span class="font-semibold text-slate-800 tabular-nums">{{ p.total_count }}</span> {{ unit }}</span>
+        <div class="h-3.5 w-px bg-slate-200"></div>
+        <div class="flex items-center gap-1.5 text-slate-500">
+            <span>每页</span>
+            <select class="page-size-select h-8 pl-2.5 pr-6 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer hover:border-slate-300 transition shadow-2xs"
+                    onchange="handlePageSizeChange('{{ prefix }}', this.value)">
+                {% for size in p.page_sizes %}
+                <option value="{{ size }}" {{ 'selected' if p.page_size == size }}>{{ size }} 条</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- 右侧：纯图标箭头 + 统一 32x32px 正方页码块 + 方案A浅底高亮 + 跳至指定页 -->
+    <div class="pagination-pages flex items-center gap-1">
+        <!-- 上一页图标按钮 (‹) -->
+        <a href="javascript:void(0)"
+           class="page-btn inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs font-medium transition-all duration-150 {{ 'bg-slate-50 text-slate-300 border-slate-200/70 cursor-not-allowed pointer-events-none' if not p.has_prev else 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 shadow-2xs cursor-pointer' }}"
+           {% if not p.has_prev %}aria-disabled="true"{% endif %}
+           onclick="handlePageChange('{{ prefix }}', {{ p.page - 1 }})"
+           title="上一页"
+           aria-label="上一页">
+           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        </a>
+
+        <!-- 数字页码组 (激活态加粗 font-bold + 浅紫高亮底色) -->
+        <div class="flex items-center gap-1 mx-0.5">
+        {% if p.total_pages <= 7 %}
+            {% for i in range(1, p.total_pages + 1) %}
+                {% if i == p.page %}
+                <span class="page-num-active inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold text-xs tabular-nums">{{ i }}</span>
+                {% else %}
+                <a href="javascript:void(0)"
+                   class="page-num inline-flex items-center justify-center w-8 h-8 rounded-lg border border-transparent hover:border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-all text-xs font-medium tabular-nums cursor-pointer"
+                   onclick="handlePageChange('{{ prefix }}', {{ i }})">{{ i }}</a>
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            {# 总页数大于 7 页 #}
+            {% if p.page <= 4 %}
+                {% for i in range(1, 6) %}
+                    {% if i == p.page %}
+                    <span class="page-num-active inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold text-xs tabular-nums">{{ i }}</span>
+                    {% else %}
+                    <a href="javascript:void(0)"
+                       class="page-num inline-flex items-center justify-center w-8 h-8 rounded-lg border border-transparent hover:border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-all text-xs font-medium tabular-nums cursor-pointer"
+                       onclick="handlePageChange('{{ prefix }}', {{ i }})">{{ i }}</a>
+                    {% endif %}
+                {% endfor %}
+                <span class="inline-flex items-center justify-center w-8 h-8 text-slate-400 select-none text-xs">···</span>
+                <a href="javascript:void(0)"
+                   class="page-num inline-flex items-center justify-center w-8 h-8 rounded-lg border border-transparent hover:border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-all text-xs font-medium tabular-nums cursor-pointer"
+                   onclick="handlePageChange('{{ prefix }}', {{ p.total_pages }})">{{ p.total_pages }}</a>
+            {% elif p.page >= p.total_pages - 3 %}
+                <a href="javascript:void(0)"
+                   class="page-num inline-flex items-center justify-center w-8 h-8 rounded-lg border border-transparent hover:border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-all text-xs font-medium tabular-nums cursor-pointer"
+                   onclick="handlePageChange('{{ prefix }}', 1)">1</a>
+                <span class="inline-flex items-center justify-center w-8 h-8 text-slate-400 select-none text-xs">···</span>
+                {% for i in range(p.total_pages - 4, p.total_pages + 1) %}
+                    {% if i == p.page %}
+                    <span class="page-num-active inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold text-xs tabular-nums">{{ i }}</span>
+                    {% else %}
+                    <a href="javascript:void(0)"
+                       class="page-num inline-flex items-center justify-center w-8 h-8 rounded-lg border border-transparent hover:border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-all text-xs font-medium tabular-nums cursor-pointer"
+                       onclick="handlePageChange('{{ prefix }}', {{ i }})">{{ i }}</a>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <a href="javascript:void(0)"
+                   class="page-num inline-flex items-center justify-center w-8 h-8 rounded-lg border border-transparent hover:border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-all text-xs font-medium tabular-nums cursor-pointer"
+                   onclick="handlePageChange('{{ prefix }}', 1)">1</a>
+                <span class="inline-flex items-center justify-center w-8 h-8 text-slate-400 select-none text-xs">···</span>
+                {% for i in range(p.page - 1, p.page + 2) %}
+                    {% if i == p.page %}
+                    <span class="page-num-active inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold text-xs tabular-nums">{{ i }}</span>
+                    {% else %}
+                    <a href="javascript:void(0)"
+                       class="page-num inline-flex items-center justify-center w-8 h-8 rounded-lg border border-transparent hover:border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-all text-xs font-medium tabular-nums cursor-pointer"
+                       onclick="handlePageChange('{{ prefix }}', {{ i }})">{{ i }}</a>
+                    {% endif %}
+                {% endfor %}
+                <span class="inline-flex items-center justify-center w-8 h-8 text-slate-400 select-none text-xs">···</span>
+                <a href="javascript:void(0)"
+                   class="page-num inline-flex items-center justify-center w-8 h-8 rounded-lg border border-transparent hover:border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-all text-xs font-medium tabular-nums cursor-pointer"
+                   onclick="handlePageChange('{{ prefix }}', {{ p.total_pages }})">{{ p.total_pages }}</a>
+            {% endif %}
+        {% endif %}
+        </div>
+
+        <!-- 下一页图标按钮 (›) -->
+        <a href="javascript:void(0)"
+           class="page-btn inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs font-medium transition-all duration-150 {{ 'bg-slate-50 text-slate-300 border-slate-200/70 cursor-not-allowed pointer-events-none' if not p.has_next else 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 shadow-2xs cursor-pointer' }}"
+           {% if not p.has_next %}aria-disabled="true"{% endif %}
+           onclick="handlePageChange('{{ prefix }}', {{ p.page + 1 }})"
+           title="下一页"
+           aria-label="下一页">
+           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </a>
+
+        <!-- 前往指定页 (严格对齐 32px / h-8 高度、圆角与阴影) -->
+        {% if p.total_pages > 1 %}
+        <div class="h-3.5 w-px bg-slate-200 mx-1.5 hidden sm:block"></div>
+        <div class="flex items-center gap-1.5 text-slate-500">
+            <span>跳至</span>
+            <input type="number"
+                   min="1"
+                   max="{{ p.total_pages }}"
+                   id="{{ prefix + '-' if prefix else '' }}jump-page-input"
+                   class="jump-page-input w-12 h-8 px-2 rounded-lg border border-slate-200 bg-white text-center text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none transition shadow-2xs hover:border-slate-300 tabular-nums"
+                   placeholder="{{ p.page }}"
+                   value="{{ p.page }}"
+                   onkeydown="if(event.key==='Enter'){ event.preventDefault(); handlePageJump('{{ prefix }}', {{ p.total_pages }}, this.value); }"
+                   onchange="handlePageJump('{{ prefix }}', {{ p.total_pages }}, this.value)">
+            <span>页</span>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endmacro %}

@@ -1,4 +1,5 @@
 {% extends 'base_console.html' %}
+{% from 'components/pagination.html' import render_pagination %}
 {% block title %}请求日志 · 客户控制台{% endblock %}
 {% block page_title %}请求日志{% endblock %}
 {% block console_content %}
@@ -114,23 +115,7 @@
             </div>
 
             <!-- 分页控件与每页条数 Selector -->
-            <div class="pagination-bar flex flex-col sm:flex-row items-center justify-between gap-4 mt-5 pt-4 border-t border-slate-100 text-xs text-slate-500">
-                <div class="pagination-info flex items-center gap-3">
-                    <span>共 {{ logs_table.pagination.total_count }} 条数据</span>
-                    <label class="flex items-center gap-1.5">每页显示:
-                        <select class="page-size-select px-2 py-1 rounded border border-slate-200 bg-white text-slate-700 text-xs focus:outline-none" onchange="handlePageSizeChange('logs', this.value)">
-                            {% for size in logs_table.pagination.page_sizes %}
-                            <option value="{{ size }}" {{ 'selected' if logs_table.pagination.page_size == size }}>{{ size }} 条</option>
-                            {% endfor %}
-                        </select>
-                    </label>
-                </div>
-                <div class="pagination-pages flex items-center gap-2">
-                    <a href="javascript:void(0)" class="page-btn px-2.5 py-1 rounded border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition {{ 'opacity-50 pointer-events-none' if not logs_table.pagination.has_prev }}" onclick="handlePageChange('logs', {{ logs_table.pagination.page - 1 }})">上一页</a>
-                    <span class="px-1 text-slate-600 font-medium">第 {{ logs_table.pagination.page }} / {{ logs_table.pagination.total_pages }} 页</span>
-                    <a href="javascript:void(0)" class="page-btn px-2.5 py-1 rounded border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition {{ 'opacity-50 pointer-events-none' if not logs_table.pagination.has_next }}" onclick="handlePageChange('logs', {{ logs_table.pagination.page + 1 }})">下一页</a>
-                </div>
-            </div>
+            {{ render_pagination(logs_table, 'logs', '条数据') }}
 
             <!-- 底部悬浮胶囊批量工具栏 -->
             <div id="logs-table-floating-toolbar" class="batch-floating-toolbar fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-md text-slate-800 px-4 py-2.5 rounded-2xl shadow-xl border border-slate-200/90 flex items-center gap-2.5 z-40 text-xs font-semibold transition-all duration-200 opacity-0 pointer-events-none translate-y-4">

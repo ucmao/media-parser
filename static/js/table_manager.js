@@ -1,7 +1,113 @@
 /**
- * Antigravity Table Manager JS
- * 通用后台数据表格交互核心逻辑：排序、动态筛选、批量勾选/跨页全选、分页及条数切换、导出。
+ * 局部无刷新热替换表格数据 (AJAX / PJAX Seamless Hot-Reload)
  */
+let isTableLoading = false;
+
+async function navigateTableAjax(targetUrl, pushState = true) {
+    if (isTableLoading) return;
+    isTableLoading = true;
+
+    // 优先定位主内容区 main 容器
+    const currentContainer = document.querySelector('main') || document.querySelector('.main-wrapper > div:last-child');
+    if (currentContainer) {
+        currentContainer.classList.add('opacity-60', 'pointer-events-none', 'transition-opacity', 'duration-150');
+    }
+
+    try {
+        const response = await fetch(targetUrl, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        if (!response.ok) {
+            window.location.href = targetUrl;
+            return;
+        }
+
+        const html = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+
+        const newContainer = doc.querySelector('main') || doc.querySelector('.main-wrapper > div:last-child');
+        if (currentContainer && newContainer) {
+            currentContainer.innerHTML = newContainer.innerHTML;
+
+            // 更新标题
+            if (doc.title) {
+                document.title = doc.title;
+            }
+
+            // 更新浏览器地址栏与历史栈
+            if (pushState) {
+                window.history.pushState({ path: targetUrl }, '', targetUrl);
+            }
+
+            // 重新初始化动态组件（自定义下拉菜单、批量全选等）
+            initAll();
+
+            // 隐藏可能残留的批量悬浮栏
+            document.querySelectorAll('.batch-floating-toolbar').forEach(tb => {
+                tb.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+                tb.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+            });
+
+            // 如果当前页面滚动较深，平滑定位到表格顶部
+            const tableCard = currentContainer.querySelector('section') || currentContainer;
+            if (tableCard && window.scrollY > tableCard.offsetTop + 100) {
+                window.scrollTo({ top: tableCard.offsetTop - 70, behavior: 'smooth' });
+            }
+        } else {
+            window.location.href = targetUrl;
+        }
+    } catch (err) {
+        console.warn('AJAX table navigation fallback to full load:', err);
+        window.location.href = targetUrl;
+    } finally {
+        if (currentContainer) {
+            currentContainer.classList.remove('opacity-60', 'pointer-events-none');
+        }
+        isTableLoading = false;
+    }
+}
+
+/**
+ * 表格筛选表单提交处理
+ */
+function submitFormAjax(form) {
+    const action = form.getAttribute('action') || window.location.pathname;
+    const targetBase = action.split('?')[0];
+    const targetHash = action.includes('#') ? action.substring(action.indexOf('#')) : window.location.hash;
+
+    const formData = new FormData(form);
+    const searchParams = new URLSearchParams();
+
+    // 保留其它表格的前缀参数
+    const currentParams = new URLSearchParams(window.location.search);
+    currentParams.forEach((val, key) => {
+        if (!form.elements[key]) {
+            searchParams.set(key, val);
+        }
+    });
+
+    for (const [key, value] of formData.entries()) {
+        const val = (value || '').toString().trim();
+        if (val) {
+            searchParams.set(key, val);
+        }
+    }
+
+    // 筛选变动时，将当前表格的分页重置为第 1 页
+    currentParams.forEach((_, k) => {
+        if (k.endsWith('page') || k === 'page') {
+            searchParams.set(k, '1');
+        }
+    });
+
+    const targetUrl = targetBase + (searchParams.toString() ? '?' + searchParams.toString() : '') + (targetHash || '');
+    navigateTableAjax(targetUrl);
+}
+
 function initAll() {
     // 初始化页面自定义下拉组件
     initCustomSelects();
@@ -9,15 +115,35 @@ function initAll() {
     // 监听全选框与单选框联动
     initTableSelection();
 
-    // 拦截表格筛选表单提交，确保提交时保持 #logs / #users / #keys hash 锚点
+    // 拦截表格筛选表单提交，支持 AJAX 无刷新更新
     document.querySelectorAll('.table-filter-form').forEach(form => {
+        if (form.dataset.ajaxInit === 'true') return;
+        form.dataset.ajaxInit = 'true';
+
+        // 覆盖原生 submit 防止内部 onchange="this.form.submit()" 导致整页刷新
+        form.submit = function() {
+            submitFormAjax(form);
+        };
+
         form.addEventListener('submit', function(e) {
-            const action = form.getAttribute('action');
-            if (action && action.includes('#')) {
-                const targetHash = action.substring(action.indexOf('#'));
-                window.location.hash = targetHash;
+            e.preventDefault();
+            submitFormAjax(form);
+        });
+
+        // 监听表单内部普通输入控件的变动
+        form.addEventListener('change', function(e) {
+            if (e.target.matches('select, input[type="date"]')) {
+                submitFormAjax(form);
             }
         });
+    });
+}
+
+// 监听浏览器后退/前进按钮
+if (!window._tablePopstateInit) {
+    window._tablePopstateInit = true;
+    window.addEventListener('popstate', () => {
+        navigateTableAjax(window.location.href, false);
     });
 }
 
@@ -28,7 +154,7 @@ if (document.readyState === 'loading') {
 }
 
 /**
- * 字段排序逻辑
+ * 字段排序逻辑 (AJAX)
  */
 function handleSort(prefix, field) {
     const urlParams = new URLSearchParams(window.location.search);
@@ -49,14 +175,12 @@ function handleSort(prefix, field) {
     urlParams.set(pageKey, '1'); // 排序重置为第 1 页
 
     const targetHash = prefix ? `#${prefix}` : window.location.hash;
-    window.location.search = urlParams.toString();
-    if (targetHash) {
-        window.location.hash = targetHash;
-    }
+    const targetUrl = window.location.pathname + '?' + urlParams.toString() + (targetHash || '');
+    navigateTableAjax(targetUrl);
 }
 
 /**
- * 切换每页显示条数 (20, 50, 100, 200)
+ * 切换每页显示条数 (20, 50, 100, 200) 并持久化浏览器偏好 (AJAX)
  */
 function handlePageSizeChange(prefix, pageSize) {
     const urlParams = new URLSearchParams(window.location.search);
@@ -66,15 +190,24 @@ function handlePageSizeChange(prefix, pageSize) {
     urlParams.set(pageSizeKey, pageSize);
     urlParams.set(pageKey, '1'); // 重置为第 1 页
 
-    const targetHash = prefix ? `#${prefix}` : window.location.hash;
-    window.location.search = urlParams.toString();
-    if (targetHash) {
-        window.location.hash = targetHash;
+    // 双重持久化：localStorage + Cookie (有效期 1 年)
+    try {
+        const cleanPrefix = prefix ? prefix.replace(/_+$/, '') : 'default';
+        const storageKey = `mp_page_size_${cleanPrefix}`;
+        localStorage.setItem(storageKey, pageSize);
+        localStorage.setItem('mp_page_size_last', pageSize);
+        document.cookie = `${storageKey}=${pageSize};path=/;max-age=31536000;SameSite=Lax`;
+    } catch (e) {
+        // 忽略私密模式下的存储受限异常
     }
+
+    const targetHash = prefix ? `#${prefix}` : window.location.hash;
+    const targetUrl = window.location.pathname + '?' + urlParams.toString() + (targetHash || '');
+    navigateTableAjax(targetUrl);
 }
 
 /**
- * 页码跳转
+ * 页码跳转 (AJAX)
  */
 function handlePageChange(prefix, page) {
     const urlParams = new URLSearchParams(window.location.search);
@@ -83,14 +216,36 @@ function handlePageChange(prefix, page) {
     urlParams.set(pageKey, page);
 
     const targetHash = prefix ? `#${prefix}` : window.location.hash;
-    window.location.search = urlParams.toString();
-    if (targetHash) {
-        window.location.hash = targetHash;
-    }
+    const targetUrl = window.location.pathname + '?' + urlParams.toString() + (targetHash || '');
+    navigateTableAjax(targetUrl);
 }
 
 /**
- * 表格筛选表单提交与重置
+ * 指定页码跳转 (AJAX)
+ */
+function handlePageJump(prefix, maxPage, targetPage) {
+    let pageNum = parseInt(targetPage, 10);
+    if (isNaN(pageNum)) {
+        return;
+    }
+    if (pageNum < 1) {
+        pageNum = 1;
+    } else if (maxPage && pageNum > maxPage) {
+        pageNum = maxPage;
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const pageKey = prefix ? `${prefix}_page` : 'page';
+    const currentPage = parseInt(urlParams.get(pageKey) || '1', 10);
+    if (currentPage === pageNum) {
+        return;
+    }
+
+    handlePageChange(prefix, pageNum);
+}
+
+/**
+ * 表格筛选表单重置 (AJAX)
  */
 function resetTableFilter(prefix) {
     const urlParams = new URLSearchParams(window.location.search);
@@ -107,10 +262,8 @@ function resetTableFilter(prefix) {
     keysToRemove.forEach(key => urlParams.delete(key));
 
     const targetHash = prefix ? `#${prefix}` : window.location.hash;
-    window.location.search = urlParams.toString();
-    if (targetHash) {
-        window.location.hash = targetHash;
-    }
+    const targetUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '') + (targetHash || '');
+    navigateTableAjax(targetUrl);
 }
 
 /**
@@ -309,6 +462,7 @@ async function executeBatchAction(tableId, targetUrl, action, extraPayload = {},
     if (!table) return;
 
     const isAllMode = table.getAttribute('data-select-mode') === 'all';
+    const totalCount = table.getAttribute('data-total-count') || '';
     const checkedBoxes = table.querySelectorAll('.row-checkbox:checked');
     const values = Array.from(checkedBoxes).map(cb => cb.value);
 
@@ -319,16 +473,25 @@ async function executeBatchAction(tableId, targetUrl, action, extraPayload = {},
         return;
     }
 
-    if (confirmPrompt) {
+    let actualPrompt = confirmPrompt;
+    if (confirmPrompt && isAllMode && totalCount) {
+        if (confirmPrompt.includes('选中的')) {
+            actualPrompt = confirmPrompt.replace('选中的', `符合当前筛选条件的全部 ${totalCount} 条`);
+        } else {
+            actualPrompt = `确定要对符合当前筛选条件的全部 ${totalCount} 条记录执行此操作吗？\n${confirmPrompt}`;
+        }
+    }
+
+    if (actualPrompt) {
         if (window.confirmModal) {
             const ok = await window.confirmModal({
                 title: confirmTitle,
-                message: confirmPrompt,
+                message: actualPrompt,
                 confirmText: '确定',
                 type: confirmType
             });
             if (!ok) return;
-        } else if (typeof confirm === 'function' && !confirm(confirmPrompt)) {
+        } else if (typeof confirm === 'function' && !confirm(actualPrompt)) {
             return;
         }
     }
@@ -347,6 +510,16 @@ async function executeBatchAction(tableId, targetUrl, action, extraPayload = {},
         [tableId.startsWith('platforms') ? 'names' : 'ids']: values.join(','),
         ...extraPayload
     };
+
+    // 全选模式下，将当前 URL 中的所有筛选过滤参数一并透传给后端
+    if (isAllMode) {
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.forEach((val, key) => {
+            if (!(key in fields) && val) {
+                fields[key] = val;
+            }
+        });
+    }
 
     for (const [key, val] of Object.entries(fields)) {
         const input = document.createElement('input');
@@ -417,8 +590,10 @@ function triggerLogExport(exportType = 'auto') {
 function openBatchModal(modalId, tableId) {
     const m = document.getElementById(modalId);
     if (!m) return;
+    const table = document.getElementById(tableId);
+    const isAllMode = table && table.getAttribute('data-select-mode') === 'all';
     const checked = document.querySelectorAll(`#${tableId} .row-checkbox:checked`);
-    if (checked.length === 0) {
+    if (!isAllMode && checked.length === 0) {
         if (window.showToast) {
             window.showToast('请先勾选需要批量操作的项！', 'warning');
         }
@@ -503,7 +678,7 @@ function initCustomSelects() {
         btnText.className = 'custom-select-btn-text';
 
         const chevron = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        chevron.setAttribute('class', 'custom-select-chevron');
+        chevron.setAttribute('class', 'custom-select-chevron custom-select-btn-chevron');
         chevron.setAttribute('width', '11');
         chevron.setAttribute('height', '11');
         chevron.setAttribute('viewBox', '0 0 24 24');
@@ -671,5 +846,19 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+    // 自动同步 localStorage 分页偏好至 Cookie，确保首屏直出正确条数
+    try {
+        ['logs', 'users', 'keys', 'platforms', 'default'].forEach(p => {
+            const key = `mp_page_size_${p}`;
+            const val = localStorage.getItem(key);
+            if (val && !document.cookie.includes(`${key}=`)) {
+                document.cookie = `${key}=${val};path=/;max-age=31536000;SameSite=Lax`;
+            }
+        });
+    } catch (e) {}
+});
+
 window.initCustomSelects = initCustomSelects;
+
 
