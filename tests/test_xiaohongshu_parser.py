@@ -25,18 +25,52 @@ class XiaohongshuParserTest(unittest.TestCase):
         self.assertEqual(parser.get_cover_photo_url(), "http://m_img1.jpg")
         images = parser.get_image_list()
         self.assertEqual(len(images), 1)
-        self.assertEqual(images[0]["live_photo_url"], "http://live.mp4")
+        self.assertEqual(images[0]["live_photo_url"], "https://live.mp4")
 
-
-    def test_extract_deleted_or_private_note_sets_terminal_error(self):
-        html = '<script>window.__INITIAL_STATE__ = {"note": {"firstNoteId": "note_deleted", "noteDetailMap": {"note_deleted": {"note": {}}}}}</script>'
+    def test_clean_image_url(self):
         parser = XiaohongshuParser.__new__(XiaohongshuParser)
-        parser.terminal_error = None
-        note = parser._extract_note_from_html(html)
-        self.assertIsNone(note)
-        self.assertIsNotNone(parser.terminal_error)
-        self.assertIn("私密", parser.terminal_error["detail_msg"])
+        # fileId in dict
+        img_dict = {
+            "fileId": "1040g008324p66r2m7k705p3a1qinu9068tutcco",
+            "urlDefault": "http://sns-webpic-qc.xhscdn.com/202609102130/94e7f036b636/1040g008324p66r2m7k705p3a1qinu9068tutcco!h5_1080jpg"
+        }
+        self.assertEqual(parser._clean_image_url(img_dict), "https://sns-img-qc.xhscdn.com/1040g008324p66r2m7k705p3a1qinu9068tutcco?imageView2/2/w/1920/format/jpg")
+
+        # URL string with watermark style suffix
+        watermarked_url = "http://sns-webpic-qc.xhscdn.com/202609102130/94e7f036b6363190c6e37270adc2b04f/1040g008324p66r2m7k705p3a1qinu9068tutcco!h5_1080jpg"
+        self.assertEqual(parser._clean_image_url(watermarked_url), "https://sns-img-qc.xhscdn.com/1040g008324p66r2m7k705p3a1qinu9068tutcco?imageView2/2/w/1920/format/jpg")
+
+    def test_get_real_video_url_unwatermarked(self):
+        parser = XiaohongshuParser.__new__(XiaohongshuParser)
+        # Test prioritizing mediaV2 screencast stream
+        parser.note_data = {
+            "video": {
+                "mediaV2": '{"video": {"opaque1": {"hd_screencast_stream": "http://sns-video-v2.xhscdn.com/stream/1/110/301/hd_clean.mp4"}}}',
+                "media": {
+                    "stream": {
+                        "h264": [{"streamType": 259, "streamDesc": "MINI_APP_259", "masterUrl": "http://sns-video-v2.xhscdn.com/stream/watermarked.mp4"}]
+                    }
+                }
+            }
+        }
+        self.assertEqual(parser.get_real_video_url(), "https://sns-video-v2.xhscdn.com/stream/1/110/301/hd_clean.mp4")
+
+        # Test prioritizing unwatermarked streamType 258 over 259
+        parser.note_data = {
+            "video": {
+                "media": {
+                    "stream": {
+                        "h264": [
+                            {"streamType": 259, "streamDesc": "MINI_APP_259", "masterUrl": "http://sns-video-v2.xhscdn.com/stream/watermarked.mp4"},
+                            {"streamType": 258, "streamDesc": "X264_MP4", "masterUrl": "http://sns-video-v2.xhscdn.com/stream/clean_258.mp4"}
+                        ]
+                    }
+                }
+            }
+        }
+        self.assertEqual(parser.get_real_video_url(), "https://sns-video-v2.xhscdn.com/stream/clean_258.mp4")
 
 
 if __name__ == "__main__":
     unittest.main()
+

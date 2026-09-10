@@ -184,9 +184,11 @@
         <div id="lightboxModal" class="hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm p-4 flex flex-col items-center justify-center transition-all" onclick="closeLightbox()">
             <button onclick="closeLightbox()" class="absolute top-5 right-5 text-white/80 hover:text-white text-2xl font-bold bg-white/10 w-10 h-10 rounded-full flex items-center justify-center transition">&times;</button>
             <img id="lightboxImg" src="" alt="" referrerpolicy="no-referrer" class="max-w-full max-h-[80vh] rounded-xl object-contain shadow-2xl" onclick="event.stopPropagation()">
-            <div class="mt-4 flex items-center gap-3" onclick="event.stopPropagation()">
+            <div class="mt-4 flex flex-wrap items-center justify-center gap-3" onclick="event.stopPropagation()">
                 <button id="lightboxCopyBtn" onclick="copyLightboxUrl()" class="rounded-xl bg-white/20 hover:bg-white/30 text-white px-4 py-2 text-xs font-semibold backdrop-blur-md transition inline-flex items-center gap-1.5">{{ icon('clipboard', 'w-3.5 h-3.5') }}复制图片链接</button>
-                <a id="lightboxOpenLink" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer" class="rounded-xl bg-brand text-white px-4 py-2 text-xs font-semibold shadow-md transition">新标签页打开 ↗</a>
+                <a id="lightboxOpenLink" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer" class="rounded-xl bg-white/20 hover:bg-white/30 text-white px-4 py-2 text-xs font-semibold backdrop-blur-md transition inline-flex items-center gap-1.5">打开图片 ↗</a>
+                <button id="lightboxCopyLiveBtn" onclick="copyLightboxLiveUrl()" class="hidden rounded-xl bg-indigo-600/80 hover:bg-indigo-600 text-white px-4 py-2 text-xs font-semibold backdrop-blur-md transition inline-flex items-center gap-1.5">{{ icon('clipboard', 'w-3.5 h-3.5') }}复制实况视频</button>
+                <a id="lightboxOpenLiveLink" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer" class="hidden rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-xs font-semibold shadow-md transition">打开实况 ↗</a>
             </div>
         </div>
 
@@ -615,19 +617,39 @@
             }
         }
 
-        function openLightbox(url){
+        let activeLightboxLivePhotoUrl = '';
+
+        function openLightbox(url, livePhotoUrl = ''){
             activeLightboxUrl = url;
+            activeLightboxLivePhotoUrl = livePhotoUrl;
             const modal = document.getElementById('lightboxModal');
             const img = document.getElementById('lightboxImg');
             const openLink = document.getElementById('lightboxOpenLink');
+            const copyLiveBtn = document.getElementById('lightboxCopyLiveBtn');
+            const openLiveLink = document.getElementById('lightboxOpenLiveLink');
             img.src = url;
             openLink.href = url;
+
+            if(livePhotoUrl){
+                copyLiveBtn.classList.remove('hidden');
+                openLiveLink.href = livePhotoUrl;
+                openLiveLink.classList.remove('hidden');
+            } else {
+                copyLiveBtn.classList.add('hidden');
+                openLiveLink.classList.add('hidden');
+            }
             modal.classList.remove('hidden');
         }
 
         function closeLightbox(){
             document.getElementById('lightboxModal').classList.add('hidden');
             document.getElementById('lightboxImg').src = '';
+        }
+
+        function copyLightboxLiveUrl(){
+            if(activeLightboxLivePhotoUrl){
+                copyText(activeLightboxLivePhotoUrl, '已复制 Live Photo 实况视频直链');
+            }
         }
 
         function formatSubtitleTime(seconds){
@@ -793,18 +815,34 @@
             const imageCount = document.getElementById('imageCount');
             imageGrid.replaceChildren();
 
-            const imageList = [];
-            if(data.cover_url) imageList.push({ label: '封面', url: data.cover_url });
+            const uniqueImageList = [];
+            const seenUrls = new Set();
+
             (data.image_list || []).forEach((item, idx) => {
-                if(typeof item === 'string') imageList.push({ label: `图片 ${idx + 1}`, url: item });
-                else if(item && item.url) imageList.push({ label: `图片 ${idx + 1}`, url: item.url, livePhoto: item.live_photo_url });
+                let url = '';
+                let livePhoto = '';
+                if(typeof item === 'string'){
+                    url = item.trim();
+                } else if(item && typeof item === 'object'){
+                    url = (item.url || '').trim();
+                    livePhoto = (item.live_photo_url || '').trim();
+                }
+                if(url && !seenUrls.has(url)){
+                    seenUrls.add(url);
+                    const isLive = Boolean(livePhoto);
+                    uniqueImageList.push({
+                        label: isLive ? `Live Photo ${idx + 1}` : `图片 ${idx + 1}`,
+                        url: url,
+                        livePhoto: livePhoto
+                    });
+                }
             });
-            const seenImageUrls = new Set();
-            const uniqueImageList = imageList.filter(item => {
-                if(!item.url || seenImageUrls.has(item.url)) return false;
-                seenImageUrls.add(item.url);
-                return true;
-            });
+
+            const coverUrl = typeof data.cover_url === 'string' ? data.cover_url.trim() : '';
+            if(coverUrl && !seenUrls.has(coverUrl)){
+                seenUrls.add(coverUrl);
+                uniqueImageList.unshift({ label: '封面', url: coverUrl, livePhoto: '' });
+            }
             if(uniqueImageList.length > 0){
                 imageCount.textContent = uniqueImageList.length;
                 uniqueImageList.forEach(item => {
@@ -816,35 +854,52 @@
                     img.referrerPolicy = 'no-referrer';
                     img.loading = 'lazy';
                     img.className = 'w-full h-full object-cover transition duration-300 group-hover:scale-105';
-                    img.onclick = () => openLightbox(item.url);
+                    img.onclick = () => openLightbox(item.url, item.livePhoto);
+                    card.appendChild(img);
+
+                    let cardVideo = null;
+                    if(item.livePhoto){
+                        cardVideo = document.createElement('video');
+                        cardVideo.src = item.livePhoto;
+                        cardVideo.loop = true;
+                        cardVideo.muted = true;
+                        cardVideo.playsInline = true;
+                        cardVideo.referrerPolicy = 'no-referrer';
+                        cardVideo.className = 'absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-300 pointer-events-none group-hover:opacity-100';
+                        card.appendChild(cardVideo);
+
+                        card.onmouseenter = () => cardVideo.play().catch(() => {});
+                        card.onmouseleave = () => { cardVideo.pause(); cardVideo.currentTime = 0; };
+                    }
 
                     const badge = document.createElement('span');
-                    badge.className = 'absolute top-2 left-2 rounded-md bg-slate-900/65 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-md';
-                    badge.textContent = item.label;
+                    if(item.livePhoto){
+                        badge.className = 'absolute top-2 left-2 rounded-md bg-indigo-600/90 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-md flex items-center gap-1 shadow-sm';
+                        badge.innerHTML = `<svg class="w-3 h-3 fill-current animate-pulse" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="2 2"/></svg>${item.label}`;
+                    } else {
+                        badge.className = 'absolute top-2 left-2 rounded-md bg-slate-900/65 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-md';
+                        badge.textContent = item.label;
+                    }
 
                     const overlay = document.createElement('div');
                     overlay.className = 'absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition duration-200 flex items-center justify-center gap-2 p-2';
 
                     const btnZoom = document.createElement('button');
-                    btnZoom.className = 'rounded-xl bg-white/90 px-3 py-1.5 text-xs font-bold text-slate-800 shadow hover:bg-white transition flex items-center gap-1';
+                    btnZoom.className = 'rounded-xl bg-white/95 px-3 py-1.5 text-xs font-bold text-slate-800 shadow-md hover:bg-white transition flex items-center gap-1.5';
                     btnZoom.innerHTML = `${iconMarkup('search', 'w-3.5 h-3.5')}放大`;
-                    btnZoom.onclick = (e) => { e.stopPropagation(); openLightbox(item.url); };
+                    btnZoom.onclick = (e) => { e.stopPropagation(); openLightbox(item.url, item.livePhoto); };
 
-                    const btnCopy = document.createElement('button');
-                    btnCopy.className = 'rounded-xl bg-white/90 p-1.5 text-xs font-bold text-slate-800 shadow hover:bg-white transition';
-                    btnCopy.innerHTML = iconMarkup('clipboard', 'w-4 h-4');
-                    btnCopy.title = '复制直链';
-                    btnCopy.onclick = (e) => { e.stopPropagation(); copyText(item.url, '已复制单图直链'); };
+                    overlay.appendChild(btnZoom);
 
-                    overlay.append(btnZoom, btnCopy);
                     img.onerror = () => {
                         img.remove();
+                        if(cardVideo) cardVideo.remove();
                         overlay.remove();
                         badge.remove();
                         card.className = 'rounded-2xl border border-amber-200 bg-amber-50 aspect-square p-4 flex items-center justify-center text-center text-xs leading-5 text-amber-800';
                         card.textContent = '图片直链已失效或被平台访问策略限制。请重新解析后再试。';
                     };
-                    card.append(img, badge, overlay);
+                    card.append(badge, overlay);
                     imageGrid.appendChild(card);
                 });
                 imageContainer.classList.remove('hidden');
