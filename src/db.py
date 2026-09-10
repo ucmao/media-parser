@@ -103,38 +103,6 @@ def init_db():
     db.execute("PRAGMA journal_mode = WAL")
     db.execute("PRAGMA synchronous = NORMAL")
     db.executescript(SCHEMA)
-    columns = [row[1] for row in db.execute("PRAGMA table_info(users)").fetchall()]
-    if "credits" not in columns:
-        db.execute("ALTER TABLE users ADD COLUMN credits INTEGER NOT NULL DEFAULT 100")
-    key_columns = [row[1] for row in db.execute("PRAGMA table_info(api_keys)").fetchall()]
-    if "key_hash" in key_columns or "key_prefix" in key_columns or "raw_key" in key_columns or "key" not in key_columns:
-        db.execute("PRAGMA foreign_keys = OFF")
-        db.execute("ALTER TABLE api_keys RENAME TO _api_keys_old")
-        db.execute("""
-            CREATE TABLE api_keys (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                name TEXT NOT NULL,
-                key TEXT NOT NULL UNIQUE,
-                active INTEGER NOT NULL DEFAULT 1,
-                qps_limit INTEGER,
-                created_at TEXT NOT NULL,
-                last_used_at TEXT
-            );
-        """)
-        old_cols = [row[1] for row in db.execute("PRAGMA table_info(_api_keys_old)").fetchall()]
-        key_expr = "COALESCE(key, '')" if "key" in old_cols else ("COALESCE(raw_key, '')" if "raw_key" in old_cols else "''")
-        db.execute(f"""
-            INSERT INTO api_keys (id, user_id, name, key, active, qps_limit, created_at, last_used_at)
-            SELECT id, user_id, name, {key_expr}, active, qps_limit, created_at, last_used_at
-            FROM _api_keys_old
-        """)
-        db.execute("DROP TABLE _api_keys_old")
-        db.execute("PRAGMA foreign_keys = ON")
-    from src.auth import generate_api_key
-    rows = db.execute("SELECT id FROM api_keys WHERE key IS NULL OR key = ''").fetchall()
-    for row in rows:
-        db.execute("UPDATE api_keys SET key=? WHERE id=?", (generate_api_key(), row["id"]))
     defaults = {
         "global_api_enabled": "1",
         "homepage_enabled": "1",
