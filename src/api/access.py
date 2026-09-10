@@ -111,27 +111,18 @@ def authenticate_api_key():
     db = get_db()
     row = db.execute(
         "SELECT k.*, u.username, u.role, u.active user_active, u.expires_at, u.qps_limit user_qps, u.credits user_credits "
-        "FROM api_keys k JOIN users u ON u.id=k.user_id WHERE k.key_hash=?",
-        (hash_api_key(raw_key),),
+        "FROM api_keys k JOIN users u ON u.id=k.user_id WHERE k.key=?",
+        (raw_key,),
     ).fetchone()
-    if row is None:
-        legacy_hash = legacy_hash_api_key(raw_key)
-        if legacy_hash:
-            row = db.execute(
-                "SELECT k.*, u.username, u.role, u.active user_active, u.expires_at, u.qps_limit user_qps, u.credits user_credits "
-                "FROM api_keys k JOIN users u ON u.id=k.user_id WHERE k.key_hash=?",
-                (legacy_hash,),
-            ).fetchone()
     if row is None:
         user_id = session.get("user_id")
         if user_id:
             clean_prefix = raw_key.rstrip(".").rstrip("•").strip()
             if clean_prefix:
-                # 仅允许使用当前登录账号自己创建的 Key 进行在线调试（即使是管理员也不允许越权使用客户 Key）
                 row = db.execute(
                     "SELECT k.*, u.username, u.role, u.active user_active, u.expires_at, u.qps_limit user_qps, u.credits user_credits "
-                    "FROM api_keys k JOIN users u ON u.id=k.user_id WHERE k.key_prefix=? AND k.user_id=?",
-                    (clean_prefix, user_id),
+                    "FROM api_keys k JOIN users u ON u.id=k.user_id WHERE k.user_id=? AND (k.key LIKE ?)",
+                    (user_id, f"{clean_prefix}%"),
                 ).fetchone()
     if row is None:
         return None, (401, "API Key 无效", "INVALID_API_KEY")

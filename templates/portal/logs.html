@@ -83,8 +83,8 @@
                             </td>
                             <td class="px-3 py-3 whitespace-nowrap text-slate-500">{{ format_log_time(log['created_at']) }}</td>
                             <td class="px-3 py-3 whitespace-nowrap">
-                                {% if log['key_prefix'] %}
-                                <span class="font-mono text-[11px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200" title="{{ log['key_name'] or '' }} ({{ log['key_prefix'] }}••••••••••••)">{{ log['key_prefix'] }}...</span>
+                                {% if log['key'] %}
+                                <span class="font-mono text-[11px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200" title="{{ log['key_name'] or '' }} ({{ log['key'][:11] }}••••••••)">{{ log['key'][:11] }}...</span>
                                 {% else %}
                                 <span class="text-slate-400 text-[11px]">Web 免鉴权</span>
                                 {% endif %}

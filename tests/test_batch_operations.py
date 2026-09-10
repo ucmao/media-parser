@@ -29,8 +29,7 @@ class TestBatchOperationsDB(unittest.TestCase):
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER NOT NULL,
                 name TEXT NOT NULL,
-                key_hash TEXT UNIQUE NOT NULL,
-                key_prefix TEXT NOT NULL,
+                key TEXT UNIQUE NOT NULL,
                 active INTEGER NOT NULL DEFAULT 1,
                 qps_limit INTEGER,
                 last_used_at TEXT,
@@ -70,8 +69,8 @@ class TestBatchOperationsDB(unittest.TestCase):
         # Insert test keys
         for i in range(1, 6):
             self.db.execute(
-                "INSERT INTO api_keys (user_id, name, key_hash, key_prefix, active, qps_limit, created_at) VALUES (?, ?, ?, ?, 1, 5, ?)",
-                (i + 1, f"key{i}", f"hash{i}", f"prefix{i}", now),
+                "INSERT INTO api_keys (user_id, name, key, active, qps_limit, created_at) VALUES (?, ?, ?, 1, 5, ?)",
+                (i + 1, f"key{i}", f"mp-key-{i}-12345678901234567890", now),
             )
 
         # Insert test logs

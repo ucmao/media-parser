@@ -220,12 +220,12 @@ def create_key():
     raw_key = generate_api_key()
     db = get_db()
     db.execute(
-        "INSERT INTO api_keys(user_id,name,key_hash,key_prefix,created_at) VALUES(?,?,?,?,?)",
-        (g.user["id"], name, hash_api_key(raw_key), raw_key[:11], utcnow()),
+        "INSERT INTO api_keys(user_id, name, key, created_at) VALUES(?,?,?,?)",
+        (g.user["id"], name, raw_key, utcnow()),
     )
     db.commit()
     session["new_api_key"] = raw_key
-    flash("密钥创建成功，请立即复制；离开页面后无法再次查看", "success")
+    flash("密钥创建成功！您可在列表中点击“小眼睛”或“一键复制”随时使用。", "success")
     return redirect(url_for("portal.keys"))
 
 
@@ -430,7 +430,7 @@ def logs():
     logs_table = query_paginated_table(
         db,
         base_from_sql="request_logs l LEFT JOIN api_keys k ON k.id=l.api_key_id",
-        select_fields="l.*, k.key_prefix, k.name as key_name",
+        select_fields="l.*, k.key, k.name as key_name",
         allowed_sorts=logs_allowed_sorts,
         default_sort="id",
         default_order="desc",
@@ -509,7 +509,7 @@ def export_logs():
     writer = csv.writer(output, lineterminator="\r\n")
     writer.writerow(("时间", "调用 Key", "平台", "请求路径", "请求 URL", "状态码", "耗时（毫秒）", "错误码"))
 
-    sql = f"""SELECT l.*, k.key_prefix, k.name as key_name
+    sql = f"""SELECT l.*, k.key, k.name as key_name
               FROM request_logs l
               LEFT JOIN api_keys k ON l.api_key_id = k.id
               {where_sql}
@@ -517,7 +517,7 @@ def export_logs():
     cursor = db.execute(sql, params)
     while rows := cursor.fetchmany(1000):
         for row in rows:
-            key_display = f"{row['key_name']} ({row['key_prefix']}...)" if row["key_prefix"] else "Web 免鉴权"
+            key_display = f"{row['key_name']} ({row['key'][:11]}...)" if row["key"] else "Web 免鉴权"
             writer.writerow((
                 _safe_csv_cell(format_log_time(row["created_at"])),
                 _safe_csv_cell(key_display),

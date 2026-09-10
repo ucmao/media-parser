@@ -30,9 +30,9 @@ def legacy_hash_api_key(raw_key):
         return ""
 
 
-def generate_api_key(length=29):
+def generate_api_key(length=24):
     alphabet = string.ascii_letters + string.digits
-    return "mp_" + "".join(secrets.choice(alphabet) for _ in range(length))
+    return "mp-" + "".join(secrets.choice(alphabet) for _ in range(length))
 
 
 def csrf_token():

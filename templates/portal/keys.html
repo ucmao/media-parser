@@ -15,7 +15,7 @@
                     </div>
                     <button type="button" class="text-slate-400 hover:text-slate-700 text-lg leading-none" onclick="closePortalNewKeyModal()" aria-label="关闭">&times;</button>
                 </div>
-                <p class="text-xs text-emerald-800 mb-4">密钥明文仅在此处展示一次，请妥善保管。（注：示例中的 <code>YOUR_URL</code> 需替换为您要解析的具体视频或图集链接）</p>
+                <p class="text-xs text-emerald-800 mb-4">密钥创建成功！您可在列表中点击“小眼睛”或“一键复制”随时使用。（注：示例中的 <code>YOUR_URL</code> 需替换为您要解析的具体视频或图集链接）</p>
 
                 <div class="p-3.5 bg-slate-50 text-slate-800 font-mono text-sm font-semibold rounded-xl break-all select-all mb-4 border border-slate-200" id="new-key">{{ new_api_key }}</div>
 
@@ -58,7 +58,7 @@
                         <h2 class="text-base font-bold text-slate-900">API 密钥</h2>
                         <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">{{ keys_table.pagination.total_count }} 个密钥</span>
                     </div>
-                    <p class="text-xs text-slate-500 mt-1">最多可创建 10 个密钥。推荐在正式生产项目中使用 Authorization 请求头传参。</p>
+                    <p class="text-xs text-slate-500 mt-1">最多可创建 10 个密钥。可通过小眼睛切换明文或一键复制，推荐在请求头中使用 Authorization 传参。</p>
                 </div>
                 <button type="button" class="px-3.5 py-2 rounded-lg text-xs font-bold text-white bg-brand hover:bg-indigo-700 shadow-xs transition shrink-0 self-start sm:self-auto" onclick="openPortalCreateKeyModal()">+ 创建 API Key</button>
             </div>
@@ -97,7 +97,7 @@
                             <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition whitespace-nowrap w-36" onclick="handleSort('keys', 'name')">
                                 密钥名称 <span class="sort-icon ml-0.5 {{ 'text-brand font-bold' if keys_table.sorting.sort_by=='name' else 'text-slate-300' }}">{{ '↑' if keys_table.sorting.sort_by=='name' and keys_table.sorting.order=='asc' else ('↓' if keys_table.sorting.sort_by=='name' else '↕') }}</span>
                             </th>
-                            <th class="px-3 py-3 whitespace-nowrap w-40">Key 前缀</th>
+                            <th class="px-3 py-3 whitespace-nowrap w-56">API 密钥</th>
                             <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition whitespace-nowrap w-24 text-center" onclick="handleSort('keys', 'active')">
                                 状态 <span class="sort-icon ml-0.5 {{ 'text-brand font-bold' if keys_table.sorting.sort_by=='active' else 'text-slate-300' }}">{{ '↑' if keys_table.sorting.sort_by=='active' and keys_table.sorting.order=='asc' else ('↓' if keys_table.sorting.sort_by=='active' else '↕') }}</span>
                             </th>
@@ -118,7 +118,16 @@
                             </td>
                             <td class="px-3 py-3 whitespace-nowrap font-bold text-slate-900">{{ key['name'] }}</td>
                             <td class="px-3 py-3 whitespace-nowrap">
-                                <span class="font-mono text-xs text-slate-600 bg-slate-50 border border-slate-200/80 px-2.5 py-1 rounded-lg inline-flex items-center select-all">{{ key['key_prefix'] }}••••••••••••</span>
+                                <div class="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200/80 px-2.5 py-1 rounded-lg font-mono text-xs text-slate-700">
+                                    <span class="key-text" data-raw="{{ key['key'] }}" data-masked="{{ key['key'][:11] }}••••••••" data-hidden="true">{{ key['key'][:11] }}••••••••</span>
+                                    <button type="button" class="text-slate-400 hover:text-slate-700 p-0.5 transition" onclick="toggleKeyVisibility(this)" title="显示/隐藏完整密钥" aria-label="切换显示密钥">
+                                        <svg class="w-3.5 h-3.5 eye-off-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                        <svg class="w-3.5 h-3.5 eye-on-icon hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.025 10.025 0 014.122-.963c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21M3 3l18 18"/></svg>
+                                    </button>
+                                    <button type="button" class="text-brand hover:text-indigo-700 p-0.5 transition" onclick="navigator.clipboard.writeText('{{ key['key'] }}'); showToast('已复制完整 API Key', 'success')" title="复制完整 API Key" aria-label="复制密钥">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                    </button>
+                                </div>
                             </td>
                             <td class="px-3 py-3 whitespace-nowrap text-center">
                                 <form method="post" action="{{ url_for('portal.toggle_key', key_id=key['id']) }}" class="m-0 inline-block">
@@ -217,6 +226,28 @@
 </main>
 
 <script>
+function toggleKeyVisibility(btn) {
+    const wrap = btn.closest('.inline-flex');
+    if (!wrap) return;
+    const txt = wrap.querySelector('.key-text');
+    const eyeOff = wrap.querySelector('.eye-off-icon');
+    const eyeOn = wrap.querySelector('.eye-on-icon');
+    if (!txt) return;
+    if (txt.dataset.hidden === 'true') {
+        txt.textContent = txt.dataset.raw;
+        txt.dataset.hidden = 'false';
+        txt.classList.add('select-all');
+        if (eyeOff) eyeOff.classList.add('hidden');
+        if (eyeOn) eyeOn.classList.remove('hidden');
+    } else {
+        txt.textContent = txt.dataset.masked;
+        txt.dataset.hidden = 'true';
+        txt.classList.remove('select-all');
+        if (eyeOff) eyeOff.classList.remove('hidden');
+        if (eyeOn) eyeOn.classList.add('hidden');
+    }
+}
+
 function openPortalCreateKeyModal() {
     const m = document.getElementById('portal-create-key-modal-backdrop');
     if (!m) return;

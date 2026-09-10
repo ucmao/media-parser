@@ -57,8 +57,8 @@ class ApiDocsRenderTest(unittest.TestCase):
             )
             user_id = cursor.lastrowid
             db.execute(
-                "INSERT INTO api_keys(user_id,name,key_hash,key_prefix,created_at) VALUES(?,?,?,?,?)",
-                (user_id, "我的测试密钥", hash_api_key(raw_key), raw_key[:11], utcnow()),
+                "INSERT INTO api_keys(user_id,name,key,created_at) VALUES(?,?,?,?)",
+                (user_id, "我的测试密钥", raw_key, utcnow()),
             )
             db.commit()
 

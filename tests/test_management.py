@@ -44,8 +44,8 @@ class ManagementTest(unittest.TestCase):
             )
             user_id = cursor.lastrowid
             cursor = db.execute(
-                "INSERT INTO api_keys(user_id,name,key_hash,key_prefix,created_at) VALUES(?,?,?,?,?)",
-                (user_id, "test", hash_api_key(raw_key), raw_key[:11], utcnow()),
+                "INSERT INTO api_keys(user_id,name,key,created_at) VALUES(?,?,?,?)",
+                (user_id, "test", raw_key, utcnow()),
             )
             key_id = cursor.lastrowid
             db.commit()
@@ -150,8 +150,8 @@ class ManagementTest(unittest.TestCase):
             )
             user_id = cursor.lastrowid
             db.execute(
-                "INSERT INTO api_keys(user_id,name,key_hash,key_prefix,created_at) VALUES(?,?,?,?,?)",
-                (user_id, "test", hash_api_key(raw_key), raw_key[:11], utcnow()),
+                "INSERT INTO api_keys(user_id,name,key,created_at) VALUES(?,?,?,?)",
+                (user_id, "test", raw_key, utcnow()),
             )
             db.commit()
         response = self.client.get("/api/v1/parse", query_string={"key": raw_key, "url": "https://example.com"})
@@ -197,8 +197,8 @@ class ManagementTest(unittest.TestCase):
         with self.app.app_context():
             db = get_db()
             db.execute(
-                "INSERT INTO api_keys(user_id,name,key_hash,key_prefix,created_at) VALUES(?,?,?,?,?)",
-                (user_id, "second", hash_api_key(second_key), second_key[:11], utcnow()),
+                "INSERT INTO api_keys(user_id,name,key,created_at) VALUES(?,?,?,?)",
+                (user_id, "second", second_key, utcnow()),
             )
             db.commit()
         with patch("src.api.access.time.time", return_value=123456), patch(
@@ -221,8 +221,8 @@ class ManagementTest(unittest.TestCase):
                 ("other_customer", "unused", expires_at, 10, utcnow()),
             )
             db.execute(
-                "INSERT INTO api_keys(user_id,name,key_hash,key_prefix,created_at) VALUES(?,?,?,?,?)",
-                (cursor.lastrowid, "other", hash_api_key(second_key), second_key[:11], utcnow()),
+                "INSERT INTO api_keys(user_id,name,key,created_at) VALUES(?,?,?,?)",
+                (cursor.lastrowid, "other", second_key, utcnow()),
             )
             db.execute("INSERT INTO platform_settings(platform,enabled,qps_limit) VALUES('抖音',1,1)")
             db.commit()
@@ -358,8 +358,8 @@ class ManagementTest(unittest.TestCase):
             )
             user_id = cursor.lastrowid
             db.execute(
-                "INSERT INTO api_keys(user_id,name,key_hash,key_prefix,created_at) VALUES(?,?,?,?,?)",
-                (user_id, "legacy", legacy_hash, raw_key[:11], utcnow()),
+                "INSERT INTO api_keys(user_id,name,key,created_at) VALUES(?,?,?,?)",
+                (user_id, "legacy", raw_key, utcnow()),
             )
             db.commit()
 
@@ -671,8 +671,8 @@ class ManagementTest(unittest.TestCase):
             # Create key for user
             raw_key = "mp_credit_test_key_123"
             db.execute(
-                "INSERT INTO api_keys(user_id,name,key_hash,key_prefix,created_at) VALUES(?,?,?,?,?)",
-                (user_id, "test", hash_api_key(raw_key), raw_key[:11], utcnow()),
+                "INSERT INTO api_keys(user_id,name,key,created_at) VALUES(?,?,?,?)",
+                (user_id, "test", raw_key, utcnow()),
             )
             # Set credits to 1 for quick deduction test
             db.execute("UPDATE users SET credits=1 WHERE id=?", (user_id,))
@@ -917,8 +917,8 @@ class ManagementTest(unittest.TestCase):
         with self.app.app_context():
             db = get_db()
             admin_id = db.execute("SELECT id FROM users WHERE username='admin'").fetchone()["id"]
-            db.execute("INSERT INTO api_keys(user_id,name,key_hash,key_prefix,active,created_at) VALUES(?,?,?,?,?,?)", (admin_id, "k1", "h1", "p1", 1, utcnow()))
-            db.execute("INSERT INTO api_keys(user_id,name,key_hash,key_prefix,active,created_at) VALUES(?,?,?,?,?,?)", (admin_id, "k2", "h2", "p2", 1, utcnow()))
+            db.execute("INSERT INTO api_keys(user_id,name,key,active,created_at) VALUES(?,?,?,?,?)", (admin_id, "k1", "mp-k1-12345678901234567890", 1, utcnow()))
+            db.execute("INSERT INTO api_keys(user_id,name,key,active,created_at) VALUES(?,?,?,?,?)", (admin_id, "k2", "mp-k2-12345678901234567890", 1, utcnow()))
             db.commit()
 
         # Batch disable in all mode
@@ -946,8 +946,8 @@ class ManagementTest(unittest.TestCase):
         with self.app.app_context():
             db = get_db()
             uid = db.execute("SELECT id FROM users WHERE username='portal_user'").fetchone()["id"]
-            db.execute("INSERT INTO api_keys(user_id,name,key_hash,key_prefix,active,created_at) VALUES(?,?,?,?,?,?)", (uid, "pk1", "h1", "p1", 1, utcnow()))
-            db.execute("INSERT INTO api_keys(user_id,name,key_hash,key_prefix,active,created_at) VALUES(?,?,?,?,?,?)", (uid, "pk2", "h2", "p2", 1, utcnow()))
+            db.execute("INSERT INTO api_keys(user_id,name,key,active,created_at) VALUES(?,?,?,?,?)", (uid, "pk1", "mp-pk1-12345678901234567890", 1, utcnow()))
+            db.execute("INSERT INTO api_keys(user_id,name,key,active,created_at) VALUES(?,?,?,?,?)", (uid, "pk2", "mp-pk2-12345678901234567890", 1, utcnow()))
             db.commit()
 
         response = self.client.post(

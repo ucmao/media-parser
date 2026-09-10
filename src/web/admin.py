@@ -520,12 +520,10 @@ def create_key():
     qps = _positive_int(qps_raw) if qps_raw else None
 
     raw_key = generate_api_key()
-    key_hash = hash_api_key(raw_key)
-    key_prefix = raw_key[:11]
 
     db.execute(
-        "INSERT INTO api_keys(user_id, name, key_hash, key_prefix, qps_limit, created_at) VALUES(?,?,?,?,?,?)",
-        (user_id, name, key_hash, key_prefix, qps, utcnow()),
+        "INSERT INTO api_keys(user_id, name, key, qps_limit, created_at) VALUES(?,?,?,?,?)",
+        (user_id, name, raw_key, qps, utcnow()),
     )
     db.commit()
     session["new_api_key"] = raw_key
@@ -955,7 +953,7 @@ def logs():
     logs_table = query_paginated_table(
         db,
         base_from_sql="request_logs l LEFT JOIN users u ON u.id=l.user_id LEFT JOIN api_keys k ON k.id=l.api_key_id",
-        select_fields="l.*, u.username, k.key_prefix",
+        select_fields="l.*, u.username, k.key",
         allowed_sorts=logs_allowed_sorts,
         default_sort="id",
         default_order="desc",
@@ -1039,7 +1037,7 @@ def export_logs():
     writer.writerow(("时间", "客户", "Key", "平台", "请求路径", "请求 URL", "状态码", "耗时（毫秒）", "错误码"))
 
     cursor = db.execute(
-        f"SELECT l.*, u.username, k.key_prefix FROM request_logs l "
+        f"SELECT l.*, u.username, k.key FROM request_logs l "
         f"LEFT JOIN users u ON u.id=l.user_id LEFT JOIN api_keys k ON k.id=l.api_key_id "
         f"{where_sql} ORDER BY l.id DESC",
         params,
@@ -1049,7 +1047,7 @@ def export_logs():
             writer.writerow((
                 _safe_csv_cell(format_log_time(row["created_at"])),
                 _safe_csv_cell(row["username"] or "在线体验"),
-                _safe_csv_cell(f"{row['key_prefix']}••••••••••••" if row["key_prefix"] else ""),
+                _safe_csv_cell(f"{row['key'][:11]}••••••••" if row["key"] else ""),
                 _safe_csv_cell(row["platform"] or ""),
                 _safe_csv_cell(row["path"]),
                 _safe_csv_cell(row["input_url"] or ""),

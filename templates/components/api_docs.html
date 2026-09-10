@@ -395,10 +395,10 @@
                     {% set has_initial_key = (not new_api_key and first_key) %}
                     
                     <div class="flex-1 flex items-center min-h-[40px] px-3 bg-slate-50/50 border border-slate-200 rounded-lg focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20 transition-all cursor-text" id="pg-key-input-box" onclick="focusApiKeyInput(event)">
-                        <div id="pg-selected-key-chip" class="inline-flex items-center gap-1.5 bg-brand-50 border border-brand-200 text-brand-700 text-xs px-2 py-1 rounded-md max-w-full truncate" style="{% if not has_initial_key %}display:none{% endif %}" data-val="{{ first_key['key_prefix'] ~ '...' if first_key else '' }}">
+                        <div id="pg-selected-key-chip" class="inline-flex items-center gap-1.5 bg-brand-50 border border-brand-200 text-brand-700 text-xs px-2 py-1 rounded-md max-w-full truncate" style="{% if not has_initial_key %}display:none{% endif %}" data-val="{{ first_key['key'] if first_key else '' }}">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600 flex-shrink-0"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>
                             <span id="pg-key-chip-name" class="font-medium truncate">{{ first_key['name'] if first_key else '密钥' }}</span>
-                            <span id="pg-key-chip-prefix" class="text-brand-500 font-mono text-[11px]">({{ first_key['key_prefix'] ~ '...' if first_key else '' }})</span>
+                            <span id="pg-key-chip-prefix" class="text-brand-500 font-mono text-[11px]">({{ (first_key['key'][:7] ~ '...') if first_key else '' }})</span>
                             <button type="button" class="key-chip-remove text-brand-400 hover:text-brand-700 ml-1 text-sm font-bold" onclick="clearSelectedKey(event)" title="移除此 Key" aria-label="移除">&times;</button>
                         </div>
                         <input type="text" id="pg-api-key" class="w-full bg-transparent border-0 text-sm text-slate-800 focus:outline-none placeholder-slate-400 font-mono" 
@@ -425,9 +425,9 @@
                             </button>
                             {% if available_keys and available_keys|length > 0 %}
                             {% for k in available_keys %}
-                            {% set is_selected = (new_api_key and k['key_prefix'] in new_api_key) or (not new_api_key and loop.first) %}
-                            <button type="button" class="pg-key-menu-item w-full flex items-center justify-between px-3.5 py-2 text-xs text-left text-slate-700 hover:bg-slate-50 {% if is_selected %}text-brand-600 font-semibold bg-brand-50/50{% endif %}" data-val="{{ k['key_prefix'] }}..." data-name="{{ k['name'] or '密钥' }}" onclick="handlePgKeyItemSelect('{{ k['key_prefix'] }}...', '{{ k['name'] or '密钥' }}')">
-                                <span class="truncate">{{ k['name'] or '密钥' }} ({{ k['key_prefix'] }}...)</span>
+                            {% set is_selected = (new_api_key and k['key'] in new_api_key) or (not new_api_key and loop.first) %}
+                            <button type="button" class="pg-key-menu-item w-full flex items-center justify-between px-3.5 py-2 text-xs text-left text-slate-700 hover:bg-slate-50 {% if is_selected %}text-brand-600 font-semibold bg-brand-50/50{% endif %}" data-val="{{ k['key'] }}" data-name="{{ k['name'] or '密钥' }}" onclick="handlePgKeyItemSelect('{{ k['key'] }}', '{{ k['name'] or '密钥' }}')">
+                                <span class="truncate">{{ k['name'] or '密钥' }} ({{ k['key'][:7] }}...)</span>
                                 <svg class="pg-key-item-check w-3.5 h-3.5 text-brand-600 {% if is_selected %}block{% else %}hidden{% endif %}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                             </button>
                             {% endfor %}
@@ -696,22 +696,24 @@
         goToKeyManagement();
     };
 
-    window.applySelectedKey = function(prefixVal, name) {
+    window.applySelectedKey = function(fullKey, name) {
         const chip = document.getElementById('pg-selected-key-chip');
         const chipName = document.getElementById('pg-key-chip-name');
         const chipPrefix = document.getElementById('pg-key-chip-prefix');
         const input = document.getElementById('pg-api-key');
         const label = document.getElementById('pg-key-dropdown-label');
 
+        const displayPrefix = fullKey ? (fullKey.length > 10 ? fullKey.substring(0, 7) + '...' : fullKey) : '';
+
         if (chipName) chipName.textContent = name || '密钥';
-        if (chipPrefix) chipPrefix.textContent = '(' + prefixVal + ')';
+        if (chipPrefix) chipPrefix.textContent = '(' + displayPrefix + ')';
         if (chip) {
-            chip.dataset.val = prefixVal;
+            chip.dataset.val = fullKey;
             chip.style.display = 'inline-flex';
         }
 
         if (input) {
-            input.value = prefixVal;
+            input.value = fullKey;
             input.style.display = 'none';
         }
 
@@ -721,7 +723,7 @@
 
         document.querySelectorAll('#pg-key-dropdown-menu .pg-key-menu-item').forEach(item => {
             const check = item.querySelector('.pg-key-item-check');
-            if (item.dataset.val === prefixVal) {
+            if (item.dataset.val === fullKey) {
                 item.classList.add('text-brand-600', 'font-semibold', 'bg-brand-50/50');
                 if (check) check.classList.remove('hidden');
             } else {
