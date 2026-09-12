@@ -61,12 +61,15 @@ if match:
 
 ### 3.1 视频笔记无水印提取
 解析器通过分级策略提取视频无水印直链（由高到低降级）：
-1. **优先解析 `mediaV2`（screencast 投屏无水印流）**：
-   * 提取 `note_data.video.mediaV2`（反序列化 JSON 字符串），优先获取 `opaque1.hd_screencast_stream`（原画/高清无水印）或 `default_screencast_stream`。
-2. **多码率流选择与水印过滤（`stream`）**：
+1. **优先解析 `consumer.originVideoKey`（作者原始上传无水印原画 Key）**：
+   * 提取 `note_data.video.consumer.originVideoKey`（或 `origin_video_key`）；
+   * 拼装为无水印直链地址：`https://sns-video-bd.xhscdn.com/{originVideoKey}`。
+2. **优先解析 `mediaV2`（screencast 投屏无水印流）**：
+   * 提取 `note_data.video.mediaV2`（反序列化 JSON 字符串），优先获取 `opaque1.hd_screencast_stream`（原画/高清无水印）或 `default_screencast_stream`，亦会尝试解析 `mediaV2` 内部的 `consumer.originVideoKey`。
+3. **多码率流选择与水印过滤（`stream`）**：
    * 遍历 `h264`, `h265`, `av1` 码率列表；
    * **无水印候选流**：优先选择 `streamType` 为 `258` 或 `301`，或 `streamDesc` 包含 `X264_MP4` 的音视频流（排除 `streamType` 259/309 等小程序带水印流）。
-3. **Protocol 规范化**：
+4. **Protocol 规范化**：
    * 统一调用 `_ensure_https` 修正 `\\u002F` 转义字符并将 `http://` 提升为 `https://`。
 
 ### 3.2 图文原图去水印与 LivePhoto 提取

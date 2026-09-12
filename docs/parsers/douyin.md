@@ -41,32 +41,32 @@
 
 ```mermaid
 flowchart TD
-    A[输入抖音分享链接] --> B[重定向提取类型与 ID]
-    B --> C{链接类型判定}
-    C -- 独立音乐 --> M1[请求 Music Detail API]
-    C -- 连载合集 --> K1[请求 Mix Aweme API]
-    C -- 放映厅长片 --> L1[请求 LVideo Detail API / 解析 PC 端 lvdetail]
-    C -- 普通视频/图文 --> F0[优先请求移动端 Feed API\n免 Argus 门禁 / 免 Cookie / 毫秒级直出]
+    A["输入抖音分享链接"] --> B["重定向提取类型与 ID"]
+    B --> C{"链接类型判定"}
+    C -->|"独立音乐"| M1["请求 Music Detail API"]
+    C -->|"连载合集"| K1["请求 Mix Aweme API"]
+    C -->|"放映厅长片"| L1["请求 LVideo Detail API / 解析 PC 端 lvdetail"]
+    C -->|"普通视频/图文"| F0["优先请求移动端 Feed API<br/>免 Argus 门禁 / 免 Cookie / 毫秒级直出"]
     
-    F0 --> F1{Feed 匹配成功?}
-    F1 -- 成功 (常规视频 >95%) --> E[提取高清流 / 图集 / 字幕 / 音频]
-    F1 -- 节点正常但未匹配 (Note/私密) --> D1[回退 Web 详情 API\na_bogus 签名 + 动态指数退避重试]
+    F0 --> F1{"Feed 匹配成功?"}
+    F1 -->|"成功 (常规视频 >95%)"| E["提取高清流 / 图集 / 字幕 / 音频"]
+    F1 -->|"节点正常但未匹配 (Note/私密)"| D1["回退 Web 详情 API<br/>a_bogus 签名 + 动态指数退避重试"]
     
-    D1 --> D2{Web API 响应判定}
-    D2 -- 成功 (图文等) --> E
-    D2 -- 明确终态 (私密/已删除/日常权限) --> H[智能短路: 立即终止重试并跳过SSR\n透传官方 filter_detail 原因]
-    D2 -- 遭遇 403/500/网络抖动 --> D3{重试是否耗尽 (最多8次)?}
-    D3 -- 否 --> D1
-    D3 -- 是 --> F[触发 SSR HTML 多级降级]
+    D1 --> D2{"Web API 响应判定"}
+    D2 -->|"成功 (图文等)"| E
+    D2 -->|"明确终态 (私密/已删除/日常权限)"| H["智能短路: 立即终止重试并跳过SSR<br/>透传官方 filter_detail 原因"]
+    D2 -->|"遭遇 403/500/网络抖动"| D3{"重试是否耗尽 (最多8次)?"}
+    D3 -->|"否"| D1
+    D3 -->|"是"| F["触发 SSR HTML 多级降级"]
     
     L1 --> F
-    M1 -- 失败 --> F
-    K1 -- 失败 --> F
+    M1 -->|"失败"| F
+    K1 -->|"失败"| F
     
-    F --> G1[解析 __UNIVERSAL_DATA_FOR_REHYDRATION__]
-    G1 -- 未匹配 --> G2[解析 RENDER_DATA URL 编码]
-    G2 -- 未匹配 --> G3[正则匹配 _ROUTER_DATA / _SSR_DATA]
-    G3 -- 未匹配 --> G4[解析 self.__pace_f.push 流式 SSR]
+    F --> G1["解析 __UNIVERSAL_DATA_FOR_REHYDRATION__"]
+    G1 -->|"未匹配"| G2["解析 RENDER_DATA URL 编码"]
+    G2 -->|"未匹配"| G3["正则匹配 _ROUTER_DATA / _SSR_DATA"]
+    G3 -->|"未匹配"| G4["解析 self.__pace_f.push 流式 SSR"]
     G4 --> E
 ```
 

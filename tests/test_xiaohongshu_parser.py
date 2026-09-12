@@ -42,7 +42,16 @@ class XiaohongshuParserTest(unittest.TestCase):
 
     def test_get_real_video_url_unwatermarked(self):
         parser = XiaohongshuParser.__new__(XiaohongshuParser)
-        # Test prioritizing mediaV2 screencast stream
+        # Test prioritizing consumer.originVideoKey
+        parser.note_data = {
+            "video": {
+                "consumer": {"originVideoKey": "pre_post/1040g2t0324k7p9o3go005q1il9f2nou295lutc0"},
+                "mediaV2": '{"video": {"opaque1": {"hd_screencast_stream": "http://sns-video-v2.xhscdn.com/stream/1/110/301/hd_clean.mp4"}}}',
+            }
+        }
+        self.assertEqual(parser.get_real_video_url(), "https://sns-video-bd.xhscdn.com/pre_post/1040g2t0324k7p9o3go005q1il9f2nou295lutc0")
+
+        # Test prioritizing mediaV2 screencast stream when originVideoKey is absent
         parser.note_data = {
             "video": {
                 "mediaV2": '{"video": {"opaque1": {"hd_screencast_stream": "http://sns-video-v2.xhscdn.com/stream/1/110/301/hd_clean.mp4"}}}',
@@ -73,4 +82,5 @@ class XiaohongshuParserTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
 

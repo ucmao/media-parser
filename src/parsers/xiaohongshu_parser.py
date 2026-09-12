@@ -161,7 +161,21 @@ class XiaohongshuParser(BaseParser):
             if not isinstance(video_info, dict):
                 return None
 
-            # 1. 优先提取 mediaV2 中的 screencast 原画/高清无水印流
+            # 1. 优先提取 consumer 中的 originVideoKey（无水印原画视频 Key）
+            consumer = video_info.get('consumer', {})
+            origin_key = None
+            if isinstance(consumer, dict):
+                origin_key = consumer.get('originVideoKey') or consumer.get('origin_video_key')
+            if not origin_key:
+                origin_key = video_info.get('originVideoKey') or video_info.get('origin_video_key')
+
+            if origin_key:
+                if origin_key.startswith(('http://', 'https://')):
+                    return self._ensure_https(origin_key)
+                else:
+                    return f"https://sns-video-bd.xhscdn.com/{origin_key.lstrip('/')}"
+
+            # 2. 优先提取 mediaV2 中的 screencast 原画/高清无水印流
             media_v2_str = video_info.get('mediaV2')
             if media_v2_str and isinstance(media_v2_str, str):
                 try:
@@ -173,10 +187,19 @@ class XiaohongshuParser(BaseParser):
                     default_screencast = opaque1.get('default_screencast_stream')
                     if default_screencast:
                         return self._ensure_https(default_screencast)
+
+                    mv2_consumer = mv2.get('video', {}).get('consumer', {}) or mv2.get('consumer', {})
+                    if isinstance(mv2_consumer, dict):
+                        mv2_origin_key = mv2_consumer.get('originVideoKey') or mv2_consumer.get('origin_video_key')
+                        if mv2_origin_key:
+                            if mv2_origin_key.startswith(('http://', 'https://')):
+                                return self._ensure_https(mv2_origin_key)
+                            else:
+                                return f"https://sns-video-bd.xhscdn.com/{mv2_origin_key.lstrip('/')}"
                 except Exception as e:
                     logger.debug(f"解析 mediaV2 失败: {e}")
 
-            # 2. 检查 h264/h265/av1 中的 stream，优先使用无水印流（如 streamType 258 或 301，或 streamDesc X264_MP4）
+            # 3. 检查 h264/h265/av1 中的 stream，优先使用无水印流（如 streamType 258 或 301，或 streamDesc X264_MP4）
             stream = video_info.get('media', {}).get('stream', {}) or video_info.get('stream', {})
             unwatermarked_candidates = []
             fallback_candidates = []
