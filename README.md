@@ -6,6 +6,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Python Version](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/) [![Flask](https://img.shields.io/badge/Framework-Flask-000000?logo=flask&logoColor=white)](https://flask.palletsprojects.com/) [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](#-部署指南) [![Support](https://img.shields.io/badge/support-50%20Platforms-brightgreen.svg)](#-支持的平台矩阵)
 
 <p align="center">
+<a href="#-交流群">交流群</a> •
 <a href="#-核心特性">核心特性</a> •
 <a href="#-支持的平台矩阵">支持平台</a> •
 <a href="#-项目原则与免责声明">项目原则</a> •
@@ -20,6 +21,13 @@ Media-Parser是一款专为短视频创作者与开发者打造的**100%原生�
 通过“智能识别 -> 本地抓取 -> 提取地址 -> 快捷下载”的闭环，助你高效获取无水印素材。
 
 **不依赖外部API，不套壳第三方库，无浏览器开销，纯底层协议与算法逆向。**
+
+<br>
+
+<div id="-交流群">
+  <img src="static/images/wechat-qrcode.jpg" width="180" alt="微信交流二维码"><br>
+  <sub>💬 <b>扫码添加作者微信</b>（备注 <code>media-parser</code> 拉你入群交流）</sub>
+</div>
 
 </div>
 
@@ -249,7 +257,12 @@ python3 tests/manual_verify_parsers.py --platform "小云雀AI"
 
 ## 📩 联系作者
 
-如果您在安装、使用过程中遇到问题，或有定制需求，请通过以下方式联系：
+如果您在安装、使用过程中遇到问题，或有交流与定制需求，请通过以下方式联系：
+
+<div align="center">
+  <img src="static/images/wechat-qrcode.jpg" width="160" alt="微信二维码"><br>
+  <sub>💬 <b>扫码添加作者微信</b>（备注 <code>media-parser</code> 拉你入群交流）</sub>
+</div>
 
 * **微信**：csdnxr
 * **QQ**：294323976
