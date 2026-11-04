@@ -1,3 +1,8 @@
+> [!IMPORTANT]
+> **即将维护公告**
+>
+> 综合考虑个人维护成本、平台规则和内容授权风险，Media-Parser 即将停止维护，预计于 **2026 年 12 月 1 日前**移除大部分平台解析源码及相关操作指南。需要留存当前版本的开发者，欢迎尽快 **Fork**。如果项目曾帮到你，也欢迎点个 **Star**，一起冲 **512 星** ⭐。想继续交流，欢迎扫描下方二维码加微信，备注 `media-parser` 入群。请遵守适用法律及各平台规则，仅处理自有或已获授权的内容，并尊重平台访问限制和权利人的技术保护措施。
+
 <div align="center">
 <img src="static/images/logo.png" width="360" height="auto" alt="Media-Parser Logo">
 
@@ -258,11 +263,6 @@ python3 tests/manual_verify_parsers.py --platform "小云雀AI"
 ## 📩 联系作者
 
 如果您在安装、使用过程中遇到问题，或有交流与定制需求，请通过以下方式联系：
-
-<div align="center">
-  <img src="static/images/wechat-qrcode.jpg" width="160" alt="微信二维码"><br>
-  <sub>💬 <b>扫码添加作者微信</b>（备注 <code>media-parser</code> 拉你入群交流）</sub>
-</div>
 
 * **微信**：csdnxr
 * **QQ**：294323976
