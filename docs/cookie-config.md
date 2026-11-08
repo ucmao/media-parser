@@ -127,7 +127,11 @@ docker compose up -d
    ```text
    PDDAccessToken=你的AccessToken值;
    ```
-3. 填入 `.env` 中的 `PINDUODUO_COOKIE`。
+   > **说明**：
+   > * **多多视频解析**：只需提取并配置单一字段 `PDDAccessToken=xxx;`（或完整的移动端 Cookie）即可正常解析原画视频与元数据。
+   > * **实物/评价秀分享**：通过短链重定向携带的 `_oak_share_url` 提取高清大图，免 Cookie 配置。
+   > * **纯普通商品详情页**：拼多多官方已改版为纯前端 CSR 渲染（页面内联 `window.rawData = null;`），且商品异步接口会触发 `encrypt_status: 1` 降级风控，因此纯商品页面目前受官方策略限制。
+3. 填入 `.env` 中的 `PINDUODUO_COOKIE` 或在管理后台 **Cookie 管理** 页面配置。
 
 ### 3.5 豆包 AI (`DOUBAO_COOKIE`)
 1. 访问 [豆包官网 (doubao.com)](https://www.doubao.com/) 并登录。

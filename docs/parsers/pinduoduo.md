@@ -10,15 +10,16 @@
 * **支持媒体类型**：
   * **多多视频**：无水印 MP4 原画视频 / 视频封面大图 / 视频标题 / 作者昵称与头像
   * **商品实物短链 / 评价秀**：商品实物高清原图 (JPEG/PNG) / 商品名称与评价ID
-  * **商品详情页**：SSR 轮播图集 / 讲解视频
+  * **纯普通商品详情页**：⚠️ *由于拼多多官方近期架构调整，移除了已登录 SSR 数据并对纯商品 API 启用了强风控降级，纯商品页面目前无法稳定直接提取（建议优先使用实物/评价秀分享短链或多多视频）*
 * **常见链接形态**：
   * 多多视频：`https://mobile.yangkeduo.com/fyxmkief.html?feed_id=6960355310530660128&goods_id=...`
-  * 商品短链：`https://mobile.yangkeduo.com/goods.html?ps=6K2Mc4rjNT`
+  * 实物/评价短链：`https://mobile.yangkeduo.com/goods.html?ps=6K2Mc4rjNT`（307 重定向携带 `_oak_share_url`）
   * 评价分享：`https://mobile.yangkeduo.com/mall_quality_assurance.html?_t_timestamp=review_detail&goods_id=...&review_id=...`
-  * 商品长链：`https://mobile.yangkeduo.com/goods.html?goods_id=...`
+  * 普通商品链接：`https://mobile.yangkeduo.com/goods.html?goods_id=...` 或纯商品 `ps=` 短链
 * **Cookie 依赖**：
-  * **商品实物短链 (`ps=` / `_oak_share_url`)**：无需 Cookie，直接提取高清原图。
-  * **多多视频 (`feed_id`)**：官方接口强风控校验，需要在 `.env` 中配置已登录账号的 Cookie (`PINDUODUO_COOKIE="PDDAccessToken=xxx;"`)；未配置或失效时接口返回 `PINDUODUO_COOKIE_REQUIRED`。
+  * **多多视频 (`feed_id`)**：需要 Cookie 凭据。**只需配置单一字段 `PDDAccessToken=xxx`**（或移动端完整 Cookie）至环境变量 `PINDUODUO_COOKIE` 或管理后台即可，结合 `anti-content` 验签即可稳定解析。未配置或失效时接口返回 `PINDUODUO_COOKIE_REQUIRED`。
+  * **商品实物短链 / 评价秀 (`_oak_share_url`)**：无需 Cookie，直接提取高清原图素材。
+  * **纯普通商品详情页**：拼多多已关闭服务端 SSR 注入且接口下发风控降级，仅配置 Cookie 无法绕过设备指纹校验。
 
 ---
 
@@ -56,9 +57,23 @@
 2. 重定向 URL 查询参数中包含商品与实物素材原图：`_oak_share_url=https%3A%2F%2Fimg.pddpic.com%2F...jpeg`。
 3. 对该 URL 解码后，即可直接获得高清实物原图作为封面与图集，无需依赖账号登录。
 
-### 2.4 商品详情页 SSR 解析
-1. 请求商品详情页 HTML，匹配内联脚本 `window.rawData`。
-2. 从 `store.initDataObj.goods` 节点中提取 `goods_name`（标题）、`banner` / `gallery`（高清轮播大图列表）及 `video.url`（商品讲解视频）。
+### 2.4 商品详情页解析现状与风控机制
+1. **SSR 机制改版**：
+   * 原实现通过请求商品详情页 HTML，正则匹配内联脚本 `window.rawData` 并从 `store.initDataObj.goods` 提取轮播图及视频。
+   * **最新变动**：拼多多目前对移动端 `goods.html` 全面启用了防爬与架构升级：未登录访问时固定返回 `initDataObj: {"needLogin": true}`；已登录访问时服务端改用 CSR（客户端异步渲染），直接返回 `window.rawData = null;`，已彻底移除 HTML 内联商品数据。
+2. **异步接口风控降级 (`700002`)**：
+   * 前端异步商品接口为 `api/oak/integration/render`。
+   * 当使用脚本环境调用时，即使携带有效 `PDDAccessToken` 与 `anti-content`，拼多多服务端也会识别非真实设备指纹并返回 `"encrypt_status": 1`，前端源码处理逻辑为：
+     ```javascript
+     if (1 === t?.encrypt_status) {
+         var n = new Error("风控加密数据触发降级");
+         throw n.errorCode = 700002, n;
+     }
+     ```
+     触发该风控降级后，接口会将商品主图、价格、标题等核心字段置空。
+3. **解析策略建议**：
+   * 优先使用拼多多 App 内的**“带图评价分享”**或**“好物圈实物卡片分享”**，利用 307 重定向中的 `_oak_share_url` 提取高清大图；
+   * 视频类内容建议直接使用**“多多视频”**链接，配合 `PINDUODUO_COOKIE="PDDAccessToken=xxx;"` 即可稳定解析。
 
 ---
 
