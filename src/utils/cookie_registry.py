@@ -71,13 +71,13 @@ COOKIE_REGISTRY = {
         "optional_fields": [],
         "severity": "critical",
         "capabilities": [
-            {"name": "商品图文", "needs_cookie": False},
+            {"name": "实物/评价秀", "needs_cookie": False},
             {"name": "多多视频", "needs_cookie": True},
         ],
         "canary_setting": "canary_pinduoduo",
         "log_names": ["拼多多"],
         "passive_error_codes": ["PINDUODUO_COOKIE_REQUIRED"],
-        "config_hint": "已登录账号 Cookie（PDDAccessToken=xxx;），仅多多视频需要；商品图文免配。",
+        "config_hint": "已登录账号 Cookie（PDDAccessToken=xxx;），仅多多视频需要；实物/评价秀分享免配。",
     },
     "doubao": {
         "platform_name": "豆包",
@@ -116,7 +116,7 @@ COOKIE_REGISTRY = {
         "db_keys": ["cookie_kuaishou"],
         "env_keys": ["KUAISHOU_COOKIE", "KS_COOKIE"],
         "required_fields": [],
-        "optional_fields": [],
+        "optional_fields": ["did", "kpf", "kpn"],
         "severity": "fallback",
         "capabilities": [
             {"name": "视频/图集", "needs_cookie": False},
@@ -135,13 +135,13 @@ COOKIE_REGISTRY = {
         "optional_fields": ["SUBP"],
         "severity": "enhanced",
         "capabilities": [
-            {"name": "常规内容", "needs_cookie": False},
+            {"name": "常规图文/视频", "needs_cookie": False},
             {"name": "高规格视频", "needs_cookie": True},
         ],
         "canary_setting": "canary_weibo",
         "log_names": ["微博"],
         "passive_error_codes": [],
-        "config_hint": "推荐精简字段 SUB=xxx; 常规内容内置访客会话免配；机房 IP 或高规格视频建议配置。",
+        "config_hint": "推荐精简字段 SUB=xxx; 常规图文/视频内置访客会话免配；机房 IP 或高规格视频建议配置。",
     },
     "jimeng": {
         "platform_name": "即梦AI",
@@ -151,7 +151,7 @@ COOKIE_REGISTRY = {
         "optional_fields": ["sessionid"],
         "severity": "enhanced",
         "capabilities": [
-            {"name": "分享解析", "needs_cookie": False},
+            {"name": "AI视频/生图", "needs_cookie": False},
             {"name": "接口增强", "needs_cookie": True},
         ],
         "canary_setting": "canary_jimeng",
