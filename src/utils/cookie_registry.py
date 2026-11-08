@@ -34,7 +34,7 @@ COOKIE_REGISTRY = {
         "required_fields": ["sessionid", "sessionid_ss", "passport_csrf_token", "odin_tt"],
         "optional_fields": ["UIFID"],
         "uifid_env": ["DOUYIN_UIFID", "DY_UIFID"],
-        "severity": "critical",
+        "severity": "enhanced",
         "capabilities": [
             {"name": "视频", "needs_cookie": False},
             {"name": "图文图集", "needs_cookie": False},
@@ -69,7 +69,7 @@ COOKIE_REGISTRY = {
         "env_keys": ["PINDUODUO_COOKIE", "PDD_COOKIE"],
         "required_fields": ["PDDAccessToken"],
         "optional_fields": [],
-        "severity": "critical",
+        "severity": "enhanced",
         "capabilities": [
             {"name": "实物/评价秀", "needs_cookie": False},
             {"name": "多多视频", "needs_cookie": True},
@@ -85,7 +85,7 @@ COOKIE_REGISTRY = {
         "env_keys": ["DOUBAO_COOKIE"],
         "required_fields": ["sessionid_ss"],
         "optional_fields": ["passport_csrf_token"],
-        "severity": "enhanced",
+        "severity": "critical",
         "capabilities": [
             {"name": "图片/音乐/对话", "needs_cookie": False},
             {"name": "视频无水印原画", "needs_cookie": True},
@@ -190,7 +190,7 @@ STATUS_LABELS = {
 }
 
 SEVERITY_LABELS = {
-    "critical": "强制",
+    "critical": "必需",
     "enhanced": "增强",
     "fallback": "兜底",
 }

@@ -10,15 +10,15 @@
 
 | 平台名称 | 环境变量 Key | 别名支持 | 必要性 / 使用场景 | 推荐精简字段 |
 | :--- | :--- | :--- | :--- | :--- |
-| **小红书** | `XHS_COOKIE` | `XIAOHONGSHU_COOKIE` | 🟡 **可选 (防风控)**：日常免 Cookie 解析；机房 IP 遭遇 302 登录拦截时配置 | `a1=xxx; webId=xxx; web_session=xxx;` |
+| **小红书** | `XHS_COOKIE` | `XIAOHONGSHU_COOKIE` | 🟡 **兜底 (防风控)**：日常免 Cookie 解析；机房 IP 遭遇 302 登录拦截时配置 | `a1=xxx; webId=xxx; web_session=xxx;` |
 | **微信视频号** | `YUANBAO_COOKIE` | `WECHAT_CHANNELS_COOKIE` | 🔐 **必需 (媒体流与标题)**：提取视频号无水印视频直链、视频标题与高清图集（微信官方加强了匿名 `generalToken` 鉴权，匿名模式下视频直链与标题为空，必须依赖元宝 Cookie） | `hy_user=xxx; hy_token=xxx;` |
-| **快手** | `KUAISHOU_COOKIE` | `KS_COOKIE` | 🟡 **可选 (防风控)**：日常免 Cookie 解析；触发 `result: 2` 反爬时配置 | `kpf=PC_WEB; kpn=KUAISHOU_VISION; did=xxx;` |
-| **拼多多** | `PINDUODUO_COOKIE` | `PDD_COOKIE` | 🟡 **部分依赖**：商品图集免 Cookie；多多视频短视频流解析需要 | `PDDAccessToken=xxx;` |
-| **豆包 AI** | `DOUBAO_COOKIE` | - | 🟡 **可选 (无水印)**：公开图文免 Cookie；提取 1080P 无水印视频需要 | `sessionid_ss=xxx;` |
-| **即梦 AI** | `JIMENG_COOKIE` | - | 🟡 **可选 (扩展鉴权)**：公开分享免 Cookie；私有草稿/活动页鉴权需要 | `sessionid=xxx;` |
-| **微博** | `WEIBO_COOKIE` | - | 🟡 **可选 (防访客限制)**：常规公开博文免 Cookie；机房 IP 遭遇访客拦截或解析粉丝可见内容时配置 | `SUB=xxx;` |
-| **知乎** | `ZHIHU_COOKIE` | - | 🟡 **可选 (防风控/专栏文章)**：常规公开内容免 Cookie；机房 IP 遭遇 40362 风控或提取登录可见专栏文章时配置 | `d_c0=xxx; z_c0=xxx;` |
-| **抖音** | `DOUYIN_COOKIE` | `DY_COOKIE` | 🟢 **常规免配 (100% 免配)**：常规短视频/普通图文/音乐无需任何凭据；<br/>🟡 **实况图 (机房 IP)**：需完整登录 Cookie + `UIFID`；<br/>🟡 **放映厅长片**：需滑块通行证 `s_v_web_id` | 实况图需: `UIFID=xxx; sessionid=xxx; sessionid_ss=xxx; passport_csrf_token=xxx; odin_tt=xxx;`<br/>(即完整登录 Cookie 拼入 UIFID)；<br/>放映厅需: `s_v_web_id=verify_xxx;` |
+| **快手** | `KUAISHOU_COOKIE` | `KS_COOKIE` | 🟡 **兜底 (防风控)**：日常免 Cookie 解析；触发 `result: 2` 反爬时配置 | `kpf=PC_WEB; kpn=KUAISHOU_VISION; did=xxx;` |
+| **拼多多** | `PINDUODUO_COOKIE` | `PDD_COOKIE` | 🟡 **增强 (部分依赖)**：实物/评价秀免 Cookie；多多视频短视频流解析需要 | `PDDAccessToken=xxx;` |
+| **豆包 AI** | `DOUBAO_COOKIE` | - | 🔐 **必需 (无水印原画)**：提取 1080P 无水印视频原画必需；未配置时官方切片带水印 | `sessionid_ss=xxx;` |
+| **即梦 AI** | `JIMENG_COOKIE` | - | 🟡 **增强 (扩展鉴权)**：公开分享免 Cookie；私有草稿/活动页鉴权需要 | `sessionid=xxx;` |
+| **微博** | `WEIBO_COOKIE` | - | 🟡 **增强 (高规格/防访客)**：常规公开博文免 Cookie；提取高规格 1080P/4K 视频或机房 IP 遭遇访客拦截时配置 | `SUB=xxx;` |
+| **知乎** | `ZHIHU_COOKIE` | - | 🟡 **兜底 (防风控/专栏文章)**：常规公开内容免 Cookie；机房 IP 遭遇 40362 风控或提取登录可见专栏文章时配置 | `d_c0=xxx; z_c0=xxx;` |
+| **抖音** | `DOUYIN_COOKIE` | `DY_COOKIE` | 🟡 **增强 (高阶特性)**：常规短视频/普通图文/音乐 100% 免配；实况图 (UIFID) 与放映厅/短剧等高阶媒体需要 | 实况图需: `UIFID=xxx; sessionid=xxx; sessionid_ss=xxx; passport_csrf_token=xxx; odin_tt=xxx;`<br/>(即完整登录 Cookie 拼入 UIFID)；<br/>放映厅需: `s_v_web_id=verify_xxx;` |
 
 ---
 
