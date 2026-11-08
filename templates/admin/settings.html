@@ -9,29 +9,30 @@
             <p class="text-xs text-slate-500 mt-1">管理服务全局开放状态、访问体验、平台凭据与默认参数配置。（修改自动保存生效）</p>
         </div>
 
-        <!-- 顶部 Tab 切换胶囊栏 -->
-        <div
-            class="flex items-center gap-1.5 p-1 bg-slate-200/60 rounded-xl max-w-fit border border-slate-200/80 select-none shadow-2xs">
-            <button type="button" onclick="switchSettingsTab('access')" id="tab-btn-access"
-                class="tab-nav-btn inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg transition-all bg-white text-brand shadow-xs">
-                {{ icon('shield', 'w-3.5 h-3.5') }}
-                <span>服务与访问控制</span>
-            </button>
-            <button type="button" onclick="switchSettingsTab('cookies')" id="tab-btn-cookies"
-                class="tab-nav-btn inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg transition-all text-slate-600 hover:text-slate-900">
-                {{ icon('key', 'w-3.5 h-3.5') }}
-                <span>平台凭据 (Cookie)</span>
-            </button>
-            <button type="button" onclick="switchSettingsTab('proxy')" id="tab-btn-proxy"
-                class="tab-nav-btn inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg transition-all text-slate-600 hover:text-slate-900">
-                {{ icon('globe', 'w-3.5 h-3.5') }}
-                <span>网络与动态代理</span>
-            </button>
-            <button type="button" onclick="switchSettingsTab('branding')" id="tab-btn-branding"
-                class="tab-nav-btn inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg transition-all text-slate-600 hover:text-slate-900">
-                {{ icon('tag', 'w-3.5 h-3.5') }}
-                <span>响应水印与版权</span>
-            </button>
+        <!-- 顶部 Tab 切换胶囊栏 (支持小屏横向滑动) -->
+        <div class="overflow-x-auto max-w-full pb-1 -mb-1 custom-scroll">
+            <div class="inline-flex items-center gap-1.5 p-1 bg-slate-200/60 rounded-xl border border-slate-200/80 select-none shadow-2xs whitespace-nowrap">
+                <button type="button" onclick="switchSettingsTab('access')" id="tab-btn-access"
+                    class="tab-nav-btn inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg transition-all bg-white text-brand shadow-xs whitespace-nowrap">
+                    {{ icon('shield', 'w-3.5 h-3.5') }}
+                    <span>服务与访问控制</span>
+                </button>
+                <button type="button" onclick="switchSettingsTab('cookies')" id="tab-btn-cookies"
+                    class="tab-nav-btn inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg transition-all text-slate-600 hover:text-slate-900 whitespace-nowrap">
+                    {{ icon('key', 'w-3.5 h-3.5') }}
+                    <span>平台凭据 (Cookie)</span>
+                </button>
+                <button type="button" onclick="switchSettingsTab('proxy')" id="tab-btn-proxy"
+                    class="tab-nav-btn inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg transition-all text-slate-600 hover:text-slate-900 whitespace-nowrap">
+                    {{ icon('globe', 'w-3.5 h-3.5') }}
+                    <span>网络与动态代理</span>
+                </button>
+                <button type="button" onclick="switchSettingsTab('branding')" id="tab-btn-branding"
+                    class="tab-nav-btn inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg transition-all text-slate-600 hover:text-slate-900 whitespace-nowrap">
+                    {{ icon('tag', 'w-3.5 h-3.5') }}
+                    <span>响应水印与版权</span>
+                </button>
+            </div>
         </div>
 
         <form method="post" action="{{ url_for('admin.update_settings') }}" id="admin-settings-form" class="space-y-6">

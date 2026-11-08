@@ -43,17 +43,25 @@
 {% block body %}
 {% if g.user %}
 <div class="console-app min-h-screen bg-slate-50">
-    <!-- 纯固定侧边栏 (Fixed Left Rail) -->
-    <aside class="sidebar fixed inset-y-0 left-0 w-64 bg-white border-r border-slate-200/80 flex flex-col justify-between select-none z-30 shadow-xs">
+    <!-- 移动端侧边栏遮罩 (Backdrop Overlay) -->
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 transition-opacity duration-300 opacity-0 pointer-events-none lg:hidden" aria-hidden="true" onclick="closeSidebar()"></div>
+
+    <!-- 侧边栏 (Fixed Left Rail on Desktop, Slide-over Drawer on Mobile) -->
+    <aside id="console-sidebar" class="sidebar fixed inset-y-0 left-0 w-64 bg-white border-r border-slate-200/80 flex flex-col justify-between select-none z-50 shadow-xl lg:shadow-xs -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
         <!-- 顶部 Logo 栏 (固定 64px 高度与顶栏对齐) -->
         <div class="sidebar-head h-16 px-5 border-b border-slate-100 flex items-center justify-between shrink-0">
-            <a class="brand flex items-center gap-2.5 font-bold text-slate-900 hover:text-brand transition" href="{{ url_for('web.index') }}" target="_blank">
-                <img src="{{ url_for('static', filename='images/logo-web.png') }}" alt="Logo" class="w-7 h-7 rounded-lg border border-slate-200 bg-white p-0.5 shadow-2xs">
-                <span class="text-sm font-bold tracking-tight text-slate-900">Media Parser</span>
+            <a class="brand flex items-center gap-2.5 font-bold text-slate-900 hover:text-brand transition min-w-0" href="{{ url_for('web.index') }}" target="_blank">
+                <img src="{{ url_for('static', filename='images/logo-web.png') }}" alt="Logo" class="w-7 h-7 rounded-lg border border-slate-200 bg-white p-0.5 shadow-2xs shrink-0">
+                <span class="text-sm font-bold tracking-tight text-slate-900 truncate">Media Parser</span>
             </a>
-            <span class="role-badge text-xs font-semibold px-2 py-0.5 rounded-full {{ 'bg-indigo-50 text-indigo-700 border border-indigo-200' if g.user['role']=='admin' else 'bg-slate-100 text-slate-600 border border-slate-200' }}">
-                {{ '管理后台' if g.user['role']=='admin' else '控制台' }}
-            </span>
+            <div class="flex items-center gap-2 shrink-0">
+                <span class="role-badge text-xs font-semibold px-2 py-0.5 rounded-full {{ 'bg-indigo-50 text-indigo-700 border border-indigo-200' if g.user['role']=='admin' else 'bg-slate-100 text-slate-600 border border-slate-200' }}">
+                    {{ '管理后台' if g.user['role']=='admin' else '控制台' }}
+                </span>
+                <button type="button" class="lg:hidden p-1.5 -mr-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition" onclick="closeSidebar()" aria-label="关闭侧边栏">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
         </div>
 
         <!-- 独立滚动导航菜单列表 -->
@@ -137,8 +145,8 @@
         </div>
     </aside>
 
-    <!-- 主工作区 (Main Content Area, 左侧偏移 pl-64) -->
-    <div class="main-wrapper pl-64 flex flex-col flex-1 min-w-0 min-h-screen">
+    <!-- 主工作区 (Main Content Area, 大屏左侧偏移 pl-64, 小屏 pl-0 占满全宽) -->
+    <div class="main-wrapper pl-0 lg:pl-64 flex flex-col flex-1 min-w-0 min-h-screen">
         <!-- 顶部浮动气泡卡片提示容器 (Toast Notification) -->
         <div id="toast-container" class="toast-container fixed top-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm pointer-events-none" aria-live="polite">
             {% for category, message in get_flashed_messages(with_categories=true) %}
@@ -159,12 +167,19 @@
         </div>
 
         <!-- 顶部顶栏 (Topbar, 规范 64px 高度) -->
-        <header class="main-topbar h-16 px-8 bg-white/95 backdrop-blur-md border-b border-slate-200/80 flex items-center justify-between sticky top-0 z-20 shadow-2xs">
-            <div class="topbar-left flex items-center gap-2 text-sm">
-                <nav class="topbar-breadcrumb flex items-center gap-1.5 text-slate-500 font-medium" aria-label="Breadcrumb">
-                    <a href="{{ url_for('admin.overview' if g.user['role']=='admin' else 'portal.overview') }}" class="hover:text-slate-900 transition">{{ '管理后台' if g.user['role']=='admin' else '控制台' }}</a>
-                    <span class="topbar-separator text-slate-300">/</span>
-                    <span class="text-slate-500">
+        <header class="main-topbar h-16 px-4 sm:px-6 lg:px-8 bg-white/95 backdrop-blur-md border-b border-slate-200/80 flex items-center justify-between sticky top-0 z-20 shadow-2xs">
+            <div class="topbar-left flex items-center gap-2 sm:gap-3 text-sm min-w-0">
+                <button type="button" class="sidebar-toggle-btn lg:hidden p-2 -ml-1 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-brand/20 transition-colors shrink-0" onclick="openSidebar()" aria-label="打开导航菜单">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+                <nav class="topbar-breadcrumb flex items-center gap-1.5 text-slate-500 font-medium truncate" aria-label="Breadcrumb">
+                    <a href="{{ url_for('admin.overview' if g.user['role']=='admin' else 'portal.overview') }}" class="hover:text-slate-900 transition shrink-0 whitespace-nowrap">{{ '管理后台' if g.user['role']=='admin' else '控制台' }}</a>
+                    <span class="topbar-separator text-slate-300 shrink-0">/</span>
+                    <span class="text-slate-500 hidden sm:inline shrink-0 whitespace-nowrap">
                         {%- block nav_group -%}
                         {%- if g.user['role'] == 'admin' -%}
                             {%- if active_nav in ['overview', 'settings'] -%}系统管理
@@ -179,25 +194,25 @@
                         {%- endif -%}
                         {%- endblock -%}
                     </span>
-                    <span class="topbar-separator text-slate-300">/</span>
-                    <h1 class="page-title text-sm font-bold text-slate-900 inline" id="active-page-title">{% block page_title %}{% endblock %}</h1>
+                    <span class="topbar-separator text-slate-300 hidden sm:inline shrink-0">/</span>
+                    <h1 class="page-title text-sm font-bold text-slate-900 truncate" id="active-page-title">{% block page_title %}{% endblock %}</h1>
                 </nav>
             </div>
-            <div class="topbar-right flex items-center gap-3">
+            <div class="topbar-right flex items-center gap-2 sm:gap-3 shrink-0 ml-2">
                 {% if is_api_enabled() %}
-                <span class="status-pill online inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                <span class="status-pill online inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs whitespace-nowrap shrink-0">
                     <span class="status-dot w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>API 正常
                 </span>
                 {% else %}
-                <span class="status-pill offline inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 shadow-2xs">
+                <span class="status-pill offline inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 shadow-2xs whitespace-nowrap shrink-0">
                     <span class="status-dot w-2 h-2 rounded-full bg-amber-500"></span>API 维护中
                 </span>
                 {% endif %}
             </div>
         </header>
 
-        <!-- 内容区域 (内边距 p-8 舒适宽敞) -->
-        <div class="flex-1 p-6 sm:p-8 min-w-0">
+        <!-- 内容区域 (小屏 p-4, 中大屏 p-6~8 舒适宽敞) -->
+        <div class="flex-1 p-4 sm:p-6 lg:p-8 min-w-0">
             {% block console_content %}{% endblock %}
         </div>
     </div>
@@ -689,11 +704,69 @@ function initDonutInteractions() {
     });
 }
 
+// ==========================================
+// 移动端响应式侧边栏控制器 (Mobile Drawer Sidebar)
+// ==========================================
+function openSidebar() {
+    const sidebar = document.getElementById('console-sidebar');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    if (!sidebar || !backdrop) return;
+    sidebar.classList.remove('-translate-x-full');
+    sidebar.classList.add('open');
+    backdrop.classList.remove('opacity-0', 'pointer-events-none');
+    backdrop.classList.add('opacity-100', 'pointer-events-auto');
+    document.body.classList.add('overflow-hidden', 'lg:overflow-auto');
+}
+
+function closeSidebar() {
+    const sidebar = document.getElementById('console-sidebar');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    if (!sidebar || !backdrop) return;
+    sidebar.classList.add('-translate-x-full');
+    sidebar.classList.remove('open');
+    backdrop.classList.add('opacity-0', 'pointer-events-none');
+    backdrop.classList.remove('opacity-100', 'pointer-events-auto');
+    document.body.classList.remove('overflow-hidden', 'lg:overflow-auto');
+}
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('console-sidebar');
+    if (sidebar && sidebar.classList.contains('-translate-x-full')) {
+        openSidebar();
+    } else {
+        closeSidebar();
+    }
+}
+
 window.addEventListener('DOMContentLoaded', () => {
     initChartInteractions();
     initDonutInteractions();
     initToasts();
     initConfirmInterceptions();
+
+    // 移动端点击导航项自动关闭抽屉
+    document.querySelectorAll('#console-sidebar .nav-item').forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth < 1024) {
+                closeSidebar();
+            }
+        });
+    });
+
+    // 监听 ESC 键关闭侧边栏
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeSidebar();
+        }
+    });
+
+    // 窗口尺寸拉伸超过断点时自动恢复
+    window.addEventListener('resize', () => {
+        if (window.innerWidth >= 1024) {
+            closeSidebar();
+        }
+    });
+
     const cpm = document.getElementById('change-password-modal-backdrop');
     if (cpm) {
         cpm.addEventListener('click', (e) => {

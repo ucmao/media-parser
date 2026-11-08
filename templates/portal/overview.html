@@ -76,14 +76,16 @@
             </div>
         </div>
 
-        <!-- 动态周期筛选栏 -->
+        <!-- 动态周期筛选栏 (支持小屏横向滚动) -->
         <div class="flex items-center justify-between flex-wrap gap-3">
-            <div class="inline-flex rounded-xl bg-slate-200/70 p-1 border border-slate-200 text-xs font-semibold">
-                <a href="{{ url_for('portal.overview', days=7) }}" class="px-3 py-1.5 rounded-lg transition {{ 'bg-white text-slate-900 shadow-xs' if current_days == 7 else 'text-slate-600 hover:text-slate-900' }}">近 7 天</a>
-                <a href="{{ url_for('portal.overview', days=30) }}" class="px-3 py-1.5 rounded-lg transition {{ 'bg-white text-slate-900 shadow-xs' if current_days == 30 else 'text-slate-600 hover:text-slate-900' }}">近 30 天</a>
-                <a href="{{ url_for('portal.overview', days=90) }}" class="px-3 py-1.5 rounded-lg transition {{ 'bg-white text-slate-900 shadow-xs' if current_days == 90 else 'text-slate-600 hover:text-slate-900' }}">近 90 天</a>
-                <a href="{{ url_for('portal.overview', days=180) }}" class="px-3 py-1.5 rounded-lg transition {{ 'bg-white text-slate-900 shadow-xs' if current_days == 180 else 'text-slate-600 hover:text-slate-900' }}">近 180 天</a>
-                <a href="{{ url_for('portal.overview', days=0) }}" class="px-3 py-1.5 rounded-lg transition {{ 'bg-white text-slate-900 shadow-xs' if current_days == 0 else 'text-slate-600 hover:text-slate-900' }}">全周期</a>
+            <div class="overflow-x-auto max-w-full pb-1 -mb-1 custom-scroll">
+                <div class="inline-flex rounded-xl bg-slate-200/70 p-1 border border-slate-200 text-xs font-semibold whitespace-nowrap">
+                    <a href="{{ url_for('portal.overview', days=7) }}" class="px-3 py-1.5 rounded-lg transition {{ 'bg-white text-slate-900 shadow-xs' if current_days == 7 else 'text-slate-600 hover:text-slate-900' }}">近 7 天</a>
+                    <a href="{{ url_for('portal.overview', days=30) }}" class="px-3 py-1.5 rounded-lg transition {{ 'bg-white text-slate-900 shadow-xs' if current_days == 30 else 'text-slate-600 hover:text-slate-900' }}">近 30 天</a>
+                    <a href="{{ url_for('portal.overview', days=90) }}" class="px-3 py-1.5 rounded-lg transition {{ 'bg-white text-slate-900 shadow-xs' if current_days == 90 else 'text-slate-600 hover:text-slate-900' }}">近 90 天</a>
+                    <a href="{{ url_for('portal.overview', days=180) }}" class="px-3 py-1.5 rounded-lg transition {{ 'bg-white text-slate-900 shadow-xs' if current_days == 180 else 'text-slate-600 hover:text-slate-900' }}">近 180 天</a>
+                    <a href="{{ url_for('portal.overview', days=0) }}" class="px-3 py-1.5 rounded-lg transition {{ 'bg-white text-slate-900 shadow-xs' if current_days == 0 else 'text-slate-600 hover:text-slate-900' }}">全周期</a>
+                </div>
             </div>
         </div>
 

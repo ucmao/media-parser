@@ -33,7 +33,10 @@
     <div class="fixed inset-0 grid-bg pointer-events-none"></div><div class="fixed -top-40 right-0 w-[620px] h-[620px] glow pointer-events-none"></div>
     <header class="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
         <div class="max-w-7xl mx-auto min-h-16 px-5 sm:px-8 py-3 flex items-center justify-between gap-4">
-            <a href="#top" class="flex items-center gap-3 shrink-0" aria-label="Media Parser 首页"><img src="{{ url_for('static', filename='images/logo-web.png') }}" alt="" class="w-9 h-9 rounded-xl border border-slate-200 bg-white p-1"><span class="hidden sm:inline font-bold tracking-tight text-slate-950">Media Parser <span class="text-brand">API</span></span></a>
+            <a href="#top" class="flex items-center gap-2.5 sm:gap-3 shrink-0" aria-label="Media Parser 首页">
+                <img src="{{ url_for('static', filename='images/logo-web.png') }}" alt="" class="w-9 h-9 rounded-xl border border-slate-200 bg-white p-1">
+                <span class="font-bold tracking-tight text-slate-950 text-sm sm:text-base">Media Parser <span class="text-brand">API</span></span>
+            </a>
             <nav class="hidden lg:flex items-center gap-8 text-sm text-slate-600"><a href="#parser" class="hover:text-brand">在线解析</a><a href="#capabilities" class="hover:text-brand">平台能力</a><a href="#deployment" class="hover:text-brand">部署方式</a><a href="#docs" class="hover:text-brand">接入示例</a><a href="#faq" class="hover:text-brand">常见问题</a></nav>
             <div class="flex items-center gap-2 sm:gap-3">
                 <a href="https://github.com/ucmao/media-parser" target="_blank" rel="noopener noreferrer" aria-label="在 GitHub 查看 Media Parser 源码" title="GitHub 开源仓库" class="inline-flex h-9 items-center gap-2 rounded-full border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition shadow-sm">
@@ -46,7 +49,31 @@
                         </span>
                     </span>
                 </a>
-                <a href="{{ url_for('auth.login') }}" class="hidden sm:inline text-sm font-medium text-slate-600 hover:text-brand">登录</a><a href="{{ url_for('auth.register') }}" class="rounded-lg bg-brand px-3 sm:px-4 py-2.5 text-sm font-bold text-white hover:bg-indigo-700 transition"><span class="sm:hidden">注册</span><span class="hidden sm:inline">创建账号</span></a>
+                <a href="{{ url_for('auth.login') }}" class="hidden sm:inline text-sm font-medium text-slate-600 hover:text-brand">登录</a>
+                <a href="{{ url_for('auth.register') }}" class="rounded-lg bg-brand px-3 sm:px-4 py-2 text-xs sm:text-sm font-bold text-white hover:bg-indigo-700 transition"><span class="sm:hidden">注册</span><span class="hidden sm:inline">创建账号</span></a>
+                <!-- 移动端导航菜单开关按钮 -->
+                <button type="button" id="landingMobileMenuBtn" onclick="toggleLandingMobileMenu()" class="lg:hidden p-2 -mr-1 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition" aria-label="切换导航菜单">
+                    <svg id="menuIconOpen" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                    <svg id="menuIconClose" class="w-5 h-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <!-- 移动端展开导航菜单 (Mobile Dropdown Menu) -->
+        <div id="landingMobileMenu" class="hidden lg:hidden border-t border-slate-100 bg-white/95 backdrop-blur-xl px-5 py-4 space-y-3 shadow-lg">
+            <nav class="flex flex-col space-y-1 text-sm font-medium text-slate-700">
+                <a href="#parser" onclick="closeLandingMobileMenu()" class="px-3 py-2 rounded-lg hover:bg-slate-50 hover:text-brand transition">在线解析</a>
+                <a href="#capabilities" onclick="closeLandingMobileMenu()" class="px-3 py-2 rounded-lg hover:bg-slate-50 hover:text-brand transition">平台能力</a>
+                <a href="#deployment" onclick="closeLandingMobileMenu()" class="px-3 py-2 rounded-lg hover:bg-slate-50 hover:text-brand transition">部署方式</a>
+                <a href="#docs" onclick="closeLandingMobileMenu()" class="px-3 py-2 rounded-lg hover:bg-slate-50 hover:text-brand transition">接入示例</a>
+                <a href="#faq" onclick="closeLandingMobileMenu()" class="px-3 py-2 rounded-lg hover:bg-slate-50 hover:text-brand transition">常见问题</a>
+            </nav>
+            <div class="pt-3 border-t border-slate-100 flex items-center gap-2.5">
+                <a href="{{ url_for('auth.login') }}" class="flex-1 text-center py-2 text-xs font-semibold text-slate-700 hover:text-brand bg-slate-50 hover:bg-slate-100 rounded-lg transition border border-slate-200">登录控制台</a>
+                <a href="{{ url_for('auth.register') }}" class="flex-1 text-center py-2 text-xs font-semibold text-white bg-brand hover:bg-indigo-700 rounded-lg transition shadow-xs">注册新账号</a>
             </div>
         </div>
     </header>
@@ -1215,6 +1242,37 @@
     <script src="{{ url_for('static', filename='vendor/split-type.min.js') }}" defer></script>
     <script src="{{ url_for('static', filename='vendor/lenis.min.js') }}" defer></script>
     <script>
+        /* ---- 移动端导航菜单控制 ---- */
+        function toggleLandingMobileMenu() {
+            const menu = document.getElementById('landingMobileMenu');
+            const iconOpen = document.getElementById('menuIconOpen');
+            const iconClose = document.getElementById('menuIconClose');
+            if (!menu) return;
+            const isHidden = menu.classList.contains('hidden');
+            if (isHidden) {
+                menu.classList.remove('hidden');
+                if (iconOpen) iconOpen.classList.add('hidden');
+                if (iconClose) iconClose.classList.remove('hidden');
+            } else {
+                menu.classList.add('hidden');
+                if (iconOpen) iconOpen.classList.remove('hidden');
+                if (iconClose) iconClose.classList.add('hidden');
+            }
+        }
+        function closeLandingMobileMenu() {
+            const menu = document.getElementById('landingMobileMenu');
+            const iconOpen = document.getElementById('menuIconOpen');
+            const iconClose = document.getElementById('menuIconClose');
+            if (menu) menu.classList.add('hidden');
+            if (iconOpen) iconOpen.classList.remove('hidden');
+            if (iconClose) iconClose.classList.add('hidden');
+        }
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 1024) {
+                closeLandingMobileMenu();
+            }
+        });
+
         /* ---- 入场系统：IntersectionObserver + CSS 过渡，零 CDN 依赖 ---- */
         (function () {
             if (!document.documentElement.classList.contains('land-anim')) return;

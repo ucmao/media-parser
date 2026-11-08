@@ -518,3 +518,59 @@ input[type="number"] {
   outline-offset: 2px;
   border-radius: 4px;
 }
+
+/* ==========================================================================
+   Mobile Responsive Adaptations (Mobile Drawer, Fluid Tables & Safe Overflows)
+   ========================================================================== */
+.table-wrap {
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 1023px) {
+  .console-app .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 50;
+    box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.15), 0 8px 10px -6px rgba(15, 23, 42, 0.1);
+  }
+
+  .console-app .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .console-app .main-wrapper {
+    padding-left: 0 !important;
+  }
+
+  .main-topbar {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .topbar-breadcrumb {
+    max-width: calc(100vw - 160px);
+  }
+
+  .batch-floating-toolbar {
+    width: calc(100% - 32px);
+    max-width: 480px;
+    bottom: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .table-filter-form .filter-input-text {
+    width: 100% !important;
+  }
+
+  .table-filter-form select {
+    flex: 1 1 auto;
+  }
+
+  .toast-container {
+    left: 1rem;
+    right: 1rem;
+    max-width: calc(100% - 2rem);
+    top: 1rem;
+  }
+}
