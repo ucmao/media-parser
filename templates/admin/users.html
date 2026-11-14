@@ -35,7 +35,7 @@
             </form>
 
             <div class="table-wrap overflow-x-auto rounded-xl border border-slate-200">
-                <table id="users-table" class="w-full min-w-[960px] text-left text-xs border-collapse">
+                <table id="users-table" class="w-full min-w-[1200px] text-left text-xs border-collapse">
                     <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
                         <tr>
                             <th class="w-11 px-3 py-3 text-center">
@@ -105,7 +105,7 @@
                             </td>
                             <td class="px-3 py-3 whitespace-nowrap">
                                 {% if user['role'] == 'admin' or not user['expires_at'] %}
-                                <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">永久有效</span>
+                                <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">永久有效</span>
                                 {% else %}
                                 <span class="text-slate-700">{{ format_local_date(user['expires_at']) }}</span>
                                 {% endif %}
@@ -368,12 +368,27 @@ function toggleActionDropdown(triggerBtn, e) {
     closeAllActionDropdowns();
     if (isHidden) {
         menu.classList.remove('hidden');
+        const cell = container.closest('.td-action');
+        if (cell) cell.classList.add('is-dropdown-open');
+        // 表格外层是滚动容器，会截断溢出的菜单：下方放不下时改为向上弹出
+        const wrap = container.closest('.table-wrap');
+        menu.style.top = '';
+        menu.style.bottom = '';
+        menu.style.marginBottom = '';
+        if (wrap && menu.getBoundingClientRect().bottom > wrap.getBoundingClientRect().bottom) {
+            menu.style.top = 'auto';
+            menu.style.bottom = '100%';
+            menu.style.marginBottom = '0.25rem';
+        }
     }
 }
 
 function closeAllActionDropdowns() {
     document.querySelectorAll('.action-dropdown-menu').forEach(el => {
         el.classList.add('hidden');
+    });
+    document.querySelectorAll('.td-action.is-dropdown-open').forEach(el => {
+        el.classList.remove('is-dropdown-open');
     });
 }
 

@@ -61,21 +61,20 @@
                             <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition whitespace-nowrap w-36" onclick="handleSort('logs', 'created_at')">
                                 时间 <span class="sort-icon ml-0.5 {{ 'text-brand font-bold' if logs_table.sorting.sort_by=='created_at' else 'text-slate-300' }}">{{ '↑' if logs_table.sorting.sort_by=='created_at' and logs_table.sorting.order=='asc' else ('↓' if logs_table.sorting.sort_by=='created_at' else '↕') }}</span>
                             </th>
-                            <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition whitespace-nowrap w-28" onclick="handleSort('logs', 'username')">
-                                客户 <span class="sort-icon ml-0.5 {{ 'text-brand font-bold' if logs_table.sorting.sort_by=='username' else 'text-slate-300' }}">{{ '↑' if logs_table.sorting.sort_by=='username' and logs_table.sorting.order=='asc' else ('↓' if logs_table.sorting.sort_by=='username' else '↕') }}</span>
+                            <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition whitespace-nowrap w-16" onclick="handleSort('logs', 'status_code')">
+                                状态 <span class="sort-icon ml-0.5 {{ 'text-brand font-bold' if logs_table.sorting.sort_by=='status_code' else 'text-slate-300' }}">{{ '↑' if logs_table.sorting.sort_by=='status_code' and logs_table.sorting.order=='asc' else ('↓' if logs_table.sorting.sort_by=='status_code' else '↕') }}</span>
                             </th>
-                            <th class="px-3 py-3 whitespace-nowrap w-28">调用 Key</th>
                             <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition whitespace-nowrap w-20" onclick="handleSort('logs', 'platform')">
                                 平台 <span class="sort-icon ml-0.5 {{ 'text-brand font-bold' if logs_table.sorting.sort_by=='platform' else 'text-slate-300' }}">{{ '↑' if logs_table.sorting.sort_by=='platform' and logs_table.sorting.order=='asc' else ('↓' if logs_table.sorting.sort_by=='platform' else '↕') }}</span>
                             </th>
                             <th class="px-3 py-3 min-w-[220px]">请求 URL</th>
-                            <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition whitespace-nowrap w-20 text-center" onclick="handleSort('logs', 'status_code')">
-                                状态 <span class="sort-icon ml-0.5 {{ 'text-brand font-bold' if logs_table.sorting.sort_by=='status_code' else 'text-slate-300' }}">{{ '↑' if logs_table.sorting.sort_by=='status_code' and logs_table.sorting.order=='asc' else ('↓' if logs_table.sorting.sort_by=='status_code' else '↕') }}</span>
-                            </th>
-                            <th class="px-3 py-3 whitespace-nowrap w-28">错误码</th>
                             <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition whitespace-nowrap w-24 text-right" onclick="handleSort('logs', 'duration_ms')">
                                 耗时 <span class="sort-icon ml-0.5 {{ 'text-brand font-bold' if logs_table.sorting.sort_by=='duration_ms' else 'text-slate-300' }}">{{ '↑' if logs_table.sorting.sort_by=='duration_ms' and logs_table.sorting.order=='asc' else ('↓' if logs_table.sorting.sort_by=='duration_ms' else '↕') }}</span>
                             </th>
+                            <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition whitespace-nowrap w-28" onclick="handleSort('logs', 'username')">
+                                客户 <span class="sort-icon ml-0.5 {{ 'text-brand font-bold' if logs_table.sorting.sort_by=='username' else 'text-slate-300' }}">{{ '↑' if logs_table.sorting.sort_by=='username' and logs_table.sorting.order=='asc' else ('↓' if logs_table.sorting.sort_by=='username' else '↕') }}</span>
+                            </th>
+                            <th class="px-3 py-3 whitespace-nowrap w-28">调用 Key</th>
                             <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition whitespace-nowrap w-32" onclick="handleSort('logs', 'client_ip')">
                                 IP <span class="sort-icon ml-0.5 {{ 'text-brand font-bold' if logs_table.sorting.sort_by=='client_ip' else 'text-slate-300' }}">{{ '↑' if logs_table.sorting.sort_by=='client_ip' and logs_table.sorting.order=='asc' else ('↓' if logs_table.sorting.sort_by=='client_ip' else '↕') }}</span>
                             </th>
@@ -88,6 +87,19 @@
                                 <input type="checkbox" class="row-checkbox rounded border-slate-300 text-brand focus:ring-brand/20 cursor-pointer" value="{{ log['id'] }}">
                             </td>
                             <td class="px-3 py-3 whitespace-nowrap text-slate-500">{{ format_log_time(log['created_at']) }}</td>
+                            <td class="px-3 py-3 whitespace-nowrap">
+                                <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold {{ 'bg-emerald-50 text-emerald-700 border border-emerald-200' if log['status_code']<400 else 'bg-red-50 text-red-700 border border-red-200 cursor-help' }}"{% if log['error_code'] %} title="{{ log['error_code'] }}"{% endif %}>{{ log['status_code'] }}</span>
+                            </td>
+                            <td class="px-3 py-3 whitespace-nowrap font-medium text-slate-700">{{ log['platform'] or '-' }}</td>
+                            <td class="px-3 py-3 max-w-sm truncate">
+                                {% if log['input_url'] %}
+                                <a href="{{ log['input_url'] }}" target="_blank" rel="noopener noreferrer" class="text-brand hover:underline font-mono text-[11px]" title="{{ log['input_url'] }}">{{ log['input_url'] }}</a>
+                                {% else %}-{% endif %}
+                                {% if log['error_code'] %}
+                                <div class="mt-1 font-mono text-[10px] text-red-600 truncate" title="{{ log['error_code'] }}">{{ log['error_code'] }}</div>
+                                {% endif %}
+                            </td>
+                            <td class="px-3 py-3 whitespace-nowrap text-right font-mono {{ 'text-red-600 font-semibold' if (log['duration_ms'] or 0) >= 4000 else ('text-amber-600' if (log['duration_ms'] or 0) >= 2000 else 'text-slate-600') }}">{{ log['duration_ms'] }} ms</td>
                             <td class="px-3 py-3 whitespace-nowrap">
                                 {% if log['username'] %}
                                 <div class="flex items-center gap-1.5">
@@ -105,21 +117,6 @@
                                 <span class="text-slate-400 text-[11px]">Web 免鉴权</span>
                                 {% endif %}
                             </td>
-                            <td class="px-3 py-3 whitespace-nowrap font-medium text-slate-700">{{ log['platform'] or '-' }}</td>
-                            <td class="px-3 py-3 max-w-sm truncate">
-                                {% if log['input_url'] %}
-                                <a href="{{ log['input_url'] }}" target="_blank" rel="noopener noreferrer" class="text-brand hover:underline font-mono text-[11px]" title="{{ log['input_url'] }}">{{ log['input_url'] }}</a>
-                                {% else %}-{% endif %}
-                            </td>
-                            <td class="px-3 py-3 whitespace-nowrap text-center">
-                                <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold {{ 'bg-emerald-50 text-emerald-700 border border-emerald-200' if log['status_code']<400 else 'bg-red-50 text-red-700 border border-red-200' }}">{{ log['status_code'] }}</span>
-                            </td>
-                            <td class="px-3 py-3 whitespace-nowrap">
-                                {% if log['error_code'] %}
-                                <code class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[11px] font-mono border border-slate-200">{{ log['error_code'] }}</code>
-                                {% else %}<span class="text-slate-300">-</span>{% endif %}
-                            </td>
-                            <td class="px-3 py-3 whitespace-nowrap text-right font-mono text-slate-600">{{ log['duration_ms'] }} ms</td>
                             <td class="px-3 py-3 whitespace-nowrap font-mono text-[11px]">
                                 {% if log['client_ip'] %}
                                 <a href="{{ url_for('admin.logs', logs_q=log['client_ip']) }}" class="text-slate-600 hover:text-brand hover:underline" title="筛选该 IP 的全部请求">{{ log['client_ip'] }}</a>
@@ -130,7 +127,7 @@
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="10" class="text-center py-10 text-slate-400">暂无符合条件的日志记录</td>
+                            <td colspan="9" class="text-center py-10 text-slate-400">暂无符合条件的日志记录</td>
                         </tr>
                         {% endfor %}
                     </tbody>

@@ -11,8 +11,8 @@
         </div>
         <div class="flex items-center gap-3 shrink-0 pt-1">
             <button type="button" id="btn-check-all" onclick="checkAll(this)"
-                class="inline-flex items-center gap-2 px-4 h-9 rounded-lg text-sm font-semibold text-white bg-slate-900 hover:bg-slate-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
-                {{ icon('shield', 'w-4 h-4') }}
+                class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold text-white bg-brand hover:bg-indigo-700 shadow-xs transition disabled:opacity-60 disabled:cursor-not-allowed">
+                {{ icon('shield', 'w-3.5 h-3.5') }}
                 <span>全部重新巡检</span>
             </button>
         </div>
@@ -132,7 +132,7 @@
                                 <span class="text-slate-300">—</span>
                             {% endif %}
                         </td>
-                        <td class="px-3.5 py-3.5 text-right whitespace-nowrap space-x-1">
+                        <td class="td-action px-3.5 py-3.5 text-right whitespace-nowrap space-x-1">
                             <button type="button" onclick="probeCheck('{{ item.platform_key }}', this)"
                                 class="text-xs font-medium text-slate-700 hover:text-brand transition-colors px-2.5 py-1 rounded-md hover:bg-slate-100 disabled:opacity-50">验证</button>
                             <button type="button" onclick="openConfigModal('{{ item.platform_key }}')"

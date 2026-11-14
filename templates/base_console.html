@@ -200,12 +200,12 @@
             </div>
             <div class="topbar-right flex items-center gap-2 sm:gap-3 shrink-0 ml-2">
                 {% if is_api_enabled() %}
-                <span class="status-pill online inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs whitespace-nowrap shrink-0">
-                    <span class="status-dot w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>API 正常
+                <span class="status-pill online inline-flex items-center gap-1.5 px-1 py-1 text-xs font-medium text-slate-400 whitespace-nowrap shrink-0" title="API 服务已开启">
+                    <span class="status-dot w-1.5 h-1.5 rounded-full bg-emerald-500"></span>API 正常
                 </span>
                 {% else %}
-                <span class="status-pill offline inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 shadow-2xs whitespace-nowrap shrink-0">
-                    <span class="status-dot w-2 h-2 rounded-full bg-amber-500"></span>API 维护中
+                <span title="API 服务已关闭，可在系统设置中开启" class="status-pill offline inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 shadow-2xs whitespace-nowrap shrink-0">
+                    <span class="status-dot w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>API 维护中
                 </span>
                 {% endif %}
             </div>

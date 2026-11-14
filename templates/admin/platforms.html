@@ -86,16 +86,18 @@
                             <td class="px-3 py-3 whitespace-nowrap font-bold text-slate-900">{{ item.name }}</td>
                             <td class="px-3 py-3">
                                 <div class="domain-tag-list flex flex-wrap items-center gap-1.5">
-                                    {% for dom in item.domains[:4] %}
+                                    {# 最多显示 3 个；只多出 1 个时直接全部显示，避免出现「+1」 #}
+                                    {% set dom_limit = 3 if item.domains|length > 4 else 4 %}
+                                    {% for dom in item.domains[:dom_limit] %}
                                     <span class="domain-tag px-2 py-0.5 text-[11px] font-mono bg-slate-100 text-slate-600 rounded border border-slate-200/80 max-w-[200px] truncate" title="{{ dom }}">{{ dom }}</span>
                                     {% endfor %}
-                                    {% if item.domains|length > 4 %}
+                                    {% if item.domains|length > dom_limit %}
                                     <span class="domain-extra-list hidden flex-wrap gap-1.5">
-                                        {% for dom in item.domains[4:] %}
+                                        {% for dom in item.domains[dom_limit:] %}
                                         <span class="domain-tag px-2 py-0.5 text-[11px] font-mono bg-slate-100 text-slate-600 rounded border border-slate-200/80 max-w-[200px] truncate" title="{{ dom }}">{{ dom }}</span>
                                         {% endfor %}
                                     </span>
-                                    <span class="domain-more-toggle px-1.5 py-0.5 text-[10px] font-bold bg-indigo-50 text-brand rounded border border-indigo-200 cursor-pointer select-none hover:bg-indigo-100 transition" onclick="toggleMoreDomains(this)" title="点击展开全部 {{ item.domains|length }} 个域名">+{{ item.domains|length - 4 }} 更多</span>
+                                    <button type="button" class="domain-more-toggle px-2 py-0.5 text-[11px] font-mono font-semibold bg-white text-slate-500 rounded border border-dashed border-slate-300 cursor-pointer select-none hover:text-brand hover:border-brand/50 transition" onclick="toggleMoreDomains(this)" title="展开全部 {{ item.domains|length }} 个域名">+{{ item.domains|length - dom_limit }}</button>
                                     {% endif %}
                                 </div>
                             </td>
@@ -281,14 +283,14 @@ function toggleMoreDomains(btn) {
         extraList.classList.remove('hidden');
         extraList.classList.add('inline-flex');
         btn.textContent = '收起';
-        btn.setAttribute('title', '点击收起多余域名');
+        btn.setAttribute('title', '收起多余域名');
     } else {
         extraList.classList.add('hidden');
         extraList.classList.remove('inline-flex');
         const count = extraList.querySelectorAll('.domain-tag').length;
-        btn.textContent = `+${count} 更多`;
+        btn.textContent = `+${count}`;
         const total = parent.querySelectorAll('.domain-tag').length;
-        btn.setAttribute('title', `点击展开全部 ${total} 个域名`);
+        btn.setAttribute('title', `展开全部 ${total} 个域名`);
     }
 }
 </script>

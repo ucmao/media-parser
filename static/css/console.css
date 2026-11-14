@@ -574,3 +574,53 @@ input[type="number"] {
     top: 1rem;
   }
 }
+
+/* ==========================================================================
+   表格操作列固定在右侧：内容多时整张表横向滚动，操作按钮始终可见
+   ========================================================================== */
+.table-wrap .th-action,
+.table-wrap .td-action {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+}
+
+.table-wrap .th-action {
+  background-color: #f8fafc; /* 与 thead 的 bg-slate-50 一致 */
+}
+
+.table-wrap .td-action {
+  background-color: #ffffff;
+  transition: background-color 0.15s ease;
+}
+
+/* 行悬停时固定列跟着变色（等同白底上叠加 slate-50/70） */
+.table-wrap tbody tr:hover > .td-action {
+  background-color: #fafbfd;
+}
+
+/* 左侧阴影：只有右边还有被遮住的内容时才显示 */
+.table-wrap .th-action::before,
+.table-wrap .td-action::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -14px;
+  width: 14px;
+  pointer-events: none;
+  background: linear-gradient(to left, rgba(15, 23, 42, 0.08), rgba(15, 23, 42, 0));
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.table-wrap.is-scrollable-right .th-action::before,
+.table-wrap.is-scrollable-right .td-action::before {
+  opacity: 1;
+}
+
+/* 打开「更多操作」菜单时，把所在固定格提到上层，避免被下一行的固定列盖住 */
+.table-wrap .td-action:has(.action-dropdown-menu:not(.hidden)),
+.table-wrap .td-action.is-dropdown-open {
+  z-index: 20;
+}

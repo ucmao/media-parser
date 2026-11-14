@@ -863,3 +863,39 @@ document.addEventListener('DOMContentLoaded', () => {
 window.initCustomSelects = initCustomSelects;
 
 
+
+/* ==========================================================================
+   操作列固定：根据横向滚动位置切换左侧阴影（表格经 AJAX 刷新后同样生效）
+   ========================================================================== */
+(function () {
+    function updateTableShadows() {
+        document.querySelectorAll('.table-wrap').forEach(function (wrap) {
+            var hiddenRight = wrap.scrollWidth - wrap.clientWidth - wrap.scrollLeft > 1;
+            wrap.classList.toggle('is-scrollable-right', hiddenRight);
+        });
+    }
+
+    var pending = false;
+    function scheduleUpdate() {
+        if (pending) return;
+        pending = true;
+        window.requestAnimationFrame(function () {
+            pending = false;
+            updateTableShadows();
+        });
+    }
+
+    document.addEventListener('scroll', function (e) {
+        if (e.target && e.target.classList && e.target.classList.contains('table-wrap')) {
+            scheduleUpdate();
+        }
+    }, true);
+    window.addEventListener('resize', scheduleUpdate);
+    document.addEventListener('DOMContentLoaded', function () {
+        updateTableShadows();
+        if (window.MutationObserver) {
+            new MutationObserver(scheduleUpdate).observe(document.body, { childList: true, subtree: true });
+        }
+    });
+    window.updateTableShadows = updateTableShadows;
+})();
