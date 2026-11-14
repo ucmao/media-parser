@@ -128,7 +128,7 @@
                             </td>
                             <td class="td-action px-3 py-3 whitespace-nowrap text-right">
                                 <button type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition shadow-xs"
-                                    onclick="openEditPlatformModal('{{ item.name|e }}', {{ 'true' if item.enabled else 'false' }}, '{{ item.qps_limit or '' }}', '{{ url_for('admin.update_platform', platform=item.name) }}')">
+                                    onclick="openEditPlatformModal({{ item.name|tojson|forceescape }}, {{ 'true' if item.enabled else 'false' }}, '{{ item.qps_limit or '' }}', '{{ url_for('admin.update_platform', platform=item.name) }}')">
                                     编辑
                                 </button>
                             </td>

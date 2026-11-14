@@ -57,7 +57,10 @@ def auth_rate_limited(action, username=""):
     if action == "setup":
         limits = [(f"auth:setup:ip:{client_ip}", 10, 900)]
     elif action == "register":
-        limits = [(f"auth:register:ip:{client_ip}", 5, 3600)]
+        limits = [
+            (f"auth:register:ip:{client_ip}", 3, 3600),
+            (f"auth:register:ip-day:{client_ip}", 5, 86400),
+        ]
     else:
         username_digest = hashlib.sha256(username.casefold().encode()).hexdigest()
         limits = [
@@ -65,6 +68,29 @@ def auth_rate_limited(action, username=""):
             (f"auth:login:user:{username_digest}", 10, 300),
         ]
     return consume_rate_limits(limits) is not None
+
+
+def registration_quota_exceeded():
+    """全站每日注册上限（按最近 24 小时成功注册数计算），0 表示不限制。
+
+    只统计成功注册，失败的尝试不占名额，避免攻击者刷失败请求把正常客户挡在门外。
+    """
+    try:
+        daily_limit = int(setting("registration_daily_limit", "30"))
+    except (TypeError, ValueError):
+        daily_limit = 30
+    if daily_limit <= 0:
+        return False
+    since = (datetime.now(timezone.utc) - timedelta(days=1)).isoformat(timespec="seconds")
+    count = get_db().execute(
+        "SELECT COUNT(*) c FROM users WHERE role != 'admin' AND created_at >= ?", (since,)
+    ).fetchone()["c"]
+    if count >= daily_limit:
+        current_app.logger.warning(
+            "[注册告警] 最近 24 小时已注册 %s 个账号，达到全站上限 %s，已拒绝新注册", count, daily_limit
+        )
+        return True
+    return False
 
 
 def csrf_protected(view):
@@ -104,6 +130,34 @@ def load_logged_in_user():
     g.user = None if user_id is None else get_db().execute(
         "SELECT * FROM users WHERE id = ?", (user_id,)
     ).fetchone()
+
+
+def _client_ip():
+    from src.api.access import get_client_ip
+    return get_client_ip()
+
+
+@bp.before_app_request
+def block_blacklisted_ip():
+    """管理员全局 IP 黑名单：命中后注册、登录、接口调用、在线体验全部拒绝。
+
+    已登录的管理员不受影响，避免误封自己后无法进入后台解封。
+    """
+    if request.endpoint == "static":
+        return None
+    if g.get("user") is not None and g.user["role"] == "admin":
+        return None
+    from src.ip_rules import is_ip_blacklisted
+    client_ip = _client_ip()
+    if not is_ip_blacklisted(client_ip):
+        return None
+    current_app.logger.warning("[IP 黑名单] 已拦截 %s %s", client_ip, request.path)
+    if request.path.startswith("/api/"):
+        from src.api.access import record_request
+        from src.api.response import make_response
+        record_request(None, None, request.path, 403, "IP_BLOCKED", 0)
+        return make_response(403, "当前 IP 已被禁止访问", None, False, "IP_BLOCKED"), 403
+    return "当前 IP 已被禁止访问", 403
 
 
 @bp.route("/setup", methods=("GET", "POST"))
@@ -147,6 +201,9 @@ def register():
         elif auth_rate_limited("register"):
             flash("注册尝试过于频繁，请稍后再试", "error")
             return render_template("auth/register.html"), 429
+        elif registration_quota_exceeded():
+            flash("今日注册名额已满，请明天再试或联系管理员开通", "error")
+            return render_template("auth/register.html"), 429
         else:
             username = request.form.get("username", "").strip()
             password = request.form.get("password", "")
@@ -164,8 +221,10 @@ def register():
                         expires_at = (datetime.now(timezone.utc) + timedelta(days=trial_days)).isoformat(timespec="seconds")
                     db = get_db()
                     cur = db.execute(
-                        "INSERT INTO users(username,password_hash,qps_limit,expires_at,credits,created_at) VALUES(?,?,?,?,?,?)",
-                        (username, generate_password_hash(password), int(setting("default_user_qps", "2")), expires_at, initial_credits, utcnow()),
+                        "INSERT INTO users(username,password_hash,qps_limit,expires_at,credits,created_at,register_ip,last_login_ip,last_login_at) "
+                        "VALUES(?,?,?,?,?,?,?,?,?)",
+                        (username, generate_password_hash(password), int(setting("default_user_qps", "2")), expires_at, initial_credits, utcnow(),
+                         _client_ip(), _client_ip(), utcnow()),
                     )
                     user_id = cur.lastrowid
                     db.commit()
@@ -224,6 +283,12 @@ def login():
             elif not user["active"]:
                 flash("账号已被停用", "error")
             else:
+                db = get_db()
+                db.execute(
+                    "UPDATE users SET last_login_ip=?, last_login_at=? WHERE id=?",
+                    (_client_ip(), utcnow(), user["id"]),
+                )
+                db.commit()
                 session.clear()
                 session["user_id"] = user["id"]
                 session.permanent = request.form.get("remember_me") in {"1", "on", "true"}

@@ -19,7 +19,7 @@
             <!-- 筛选与搜索工具栏 -->
             <form method="get" action="{{ url_for('admin.logs') }}" class="table-toolbar table-filter-form mb-5">
                 <div class="flex flex-wrap items-center gap-2.5">
-                    <input type="text" name="logs_q" placeholder="搜索请求URL/客户/错误码..." value="{{ logs_table.query_params.q }}" class="filter-input-text px-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition w-56 bg-white">
+                    <input type="text" name="logs_q" placeholder="搜索请求URL/客户/IP/错误码..." value="{{ logs_table.query_params.q }}" class="filter-input-text px-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition w-56 bg-white">
                     <select name="logs_platform" onchange="this.form.submit()" class="px-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-white text-slate-700">
                         <option value="">全部平台</option>
                         {% for item in platforms %}
@@ -76,6 +76,9 @@
                             <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition whitespace-nowrap w-24 text-right" onclick="handleSort('logs', 'duration_ms')">
                                 耗时 <span class="sort-icon ml-0.5 {{ 'text-brand font-bold' if logs_table.sorting.sort_by=='duration_ms' else 'text-slate-300' }}">{{ '↑' if logs_table.sorting.sort_by=='duration_ms' and logs_table.sorting.order=='asc' else ('↓' if logs_table.sorting.sort_by=='duration_ms' else '↕') }}</span>
                             </th>
+                            <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition whitespace-nowrap w-32" onclick="handleSort('logs', 'client_ip')">
+                                IP <span class="sort-icon ml-0.5 {{ 'text-brand font-bold' if logs_table.sorting.sort_by=='client_ip' else 'text-slate-300' }}">{{ '↑' if logs_table.sorting.sort_by=='client_ip' and logs_table.sorting.order=='asc' else ('↓' if logs_table.sorting.sort_by=='client_ip' else '↕') }}</span>
+                            </th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
@@ -117,10 +120,17 @@
                                 {% else %}<span class="text-slate-300">-</span>{% endif %}
                             </td>
                             <td class="px-3 py-3 whitespace-nowrap text-right font-mono text-slate-600">{{ log['duration_ms'] }} ms</td>
+                            <td class="px-3 py-3 whitespace-nowrap font-mono text-[11px]">
+                                {% if log['client_ip'] %}
+                                <a href="{{ url_for('admin.logs', logs_q=log['client_ip']) }}" class="text-slate-600 hover:text-brand hover:underline" title="筛选该 IP 的全部请求">{{ log['client_ip'] }}</a>
+                                {% else %}
+                                <span class="text-slate-300">-</span>
+                                {% endif %}
+                            </td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="9" class="text-center py-10 text-slate-400">暂无符合条件的日志记录</td>
+                            <td colspan="10" class="text-center py-10 text-slate-400">暂无符合条件的日志记录</td>
                         </tr>
                         {% endfor %}
                     </tbody>

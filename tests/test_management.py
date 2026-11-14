@@ -294,13 +294,33 @@ class ManagementTest(unittest.TestCase):
             with second_app.app_context():
                 self.assertFalse(SQLiteRateLimiter().consume("shared:test", 1))
 
-    def test_forwarded_ip_is_only_used_for_trusted_proxies(self):
+    def test_forwarded_ip_is_ignored_without_trusted_proxy(self):
         headers = {"X-Forwarded-For": "203.0.113.10, 10.0.0.1"}
         with self.app.test_request_context("/", headers=headers, environ_base={"REMOTE_ADDR": "192.0.2.10"}):
-            self.app.config["TRUST_PROXY_HEADERS"] = False
             self.assertEqual(get_client_ip(), "192.0.2.10")
-            self.app.config["TRUST_PROXY_HEADERS"] = True
-            self.assertEqual(get_client_ip(), "203.0.113.10")
+
+    def test_spoofed_forwarded_for_cannot_bypass_registration_limit(self):
+        proxied_app = create_app({
+            "TESTING": True,
+            "SECRET_KEY": "test-secret",
+            "DATABASE": os.path.join(self.temp_dir.name, "proxied.db"),
+            "TRUST_PROXY_HEADERS": True,
+        })
+        client = proxied_app.test_client()
+        statuses = []
+        with patch("src.api.access.time.time", return_value=123456):
+            with client.session_transaction() as sess:
+                sess["csrf_token"] = "test-csrf"
+            for i in range(4):
+                # 攻击者每次伪造不同的第一项，nginx 追加的真实 IP 始终是 198.51.100.7
+                headers = {"X-Forwarded-For": f"10.9.9.{i}, 198.51.100.7"}
+                response = client.post(
+                    "/auth/register",
+                    headers=headers,
+                    data={"csrf_token": "test-csrf", "username": "candidate", "password": "password123", "confirm_password": "different"},
+                )
+                statuses.append(response.status_code)
+        self.assertEqual(statuses, [200, 200, 200, 429])
 
     def test_login_attempts_are_rate_limited_by_username(self):
         self.client.post(
@@ -323,7 +343,7 @@ class ManagementTest(unittest.TestCase):
 
     def test_registration_attempts_are_rate_limited_by_ip(self):
         with patch("src.api.access.time.time", return_value=123456):
-            for _ in range(5):
+            for _ in range(3):
                 response = self.client.post(
                     "/auth/register",
                     data={"csrf_token": self.csrf(), "username": "candidate", "password": "password123", "confirm_password": "different"},
@@ -335,6 +355,27 @@ class ManagementTest(unittest.TestCase):
             )
         self.assertEqual(limited.status_code, 429)
         self.assertIn("注册尝试过于频繁", limited.get_data(as_text=True))
+
+    def test_registration_daily_quota_blocks_new_accounts(self):
+        from src.db import set_setting
+        with self.app.app_context():
+            set_setting("registration_daily_limit", 2)
+            get_db().commit()
+        codes = []
+        for i in range(3):
+            # 每次换一个 IP，模拟多 IP 批量注册
+            response = self.client.post(
+                "/auth/register",
+                environ_base={"REMOTE_ADDR": f"192.0.2.{i + 1}"},
+                data={"csrf_token": self.csrf(), "username": f"bulk_user_{i}", "password": "password123", "confirm_password": "password123"},
+            )
+            codes.append(response.status_code)
+            with self.client.session_transaction() as sess:
+                sess.clear()
+        self.assertEqual(codes, [302, 302, 429])
+        with self.app.app_context():
+            count = get_db().execute("SELECT COUNT(*) c FROM users WHERE username LIKE 'bulk_user_%'").fetchone()["c"]
+        self.assertEqual(count, 2)
 
     def test_disabled_platform_is_rejected(self):
         raw_key, _, _ = self.create_customer_and_key()

@@ -19,7 +19,7 @@
             <!-- 筛选与搜索工具栏 -->
             <form method="get" action="{{ url_for('admin.users') }}" class="table-toolbar table-filter-form mb-5">
                 <div class="flex flex-wrap items-center gap-2.5">
-                    <input type="text" name="users_q" placeholder="搜索用户名..." value="{{ users_table.query_params.q }}" class="filter-input-text px-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition w-48 bg-white">
+                    <input type="text" name="users_q" placeholder="搜索用户名/IP..." value="{{ users_table.query_params.q }}" class="filter-input-text px-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition w-48 bg-white">
                     <select name="users_role" onchange="this.form.submit()" class="px-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-white text-slate-700">
                         <option value="">全部角色</option>
                         <option value="admin" {{ 'selected' if request.args.get('users_role') == 'admin' }}>超级管理员</option>
@@ -55,7 +55,7 @@
                             <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition whitespace-nowrap w-16" onclick="handleSort('users', 'id')">
                                 ID <span class="sort-icon ml-0.5 {{ 'text-brand font-bold' if users_table.sorting.sort_by=='id' else 'text-slate-300' }}">{{ '↑' if users_table.sorting.sort_by=='id' and users_table.sorting.order=='asc' else ('↓' if users_table.sorting.sort_by=='id' else '↕') }}</span>
                             </th>
-                            <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition min-w-[110px]" onclick="handleSort('users', 'username')">
+                            <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition whitespace-nowrap w-28" onclick="handleSort('users', 'username')">
                                 客户名称 <span class="sort-icon ml-0.5 {{ 'text-brand font-bold' if users_table.sorting.sort_by=='username' else 'text-slate-300' }}">{{ '↑' if users_table.sorting.sort_by=='username' and users_table.sorting.order=='asc' else ('↓' if users_table.sorting.sort_by=='username' else '↕') }}</span>
                             </th>
                             <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition whitespace-nowrap w-20 text-center" onclick="handleSort('users', 'role')">
@@ -79,6 +79,9 @@
                             <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition whitespace-nowrap w-36" onclick="handleSort('users', 'created_at')">
                                 注册时间 <span class="sort-icon ml-0.5 {{ 'text-brand font-bold' if users_table.sorting.sort_by=='created_at' else 'text-slate-300' }}">{{ '↑' if users_table.sorting.sort_by=='created_at' and users_table.sorting.order=='asc' else ('↓' if users_table.sorting.sort_by=='created_at' else '↕') }}</span>
                             </th>
+                            <th class="th-sortable px-3 py-3 cursor-pointer select-none hover:text-slate-900 transition whitespace-nowrap w-36" onclick="handleSort('users', 'last_login_at')">
+                                最后登录 <span class="sort-icon ml-0.5 {{ 'text-brand font-bold' if users_table.sorting.sort_by=='last_login_at' else 'text-slate-300' }}">{{ '↑' if users_table.sorting.sort_by=='last_login_at' and users_table.sorting.order=='asc' else ('↓' if users_table.sorting.sort_by=='last_login_at' else '↕') }}</span>
+                            </th>
                             <th class="th-action px-3 py-3 w-24 text-right">操作</th>
                         </tr>
                     </thead>
@@ -89,7 +92,7 @@
                                 <input type="checkbox" class="row-checkbox rounded border-slate-300 text-brand focus:ring-brand/20 cursor-pointer" value="{{ user['id'] }}">
                             </td>
                             <td class="px-3 py-3 font-mono text-slate-400 font-medium">#{{ user['id'] }}</td>
-                            <td class="px-3 py-3 whitespace-nowrap font-bold text-slate-900">{{ user['username'] }}</td>
+                            <td class="px-3 py-3 whitespace-nowrap font-bold text-slate-900 max-w-[160px] truncate" title="{{ user['username'] }}{% if user['register_ip'] %}&#10;注册 IP：{{ user['register_ip'] }}{% endif %}">{{ user['username'] }}</td>
                             <td class="px-3 py-3 whitespace-nowrap text-center">
                                 <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold {{ 'bg-indigo-50 text-brand border border-indigo-200' if user['role']=='admin' else 'bg-slate-100 text-slate-600 border border-slate-200' }}">
                                     {{ '管理员' if user['role']=='admin' else '客户' }}
@@ -123,11 +126,14 @@
                             </td>
                             <td class="px-3 py-3 whitespace-nowrap text-center font-semibold text-slate-700">{{ user['key_count'] }}</td>
                             <td class="px-3 py-3 whitespace-nowrap text-slate-500">{{ format_log_time(user['created_at']) if user['created_at'] else '-' }}</td>
+                            <td class="px-3 py-3 whitespace-nowrap text-slate-500">
+                                {% if user['last_login_at'] %}{{ format_log_time(user['last_login_at']) }}{% else %}<span class="text-slate-300" title="暂无记录（此功能上线前的登录不会记录）">-</span>{% endif %}
+                            </td>
                             <td class="td-action px-3 py-3 whitespace-nowrap text-right">
                                 <div class="flex items-center justify-end gap-1.5">
                                     {% if user['role'] != 'admin' %}
                                     <button type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition shadow-xs"
-                                        onclick="openAdminEditUserModal({{ user['id'] }}, '{{ user['username']|e }}', {{ user['credits'] if user['credits'] is not none else -1 }}, {{ user['qps_limit'] or 2 }}, '{{ format_local_date(user['expires_at']) if user['expires_at'] else '' }}')">
+                                        onclick="openAdminEditUserModal({{ user['id'] }}, {{ user['username']|tojson|forceescape }}, {{ user['credits'] if user['credits'] is not none else -1 }}, {{ user['qps_limit'] or 2 }}, '{{ format_local_date(user['expires_at']) if user['expires_at'] else '' }}')">
                                         编辑
                                     </button>
                                     <div class="action-dropdown relative inline-block text-left" data-dropdown="user-{{ user['id'] }}">
@@ -140,7 +146,7 @@
                                         </button>
                                         <div class="action-dropdown-menu absolute right-0 mt-1 w-32 bg-white rounded-xl border border-slate-200 shadow-lg py-1 z-30 hidden">
                                             <button type="button" class="action-dropdown-item w-full flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50"
-                                                onclick="closeAllActionDropdowns(); openAdminResetPasswordModal({{ user['id'] }}, '{{ user['username']|e }}')">
+                                                onclick="closeAllActionDropdowns(); openAdminResetPasswordModal({{ user['id'] }}, {{ user['username']|tojson|forceescape }})">
                                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                                                 <span>重置密码</span>
                                             </button>
@@ -171,7 +177,7 @@
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="11" class="text-center py-10 text-slate-400">暂无符合条件的客户账号</td>
+                            <td colspan="12" class="text-center py-10 text-slate-400">暂无符合条件的客户账号</td>
                         </tr>
                         {% endfor %}
                     </tbody>

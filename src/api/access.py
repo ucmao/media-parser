@@ -96,10 +96,9 @@ def consume_rate_limits(limits):
 
 
 def get_client_ip():
-    if current_app.config.get("TRUST_PROXY_HEADERS"):
-        forwarded = request.headers.get("X-Forwarded-For", "")
-        if forwarded:
-            return forwarded.split(",")[0].strip()
+    # TRUST_PROXY_HEADERS 开启时 app.py 已挂载 ProxyFix(x_for=1)，remote_addr 即为
+    # 可信代理（nginx）追加的真实客户端 IP。不要再读取 X-Forwarded-For 的第一项：
+    # 那一项由客户端自行填写，可被伪造来绕过限流。
     return request.remote_addr or "127.0.0.1"
 
 
@@ -172,8 +171,8 @@ def record_request(access, platform, path, status_code, error_code, duration_ms)
         return
     db = get_db()
     db.execute(
-        "INSERT INTO request_logs(user_id,api_key_id,platform,path,status_code,error_code,duration_ms,input_url,created_at) "
-        "VALUES(?,?,?,?,?,?,?,?,?)",
+        "INSERT INTO request_logs(user_id,api_key_id,platform,path,status_code,error_code,duration_ms,input_url,created_at,client_ip) "
+        "VALUES(?,?,?,?,?,?,?,?,?,?)",
         (
             access["user_id"] if access else None,
             access["id"] if access else None,
@@ -184,6 +183,7 @@ def record_request(access, platform, path, status_code, error_code, duration_ms)
             duration_ms,
             _request_log_url(),
             utcnow(),
+            get_client_ip(),
         ),
     )
     db.commit()

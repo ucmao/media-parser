@@ -133,6 +133,22 @@
                             <div class="divide-y divide-slate-100 text-sm">
                                 <div class="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-4">
                                     <div>
+                                        <div class="font-medium text-slate-900">每日注册上限</div>
+                                        <div class="text-xs text-slate-500 mt-0.5">全站最近 24 小时最多允许注册的新账号数，防批量注册 (0 表示不限制)</div>
+                                    </div>
+                                    <div class="relative w-28 shrink-0">
+                                        <input type="number" min="0" max="100000" data-default="30" name="registration_daily_limit"
+                                            value="{{ settings.get('registration_daily_limit','30') }}"
+                                            oninput="validateNumberClamp(this)" onblur="normalizeNumberOnBlur(this)"
+                                            onchange="triggerSettingsSubmit(this)"
+                                            class="w-full pl-3 pr-10 py-1.5 text-xs text-right font-mono font-bold rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-slate-50/50">
+                                        <span
+                                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-[11px] font-semibold text-slate-400">个</span>
+                                    </div>
+                                </div>
+
+                                <div class="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-4">
+                                    <div>
                                         <div class="font-medium text-slate-900">默认 QPS 限制</div>
                                         <div class="text-xs text-slate-500 mt-0.5">新账号注册时默认分配的每秒并发请求数上限 (1 ~ 1000)</div>
                                     </div>
@@ -211,6 +227,23 @@
                             </div>
                         </div>
                     </div>
+                </section>
+
+                <!-- 分组 3：IP 黑名单 -->
+                <section class="bg-white rounded-xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
+                    <div class="border-b border-slate-100 pb-3">
+                        <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                            <span class="text-brand flex items-center justify-center">{{ icon('shield', 'w-4 h-4') }}</span>
+                            IP 黑名单
+                        </h2>
+                    </div>
+                    <div class="text-xs text-slate-500 leading-relaxed">
+                        命中的 IP 将无法注册、登录、调用 API 和在线体验（已登录的管理员不受影响）。每行一个 IP 或网段，例如 <code>1.2.3.4</code>、<code>1.2.3.0/24</code>，<code># 后面</code>可写备注。
+                        可以在「运行日志」或「客户账号」中点击 IP 查看它的全部记录后再决定是否封禁。
+                    </div>
+                    <textarea id="ip_blacklist" name="ip_blacklist" rows="4"
+                        placeholder="1.2.3.4&#10;5.6.7.0/24" onchange="triggerSettingsSubmit(this)"
+                        class="w-full px-3.5 py-2 font-mono text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-slate-50/50 custom-scroll">{{ settings.get('ip_blacklist', '') }}</textarea>
                 </section>
             </div>
 
@@ -747,6 +780,12 @@
         if (name === 'default_user_qps' || name === 'default_trial_days' || name === 'chk_unlimited_trial' || name === 'default_initial_credits' || name === 'chk_unlimited_credits') {
             return '新账号默认初始参数已更新';
         }
+        if (name === 'ip_blacklist') {
+            return 'IP 黑名单已更新';
+        }
+        if (name === 'registration_daily_limit') {
+            return '每日注册上限已更新';
+        }
         if (name === 'proxy_enabled' || el.id === 'proxy-toggle') {
             return el.checked ? '已开启动态代理' : '已关闭动态代理，全部直连';
         }
@@ -849,8 +888,13 @@
                             globalApiToggle.dataset.initial = globalApiToggle.checked ? '1' : '0';
                         }
                     } else {
+                        let errMsg = '保存失败，请刷新重试';
+                        try {
+                            const errData = await res.json();
+                            if (errData && errData.message) errMsg = errData.message;
+                        } catch (_) {}
                         if (window.showToast) {
-                            window.showToast('保存失败，请刷新重试', 'error');
+                            window.showToast(errMsg, 'error', 5000);
                         }
                     }
                 } catch (err) {

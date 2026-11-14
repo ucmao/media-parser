@@ -132,9 +132,28 @@ def settings():
 @csrf_protected
 def update_settings():
     db = get_db()
+    is_ajax_request = request.headers.get("X-Requested-With") == "XMLHttpRequest" or "application/json" in request.headers.get("Accept", "")
+    if "ip_blacklist" in request.form:
+        from src.api.access import get_client_ip
+        from src.ip_rules import BLACKLIST_SETTING_KEY, ip_matches, parse_ip_rules
+
+        networks, normalized, invalid = parse_ip_rules(request.form.get("ip_blacklist"))
+        error = None
+        if invalid:
+            error = "IP 黑名单格式有误：" + "、".join(invalid[:5]) + "（每行填写一个 IP 或网段，如 1.2.3.4 或 1.2.3.0/24）"
+        elif ip_matches(get_client_ip(), networks):
+            error = f"不能把你当前的 IP（{get_client_ip()}）加入黑名单，否则会把自己锁在后台外"
+        if error:
+            if is_ajax_request:
+                return jsonify({"succ": False, "message": error}), 400
+            flash(error, "error")
+            return redirect(url_for("admin.settings"))
+        set_setting(BLACKLIST_SETTING_KEY, "\n".join(dict.fromkeys(normalized)))
     for name in ("global_api_enabled", "homepage_enabled", "demo_enabled", "registration_enabled", "api_tip_enabled"):
         set_setting(name, "1" if request.form.get(name) else "0")
     set_setting("default_user_qps", _positive_int(request.form.get("default_user_qps"), 2))
+    if "registration_daily_limit" in request.form:
+        set_setting("registration_daily_limit", _non_negative_int(request.form.get("registration_daily_limit"), 30, 100000))
 
     if request.form.get("chk_unlimited_trial") == "1" or request.form.get("default_trial_days") == "0":
         set_setting("default_trial_days", 0)
@@ -378,8 +397,8 @@ def users():
     db = get_db()
     users_where, users_params = [], []
     if u_q := request.args.get("users_q", "").strip():
-        users_where.append("u.username LIKE ?")
-        users_params.append(f"%{u_q}%")
+        users_where.append("(u.username LIKE ? OR u.register_ip LIKE ? OR u.last_login_ip LIKE ?)")
+        users_params.extend([f"%{u_q}%", f"%{u_q}%", f"%{u_q}%"])
     if u_role := request.args.get("users_role", "").strip():
         users_where.append("u.role = ?")
         users_params.append(u_role)
@@ -400,6 +419,8 @@ def users():
         "expires_at": "u.expires_at",
         "qps_limit": "u.qps_limit",
         "credits": "u.credits",
+        "register_ip": "u.register_ip",
+        "last_login_at": "u.last_login_at",
     }
     users_table = query_paginated_table(
         db,
@@ -1130,8 +1151,8 @@ def logs():
     db = get_db()
     logs_where, logs_params = [], []
     if l_q := request.args.get("logs_q", request.args.get("q", "")).strip():
-        logs_where.append("(l.input_url LIKE ? OR u.username LIKE ? OR l.error_code LIKE ?)")
-        logs_params.extend([f"%{l_q}%", f"%{l_q}%", f"%{l_q}%"])
+        logs_where.append("(l.input_url LIKE ? OR u.username LIKE ? OR l.error_code LIKE ? OR l.client_ip LIKE ?)")
+        logs_params.extend([f"%{l_q}%", f"%{l_q}%", f"%{l_q}%", f"%{l_q}%"])
     if l_status := request.args.get("logs_status", request.args.get("status_code", "")).strip():
         if l_status == "200":
             logs_where.append("l.status_code < 400")
@@ -1157,6 +1178,7 @@ def logs():
         "status_code": "l.status_code",
         "username": "u.username",
         "platform": "l.platform",
+        "client_ip": "l.client_ip",
     }
 
     req_args = dict(request.args)
@@ -1222,8 +1244,8 @@ def export_logs():
             pass
     else:
         if l_q := request.args.get("logs_q", request.args.get("q", "")).strip():
-            where_clauses.append("(l.input_url LIKE ? OR u.username LIKE ? OR l.error_code LIKE ?)")
-            params.extend([f"%{l_q}%", f"%{l_q}%", f"%{l_q}%"])
+            where_clauses.append("(l.input_url LIKE ? OR u.username LIKE ? OR l.error_code LIKE ? OR l.client_ip LIKE ?)")
+            params.extend([f"%{l_q}%", f"%{l_q}%", f"%{l_q}%", f"%{l_q}%"])
         if l_status := request.args.get("logs_status", request.args.get("status_code", "")).strip():
             if l_status == "200":
                 where_clauses.append("l.status_code < 400")
@@ -1247,7 +1269,7 @@ def export_logs():
     output = io.StringIO()
     output.write("\ufeff")
     writer = csv.writer(output, lineterminator="\r\n")
-    writer.writerow(("时间", "客户", "Key", "平台", "请求路径", "请求 URL", "状态码", "耗时（毫秒）", "错误码"))
+    writer.writerow(("时间", "客户", "IP", "Key", "平台", "请求路径", "请求 URL", "状态码", "耗时（毫秒）", "错误码"))
 
     cursor = db.execute(
         f"SELECT l.*, u.username, k.key FROM request_logs l "
@@ -1260,6 +1282,7 @@ def export_logs():
             writer.writerow((
                 _safe_csv_cell(format_log_time(row["created_at"])),
                 _safe_csv_cell(row["username"] or "在线体验"),
+                _safe_csv_cell(row["client_ip"] or ""),
                 _safe_csv_cell(f"{row['key'][:11]}••••••••" if row["key"] else ""),
                 _safe_csv_cell(row["platform"] or ""),
                 _safe_csv_cell(row["path"]),
@@ -1308,8 +1331,8 @@ def batch_logs():
     if select_mode == "all":
         where_clauses, params = [], []
         if l_q := (request.form.get("logs_q") or request.form.get("q") or "").strip():
-            where_clauses.append("(l.input_url LIKE ? OR u.username LIKE ? OR l.error_code LIKE ?)")
-            params.extend([f"%{l_q}%", f"%{l_q}%", f"%{l_q}%"])
+            where_clauses.append("(l.input_url LIKE ? OR u.username LIKE ? OR l.error_code LIKE ? OR l.client_ip LIKE ?)")
+            params.extend([f"%{l_q}%", f"%{l_q}%", f"%{l_q}%", f"%{l_q}%"])
         if l_status := (request.form.get("logs_status") or request.form.get("status_code") or "").strip():
             if l_status == "200":
                 where_clauses.append("l.status_code < 400")

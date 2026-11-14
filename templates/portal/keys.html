@@ -143,7 +143,7 @@
                             <td class="td-action px-3 py-3 whitespace-nowrap text-right">
                                 <div class="flex items-center justify-end gap-1.5">
                                     <button type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition shadow-xs"
-                                        onclick="openPortalEditKeyModal({{ key['id'] }}, '{{ key['name']|e }}')">编辑</button>
+                                        onclick="openPortalEditKeyModal({{ key['id'] }}, {{ key['name']|tojson|forceescape }})">编辑</button>
                                     <form method="post" action="{{ url_for('portal.delete_key', key_id=key['id']) }}" class="m-0"
                                         data-confirm="确定要永久删除密钥「{{ key['name'] }}」吗？删除后使用该密钥的接口将立即失效。"
                                         data-confirm-title="删除 API Key 确认" data-confirm-text="确认删除"
