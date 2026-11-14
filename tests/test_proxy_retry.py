@@ -3,6 +3,7 @@
 import json
 import multiprocessing
 import os
+import sqlite3
 import tempfile
 import threading
 import time
@@ -465,3 +466,203 @@ class RetryIntegrationTest(unittest.TestCase):
         p5 = ProxyManager.decode("17.18.19.20:5050\n1.1.1.1:80", start)
         self.assertEqual(p5.address, '17.18.19.20:5050')
 
+
+
+class ProxyModeAndPoolTest(unittest.TestCase):
+    """始终走代理模式、IP 池大小、提取频率与轮换分配。"""
+
+    def setUp(self):
+        ManagerTest.setUp(self)
+
+    supply = ManagerTest.supply
+
+    def make(self, **kwargs):
+        self.manager = ProxyManager(self.database, 'http://provider.invalid', **kwargs)
+        return self.manager
+
+    def save_setting(self, key, value):
+        with self.manager.connection(write=True) as db:
+            db.execute('CREATE TABLE IF NOT EXISTS system_settings (key TEXT PRIMARY KEY, value TEXT)')
+            db.execute('INSERT OR REPLACE INTO system_settings(key, value) VALUES(?, ?)', (key, value))
+
+    def fill(self, count):
+        for index in range(count):
+            self.assertTrue(self.supply(f'114.106.134.{index + 1}', 300)[0])
+            self.clock.now += 1
+
+    def test_defaults_keep_original_behaviour(self):
+        self.assertEqual(self.manager.mode, 'auto')
+        self.assertEqual(self.manager.pool_size, 2)
+        self.assertEqual(self.manager.fetch_interval, 1)
+        self.assertFalse(self.manager.active(None))
+        self.assertFalse(self.manager.active('快手'))
+
+    def test_disabled_without_api_url_even_in_always_mode(self):
+        manager = ProxyManager(self.database, '', mode='always')
+        self.assertFalse(manager.always)
+        self.assertFalse(manager.active('快手'))
+
+    def test_always_mode_proxies_every_platform_without_windows(self):
+        self.make(mode='always')
+        self.assertTrue(self.manager.active('抖音'))
+        self.assertTrue(self.manager.active(None))
+        self.manager.activate('快手')
+        with self.manager.connection() as db:
+            self.assertIsNone(db.execute('SELECT 1 FROM proxy_platform_windows').fetchone())
+        with patch.object(self.manager, 'replenish') as replenish:
+            self.manager.maintain_once()
+            replenish.assert_called_once()
+
+    def test_admin_setting_overrides_constructor(self):
+        self.make(mode='auto', pool_size='3')
+        self.save_setting('proxy_mode', 'always')
+        self.save_setting('proxy_pool_size', '5')
+        self.assertEqual(self.manager.mode, 'always')
+        self.assertEqual(self.manager.pool_size, 5)
+        self.save_setting('proxy_mode', 'bogus')
+        self.assertEqual(self.manager.mode, 'auto')
+
+    def test_pool_size_limits_inventory(self):
+        self.make(pool_size=4)
+        self.fill(4)
+        self.assertFalse(self.supply('114.106.134.9', 300)[0])
+
+    def test_fetch_rate_shortens_interval(self):
+        self.make(fetch_per_second=4)
+        self.assertTrue(self.supply('114.106.134.1', 300)[0])
+        self.assertFalse(self.supply('114.106.134.2', 300)[0])
+        self.clock.now += 0.25
+        self.assertTrue(self.supply('114.106.134.2', 300)[0])
+
+    def test_rotation_spreads_parses_across_pool(self):
+        self.make(pool_size=3)
+        self.fill(3)
+        picked = []
+        for _ in range(6):
+            picked.append(self.manager.available().address)
+            self.clock.now += 0.1
+        self.assertEqual(picked[:3], ['114.106.134.1:35152', '114.106.134.2:35152', '114.106.134.3:35152'])
+        self.assertEqual(picked[3:], picked[:3])
+
+    def test_rotation_respects_excluded_addresses(self):
+        self.make(pool_size=3)
+        self.fill(3)
+        first = self.manager.available()
+        retry = self.manager.available({first.address})
+        self.assertNotEqual(retry.address, first.address)
+
+    def test_old_database_gets_last_used_column(self):
+        legacy = os.path.join(self.temp.name, 'legacy.db')
+        db = sqlite3.connect(legacy)  # 模拟升级前的库结构
+        db.execute('CREATE TABLE proxy_addresses (address TEXT PRIMARY KEY, expires_at REAL NOT NULL, '
+                   'created_at REAL NOT NULL, invalid INTEGER NOT NULL DEFAULT 0, retired INTEGER NOT NULL DEFAULT 0)')
+        db.execute("INSERT INTO proxy_addresses(address, expires_at, created_at) VALUES('1.2.3.4:80', 5000, 900)")
+        db.commit()
+        db.close()
+        manager = ProxyManager(legacy, 'http://provider.invalid')
+        self.assertEqual(manager.available().address, '1.2.3.4:80')
+
+
+class AlwaysModeIntegrationTest(unittest.TestCase):
+    def setUp(self):
+        RetryIntegrationTest.setUp(self)
+        with self.manager.connection(write=True) as db:
+            db.execute("INSERT OR REPLACE INTO system_settings(key, value) VALUES('proxy_mode', 'always')")
+            db.execute("INSERT OR REPLACE INTO system_settings(key, value) VALUES('proxy_pool_size', '3')")
+
+    supply = RetryIntegrationTest.supply
+    parse = RetryIntegrationTest.parse
+
+    def test_first_network_step_uses_proxy_and_parses_rotate(self):
+        seen = []
+
+        def redirect(url):
+            seen.append(current_attempt().proxy)
+            return url
+
+        self.redirect.side_effect = redirect
+        with patch('src.utils.proxy_manager.requests.Session') as sessions:
+            sessions.return_value.__enter__.side_effect = self.supply
+            for _ in range(3):
+                self.manager.replenish(self.clock.now + 5)
+                self.clock.now += 1
+        self.assertEqual(len(self.sessions), 3)
+        for _ in range(3):
+            response, _ = self.parse([fake_parser()])
+            self.assertEqual(response.status_code, 200)
+            self.clock.now += 0.1
+        self.assertTrue(all(seen))
+        self.assertEqual(len({proxy.address for proxy in seen}), 3)
+        self.assertTrue(self.manager.active('快手'))
+        with self.manager.connection() as db:
+            self.assertIsNone(db.execute('SELECT 1 FROM proxy_platform_windows').fetchone())
+
+    def test_cookie_failure_in_always_mode_rotates_without_window(self):
+        seen = []
+
+        def build(*args):
+            seen.append(current_attempt().proxy)
+            return fake_parser('cookie' if len(seen) == 1 else 'success')
+
+        response, _ = self.parse(build)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(all(seen))
+        self.assertNotEqual(seen[0].address, seen[1].address)
+
+
+class ProxySettingsAdminTest(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.app = create_app({'TESTING': True, 'SECRET_KEY': 'test',
+                               'DATABASE': os.path.join(self.temp.name, 'test.db'),
+                               'DYNAMIC_PROXY_API_URL': 'http://provider.invalid'})
+        self.client = self.app.test_client()
+        for path, extra in (('/auth/setup', {'confirm_password': 'password123'}), ('/auth/login', {})):
+            self.client.post(path, data={'csrf_token': self.csrf(), 'username': 'admin',
+                                         'password': 'password123', **extra})
+
+    def csrf(self):
+        with self.client.session_transaction() as session:
+            session['csrf_token'] = 'test-csrf'
+        return 'test-csrf'
+
+    def test_page_shows_defaults_and_saves_proxy_options(self):
+        page = self.client.get('/admin/settings').get_data(as_text=True)
+        self.assertRegex(page, r'value="auto"[^>]*\s+checked')
+        self.assertRegex(page, r'id="proxy_pool_size"[^>]*value="2"')
+        self.assertRegex(page, r'id="proxy-toggle"[^>]*checked')
+        response = self.client.post('/admin/settings', headers={'Accept': 'application/json'}, data={
+            'csrf_token': self.csrf(), 'proxy_enabled_field': '1', 'proxy_enabled': 'on',
+            'proxy_mode': 'always', 'proxy_pool_size': '500', 'proxy_fetch_per_second': 'abc',
+        })
+        self.assertEqual(response.status_code, 200)
+        manager = self.app.extensions['proxy_manager']
+        self.assertEqual(manager.mode, 'always')
+        self.assertEqual(manager.pool_size, 100)
+        self.assertEqual(manager.fetch_interval, 1)
+        page = self.client.get('/admin/settings').get_data(as_text=True)
+        self.assertRegex(page, r'value="always"[^>]*\s+checked')
+
+    def test_master_switch_disables_proxy_and_greys_fields(self):
+        manager = self.app.extensions['proxy_manager']
+        self.assertTrue(manager.enabled)
+        self.client.post('/admin/settings', headers={'Accept': 'application/json'}, data={
+            'csrf_token': self.csrf(), 'proxy_enabled_field': '1', 'proxy_mode': 'always',
+        })
+        self.assertFalse(manager.switch_on)
+        self.assertFalse(manager.enabled)
+        self.assertFalse(manager.active('快手'))
+        page = self.client.get('/admin/settings').get_data(as_text=True)
+        self.assertRegex(page, r'<fieldset id="proxy-fields"[^>]*disabled')
+        self.assertIn('已关闭 · 全部直连', page)
+
+    def test_unrelated_settings_post_keeps_proxy_switch(self):
+        self.client.post('/admin/settings', headers={'Accept': 'application/json'},
+                         data={'csrf_token': self.csrf(), 'global_api_enabled': '1'})
+        self.assertTrue(self.app.extensions['proxy_manager'].enabled)
+
+    def test_fresh_install_without_url_is_off(self):
+        manager = ProxyManager(os.path.join(self.temp.name, 'fresh.db'), '')
+        self.assertFalse(manager.switch_on)
+        self.assertFalse(manager.enabled)

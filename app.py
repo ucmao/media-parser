@@ -48,6 +48,9 @@ def create_app(config=None):
     proxy_url = (os.getenv('DYNAMIC_PROXY_API_URL') or os.getenv('JULIANG_PROXY_API_URL') or '').strip()
     app.config['DYNAMIC_PROXY_API_URL'] = proxy_url
     app.config['JULIANG_PROXY_API_URL'] = proxy_url
+    app.config['PROXY_MODE'] = (os.getenv('PROXY_MODE') or '').strip().lower()
+    app.config['PROXY_POOL_SIZE'] = (os.getenv('PROXY_POOL_SIZE') or '').strip()
+    app.config['PROXY_FETCH_PER_SECOND'] = (os.getenv('PROXY_FETCH_PER_SECOND') or '').strip()
     app.config['MAX_CONTENT_LENGTH'] = 32 * 1024
     app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
     app.config['JSON_SORT_KEYS'] = False
@@ -68,7 +71,11 @@ def create_app(config=None):
     if not app.config.get('SECRET_KEY'):
         app.config['SECRET_KEY'] = _load_or_create_secret(database_dir or app.instance_path)
     init_database(app)
-    manager = ProxyManager(app.config["DATABASE"], app.config["DYNAMIC_PROXY_API_URL"])
+    manager = ProxyManager(
+        app.config["DATABASE"], app.config["DYNAMIC_PROXY_API_URL"],
+        mode=app.config.get("PROXY_MODE"), pool_size=app.config.get("PROXY_POOL_SIZE"),
+        fetch_per_second=app.config.get("PROXY_FETCH_PER_SECOND"),
+    )
     app.extensions["proxy_manager"] = manager
     if not app.testing:
         manager.start()

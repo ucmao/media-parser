@@ -3,13 +3,16 @@ from datetime import datetime, time, timedelta, timezone
 import io
 from zoneinfo import ZoneInfo
 
-from flask import Blueprint, Response, flash, g, jsonify, redirect, render_template, request, session, url_for
+from flask import Blueprint, Response, current_app, flash, g, jsonify, redirect, render_template, request, session, url_for
 
 from werkzeug.security import generate_password_hash
 
 from configs.general_constants import DOMAIN_TO_NAME
 from src.auth import admin_required, csrf_protected, format_log_time, generate_api_key, hash_api_key
 from src.db import get_daily_trend, get_db, get_platform_distribution, get_top_users, set_setting, setting, utcnow
+from src.utils.proxy_manager import (
+    DEFAULT_FETCH_PER_SECOND, DEFAULT_POOL_SIZE, MAX_FETCH_PER_SECOND, MAX_POOL_SIZE, PROXY_MODES,
+)
 from src.utils.table_query import paginate_memory_list, query_paginated_table
 
 
@@ -107,9 +110,19 @@ def overview():
 def settings():
     db = get_db()
     settings = {row["key"]: row["value"] for row in db.execute("SELECT * FROM system_settings")}
+    manager = current_app.extensions["proxy_manager"]
+    proxy_options = {
+        "switch_on": manager.switch_on,
+        "has_url": bool(manager.get_active_api_url()),
+        "url_from_env": not settings.get("dynamic_proxy_api_url") and bool(current_app.config.get("DYNAMIC_PROXY_API_URL")),
+        "mode": manager.mode,
+        "pool_size": manager.pool_size,
+        "fetch_per_second": round(1 / manager.fetch_interval),
+    }
     return render_template(
         "admin/settings.html",
         settings=settings,
+        proxy_options=proxy_options,
         active_nav="settings",
     )
 
@@ -153,6 +166,18 @@ def update_settings():
             set_setting(key, (request.form.get(key) or "").strip())
             if key.startswith("cookie_"):
                 cookie_keys_saved.append(key)
+
+    # 代理总开关与参数：仅在表单提交了对应字段时更新；总开关关闭时其余字段被禁用、不随表单提交。
+    if "proxy_enabled_field" in request.form:
+        set_setting("proxy_enabled", "1" if request.form.get("proxy_enabled") else "0")
+    if "proxy_mode" in request.form:
+        mode = (request.form.get("proxy_mode") or "").strip().lower()
+        set_setting("proxy_mode", mode if mode in PROXY_MODES else "auto")
+    if "proxy_pool_size" in request.form:
+        set_setting("proxy_pool_size", _positive_int(request.form.get("proxy_pool_size"), DEFAULT_POOL_SIZE, MAX_POOL_SIZE))
+    if "proxy_fetch_per_second" in request.form:
+        set_setting("proxy_fetch_per_second", _positive_int(
+            request.form.get("proxy_fetch_per_second"), DEFAULT_FETCH_PER_SECOND, MAX_FETCH_PER_SECOND))
 
     db.commit()
 

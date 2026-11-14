@@ -30,6 +30,9 @@ services:
       - API_ONLY=${API_ONLY:-false}
       # Cookie 触发的动态代理提取地址
       - DYNAMIC_PROXY_API_URL=${DYNAMIC_PROXY_API_URL:-${JULIANG_PROXY_API_URL:-}}
+      - PROXY_MODE=${PROXY_MODE:-auto}
+      - PROXY_POOL_SIZE=${PROXY_POOL_SIZE:-2}
+      - PROXY_FETCH_PER_SECOND=${PROXY_FETCH_PER_SECOND:-1}
       # 可选平台凭据（若在本地 .env 中配置将自动透传进容器）：
       - XHS_COOKIE=${XHS_COOKIE:-}
       - DOUYIN_COOKIE=${DOUYIN_COOKIE:-}

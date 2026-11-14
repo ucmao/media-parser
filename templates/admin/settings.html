@@ -451,63 +451,95 @@
             </div>
 
             <!-- Tab 4: 网络与动态代理 -->
+            {% set proxy_on = proxy_options.switch_on %}
             <div id="tab-content-proxy" class="space-y-6 tab-panel" style="display: none;">
                 <section class="bg-white rounded-xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-5">
-                    <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
-                        <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                            <span class="text-brand flex items-center justify-center">{{ icon('globe', 'w-4 h-4')
-                                }}</span>
-                            动态代理配置 (Proxy API)
-                        </h2>
-                        {% if settings.get('dynamic_proxy_api_url') %}
-                        <span
-                            class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 rounded-full border border-emerald-200">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            后台在线配置已生效 (覆盖 .env)
-                        </span>
-                        {% elif config.get('DYNAMIC_PROXY_API_URL') %}
-                        <span
-                            class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold text-blue-700 bg-blue-50 rounded-full border border-blue-200">
-                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                            已启用来自 .env 的环境变量
-                        </span>
-                        {% else %}
-                        <span
-                            class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold text-slate-500 bg-slate-100 rounded-full border border-slate-200">
-                            <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                            未配置 (默认直接连网解析)
-                        </span>
-                        {% endif %}
+                    <div class="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
+                        <div class="min-w-0">
+                            <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                <span class="text-brand flex items-center justify-center">{{ icon('globe', 'w-4 h-4') }}</span>
+                                动态代理
+<span id="proxy-status" class="contents">
+                                {% if not proxy_on %}
+                                <span class="px-2 py-0.5 text-[11px] font-semibold text-slate-500 bg-slate-100 rounded-full">已关闭 · 全部直连</span>
+                                {% elif not proxy_options.has_url %}
+                                <span class="px-2 py-0.5 text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-full">待填写提取 URL</span>
+                                {% else %}
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                    运行中 · {{ '始终走代理' if proxy_options.mode == 'always' else '自动' }}{{ '（.env）' if proxy_options.url_from_env }}
+                                </span>
+                                {% endif %}
+                                </span>
+                            </h2>
+                            <p class="text-xs text-slate-500 mt-1">解析请求经代理 IP 访问上游平台，用于缓解单一出口 IP 被限流。</p>
+                        </div>
+                        <div class="shrink-0 pt-0.5">
+                            <input type="hidden" name="proxy_enabled_field" value="1">
+                            <label class="switch-toggle" title="代理总开关">
+                                <input type="checkbox" id="proxy-toggle" name="proxy_enabled" {{ 'checked' if proxy_on }}
+                                    onchange="setProxyFieldsEnabled(this.checked); triggerSettingsSubmit(this)">
+                                <span class="switch-slider"></span>
+                            </label>
+                        </div>
                     </div>
 
-                    <div class="space-y-4">
-                        <div class="text-xs text-slate-500 leading-relaxed">
-                            当任意平台直连解析触发风控或需要 Cookie 校验失败时，系统将自动开启 15 分钟平台级代理窗口并提取代理重试。
-                            系统已内置智能通用解码器，原生兼容 <strong>芝麻代理、巨量IP、青果网络、无忧代理、多米代理</strong> 等主流服务商。
+                    <fieldset id="proxy-fields" class="space-y-5 transition-opacity {{ '' if proxy_on else 'opacity-50' }}" {{ '' if proxy_on else 'disabled' }}>
+                        <div class="space-y-1.5">
+                            <label for="dynamic_proxy_api_url" class="block text-xs font-semibold text-slate-700">提取 URL</label>
+                            <input type="url" id="dynamic_proxy_api_url" name="dynamic_proxy_api_url"
+                                value="{{ settings.get('dynamic_proxy_api_url', '') }}"
+                                placeholder="{{ config.get('DYNAMIC_PROXY_API_URL') or 'https://v2.api.juliangip.com/dynamic/getippro?trade_no=xxx&num=1&pt=1&result_type=json2&ip_remain=1' }}"
+                                onchange="triggerSettingsSubmit(this)"
+                                class="w-full px-3.5 py-2.5 text-xs font-mono rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-slate-50/50 disabled:cursor-not-allowed">
+                            <p class="text-[11px] text-slate-400">兼容芝麻、巨量、青果、无忧、多米等返回 JSON 或 <code>IP:端口</code> 文本的提取接口。留空则使用 <code>.env</code> 的 <code>DYNAMIC_PROXY_API_URL</code>。</p>
                         </div>
 
                         <div class="space-y-1.5">
-                            <label for="dynamic_proxy_api_url" class="block text-xs font-semibold text-slate-700">
-                                动态代理 API 提取 URL
-                            </label>
-                            <input type="url" id="dynamic_proxy_api_url" name="dynamic_proxy_api_url"
-                                value="{{ settings.get('dynamic_proxy_api_url', '') }}"
-                                placeholder="例如: https://v2.api.juliangip.com/dynamic/getippro?trade_no=xxx&num=1&pt=1&result_type=json2&ip_remain=1"
-                                onchange="triggerSettingsSubmit(this)"
-                                class="w-full px-3.5 py-2.5 text-xs font-mono rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-slate-50/50">
+                            <div class="text-xs font-semibold text-slate-700">代理模式</div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                {% for value, title, desc in [
+                                    ('auto', '自动', '平时直连。某平台遇到 Cookie 或登录校验失败后，该平台 15 分钟内走代理。适合多数场景。'),
+                                    ('always', '始终走代理', '所有解析从第一步起走代理，每次解析轮换一个 IP。适合解析量大、直连被限流。'),
+                                ] %}
+                                <label class="flex gap-3 p-3.5 rounded-lg border border-slate-200 cursor-pointer transition hover:border-slate-300 has-[:checked]:border-brand has-[:checked]:bg-indigo-50/40 has-[:disabled]:cursor-not-allowed">
+                                    <input type="radio" name="proxy_mode" value="{{ value }}" class="mt-0.5 accent-indigo-600"
+                                        {{ 'checked' if proxy_options.mode == value }} onchange="triggerSettingsSubmit(this)">
+                                    <span>
+                                        <span class="block text-xs font-semibold text-slate-900">{{ title }}</span>
+                                        <span class="block text-[11px] text-slate-500 mt-0.5 leading-relaxed">{{ desc }}</span>
+                                    </span>
+                                </label>
+                                {% endfor %}
+                            </div>
                         </div>
 
-                        <div
-                            class="p-3 bg-slate-50 rounded-lg border border-slate-100 text-[11px] text-slate-500 space-y-1.5">
-                            <div class="font-semibold text-slate-700">📌 优先级与生效规则说明：</div>
-                            <ul class="list-disc list-inside space-y-1 text-slate-600">
-                                <li><strong>三级优先级</strong>：后台在线配置 &gt; <code>.env</code> 环境变量
-                                    (<code>DYNAMIC_PROXY_API_URL</code>) &gt; 留空不启用。</li>
-                                <li>修改此处的提取 URL 保存后<strong>即时生效，无需重启应用或 Docker 容器</strong>。</li>
-                                <li>若需取消后台覆盖恢复读取 <code>.env</code> 环境变量配置，只需清空上方输入框并保存即可。</li>
-                            </ul>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="space-y-1.5">
+                                <label for="proxy_pool_size" class="block text-xs font-semibold text-slate-700">IP 池大小</label>
+                                <input type="number" id="proxy_pool_size" name="proxy_pool_size" min="1" max="100"
+                                    value="{{ proxy_options.pool_size }}" onchange="triggerSettingsSubmit(this)"
+                                    class="w-full px-3.5 py-2.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-slate-50/50 disabled:cursor-not-allowed">
+                                <p class="text-[11px] text-slate-400">同时保留的可用 IP 数，1–100。始终走代理时建议 10 以上。</p>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label for="proxy_fetch_per_second" class="block text-xs font-semibold text-slate-700">每秒最多提取次数</label>
+                                <input type="number" id="proxy_fetch_per_second" name="proxy_fetch_per_second" min="1" max="20"
+                                    value="{{ proxy_options.fetch_per_second }}" onchange="triggerSettingsSubmit(this)"
+                                    class="w-full px-3.5 py-2.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-slate-50/50 disabled:cursor-not-allowed">
+                                <p class="text-[11px] text-slate-400">1–20，不要超过代理商提取接口的频率限制。</p>
+                            </div>
                         </div>
-                    </div>
+                    </fieldset>
+
+                    <details class="text-[11px] text-slate-500 group">
+                        <summary class="cursor-pointer select-none font-semibold text-slate-600 hover:text-slate-800">配置优先级说明</summary>
+                        <ul class="list-disc list-inside space-y-1 mt-2 text-slate-600">
+                            <li>后台保存的值 &gt; <code>.env</code>（<code>DYNAMIC_PROXY_API_URL</code>、<code>PROXY_MODE</code>、<code>PROXY_POOL_SIZE</code>、<code>PROXY_FETCH_PER_SECOND</code>）&gt; 内置默认。</li>
+                            <li>所有修改保存后即时生效，无需重启应用或容器。</li>
+                            <li>关闭总开关后全部直连，已填写的配置会保留。</li>
+                        </ul>
+                    </details>
                 </section>
             </div>
         </form>
@@ -684,6 +716,19 @@
 
     let lastTriggeredElement = null;
 
+    window.setProxyFieldsEnabled = function (on) {
+        const fields = document.getElementById('proxy-fields');
+        if (!fields) return;
+        fields.disabled = !on;
+        fields.classList.toggle('opacity-50', !on);
+        const status = document.getElementById('proxy-status');
+        if (status) {
+            status.innerHTML = on
+                ? '<span class="px-2 py-0.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full">已开启</span>'
+                : '<span class="px-2 py-0.5 text-[11px] font-semibold text-slate-500 bg-slate-100 rounded-full">已关闭 · 全部直连</span>';
+        }
+    };
+
     function getSpecificSuccessToast(el) {
         if (!el) return '系统设置已保存';
         const name = el.name || el.id;
@@ -701,6 +746,15 @@
         }
         if (name === 'default_user_qps' || name === 'default_trial_days' || name === 'chk_unlimited_trial' || name === 'default_initial_credits' || name === 'chk_unlimited_credits') {
             return '新账号默认初始参数已更新';
+        }
+        if (name === 'proxy_enabled' || el.id === 'proxy-toggle') {
+            return el.checked ? '已开启动态代理' : '已关闭动态代理，全部直连';
+        }
+        if (name === 'proxy_mode') {
+            return el.value === 'always' ? '已切换为始终走代理' : '已切换为自动代理模式';
+        }
+        if (name === 'dynamic_proxy_api_url' || name === 'proxy_pool_size' || name === 'proxy_fetch_per_second') {
+            return '代理配置已更新';
         }
         if (name === 'api_tip_enabled' || el.id === 'api-tip-toggle') {
             return el.checked ? '已开启 API 响应版权提示' : '已关闭 API 响应版权提示';

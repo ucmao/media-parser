@@ -17,6 +17,20 @@ from urllib3.util import Timeout
 from configs.logging_config import get_logger
 
 logger = get_logger(__name__)
+PROXY_MODES = ("auto", "always")
+DEFAULT_POOL_SIZE = 2
+MAX_POOL_SIZE = 100
+DEFAULT_FETCH_PER_SECOND = 1
+MAX_FETCH_PER_SECOND = 20
+
+
+def _bounded_int(value, default, minimum, maximum):
+    try:
+        return max(minimum, min(int(str(value).strip()), maximum))
+    except (TypeError, ValueError):
+        return default
+
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS proxy_platform_windows (
     platform TEXT PRIMARY KEY, until_at REAL NOT NULL
@@ -24,7 +38,7 @@ CREATE TABLE IF NOT EXISTS proxy_platform_windows (
 CREATE TABLE IF NOT EXISTS proxy_addresses (
     address TEXT PRIMARY KEY, expires_at REAL NOT NULL,
     created_at REAL NOT NULL, invalid INTEGER NOT NULL DEFAULT 0,
-    retired INTEGER NOT NULL DEFAULT 0
+    retired INTEGER NOT NULL DEFAULT 0, last_used REAL NOT NULL DEFAULT 0
 );
 CREATE TABLE IF NOT EXISTS proxy_coordination (
     id INTEGER PRIMARY KEY CHECK(id=1), owner TEXT,
@@ -49,9 +63,13 @@ class ProxyAddress:
 
 
 class ProxyManager:
-    def __init__(self, database, api_url):
+    def __init__(self, database, api_url, mode=None, pool_size=None, fetch_per_second=None):
         self.database = database
         self.api_url = api_url
+        # 环境变量层默认值；后台 system_settings 中的同名配置优先。
+        self.default_mode = mode
+        self.default_pool_size = pool_size
+        self.default_fetch_per_second = fetch_per_second
         self._thread = None
         self._pid = None
         self._start_lock = threading.Lock()
@@ -59,6 +77,10 @@ class ProxyManager:
         self._wake = threading.Event()
         with self.connection() as db:
             db.executescript(SCHEMA)
+            columns = {row["name"] for row in db.execute("PRAGMA table_info(proxy_addresses)")}
+            if "last_used" not in columns:
+                # 旧库升级：轮换分配依赖最近分配时间。
+                db.execute("ALTER TABLE proxy_addresses ADD COLUMN last_used REAL NOT NULL DEFAULT 0")
 
     def get_active_api_url(self):
         """三级优先级：后台在线配置 (system_settings) > .env 环境变量 > 留空"""
@@ -74,8 +96,50 @@ class ProxyManager:
         return (self.api_url or "").strip()
 
     @property
+    def switch_on(self):
+        """后台代理总开关；从未保存过时沿用旧行为：填了提取 URL 即视为开启。"""
+        value = self._setting("proxy_enabled", None)
+        if value is None:
+            return bool(self.get_active_api_url())
+        return value == "1"
+
+    @property
     def enabled(self):
-        return bool(self.get_active_api_url())
+        return self.switch_on and bool(self.get_active_api_url())
+
+    def _setting(self, key, default):
+        """后台在线配置 (system_settings) > 构造参数（来自 .env）> 内置默认。"""
+        try:
+            with self.connection() as db:
+                row = db.execute("SELECT value FROM system_settings WHERE key=?", (key,)).fetchone()
+                if row and str(row["value"]).strip():
+                    return str(row["value"]).strip()
+        except Exception:
+            pass
+        return default
+
+    @property
+    def mode(self):
+        value = str(self._setting("proxy_mode", self.default_mode) or "").strip().lower()
+        return value if value in PROXY_MODES else "auto"
+
+    @property
+    def always(self):
+        return self.mode == "always" and self.enabled
+
+    @property
+    def pool_size(self):
+        return _bounded_int(
+            self._setting("proxy_pool_size", self.default_pool_size), DEFAULT_POOL_SIZE, 1, MAX_POOL_SIZE
+        )
+
+    @property
+    def fetch_interval(self):
+        rate = _bounded_int(
+            self._setting("proxy_fetch_per_second", self.default_fetch_per_second),
+            DEFAULT_FETCH_PER_SECOND, 1, MAX_FETCH_PER_SECOND,
+        )
+        return 1.0 / rate
 
     @contextmanager
     def connection(self, write=False):
@@ -96,6 +160,9 @@ class ProxyManager:
             db.close()
 
     def active(self, platform):
+        if self.always:
+            # 始终走代理：从短链展开起即使用代理，未知平台同样适用。
+            return True
         if not self.enabled or not platform:
             return False
         with self.connection() as db:
@@ -105,6 +172,8 @@ class ProxyManager:
         return bool(row and row["until_at"] > time.time())
 
     def activate(self, platform):
+        if self.always:
+            return
         now = time.time()
         with self.connection(write=True) as db:
             changed = db.execute(
@@ -128,15 +197,19 @@ class ProxyManager:
             db.execute("DELETE FROM proxy_active_uses WHERE token=?", (token,))
 
     def available(self, excluded=()):
+        """按最近分配时间轮换：每次解析领取最久未分配的地址，跨进程分散到整个池。"""
         now = time.time()
-        with self.connection() as db:
+        with self.connection(write=True) as db:
             rows = db.execute(
                 "SELECT address, expires_at FROM proxy_addresses "
-                "WHERE invalid=0 AND retired=0 AND expires_at>? ORDER BY created_at, address",
+                "WHERE invalid=0 AND retired=0 AND expires_at>? ORDER BY last_used, created_at, address",
                 (now + 10,),
             ).fetchall()
-        return next((ProxyAddress(row["address"], row["expires_at"])
-                     for row in rows if row["address"] not in excluded), None)
+            for row in rows:
+                if row["address"] not in excluded:
+                    db.execute("UPDATE proxy_addresses SET last_used=? WHERE address=?", (now, row["address"]))
+                    return ProxyAddress(row["address"], row["expires_at"])
+        return None
 
     def valid(self, proxy):
         with self.connection() as db:
@@ -235,6 +308,8 @@ class ProxyManager:
             return False
         now = time.time()
         owner = uuid.uuid4().hex
+        pool_size = self.pool_size
+        interval = self.fetch_interval
         with self.connection(write=True) as db:
             db.execute("DELETE FROM proxy_addresses WHERE expires_at<=?", (now,))
             db.execute("UPDATE proxy_addresses SET retired=1 WHERE expires_at<=?", (now + 20,))
@@ -242,11 +317,11 @@ class ProxyManager:
                 "SELECT count(*) FROM proxy_addresses WHERE invalid=0 AND retired=0"
             ).fetchone()[0]
             row = db.execute("SELECT * FROM proxy_coordination WHERE id=1").fetchone()
-            if count >= 2 or row["lease_until"] > now or row["next_fetch"] > now:
+            if count >= pool_size or row["lease_until"] > now or row["next_fetch"] > now:
                 return False
             db.execute(
                 "UPDATE proxy_coordination SET owner=?, lease_until=?, next_fetch=? WHERE id=1",
-                (owner, now + 8, now + 1),
+                (owner, now + 8, now + interval),
             )
         proxy = None
         try:
@@ -286,10 +361,10 @@ class ProxyManager:
                     accepted = True
                 # 重复地址不延长旧 IP 的寿命，也不复活已剔除的地址。
             failures = 0 if accepted else row["failures"] + 1
-            delay = 1 if accepted else (1, 2, 4, 8, 15)[min(failures - 1, 4)]
+            delay = interval if accepted else (1, 2, 4, 8, 15)[min(failures - 1, 4)]
             db.execute(
                 "UPDATE proxy_coordination SET owner=NULL, lease_until=0, next_fetch=?, failures=? WHERE id=1",
-                (max(now + 1, time.time() + (0 if accepted else delay)), failures),
+                (max(now + interval, time.time() + (0 if accepted else delay)), failures),
             )
         if accepted:
             logger.info("已补充代理 %s，剩余有效期 %.0f 秒", proxy.address, proxy.expires_at - time.time())
@@ -304,6 +379,8 @@ class ProxyManager:
             needed = db.execute("SELECT 1 FROM proxy_platform_windows LIMIT 1").fetchone() or db.execute(
                 "SELECT 1 FROM proxy_active_uses LIMIT 1"
             ).fetchone()
+        # 始终走代理时持续维持库存，避免高峰请求同步等待提取。
+        needed = needed or self.always
         for row in expired:
             logger.info("平台恢复直接访问：%s", row["platform"])
         if needed:
@@ -326,7 +403,7 @@ class ProxyManager:
                 self.maintain_once()
             except Exception:
                 logger.exception("代理库存维护异常")
-            self._wake.wait(1)
+            self._wake.wait(min(1.0, self.fetch_interval))
             self._wake.clear()
 
     def stop(self):

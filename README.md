@@ -106,7 +106,7 @@ Media-Parser是一款专为短视频创作者与开发者打造的**100%原生�
 <sub>注：带 `*` 的项表示该素材保留官方原生水印，未带 `*` 的项均为纯净无水印素材。</sub>
 > **Cookie凭据配置**：绝大多数平台支持免登录匿名解析；如需配置小红书、视频号等平台凭证，可参考 [`.env.example`](.env.example)，详细方法见 [📖 平台Cookie配置指南](docs/cookie-config.md)。
 >
-> **动态代理配置**：配置 `DYNAMIC_PROXY_API_URL` 后，Cookie 校验失败可自动触发平台级 15 分钟代理访问，并按有效期提前储备代理。详见 [📖 动态代理配置说明](docs/proxy-retry.md)。
+> **动态代理配置**：配置 `DYNAMIC_PROXY_API_URL` 后，默认在 Cookie 校验失败时自动触发平台级 15 分钟代理访问；高解析量场景可切换为「始终走代理」，每次解析从 IP 池轮换分配出口。详见 [📖 动态代理配置说明](docs/proxy-retry.md)。
 >
 > **逆向与抓包SOP**：各平台详细技术分析与抓包规范，请查阅 [📖 平台逆向指南索引](docs/index.md) 与 [📖 通用逆向方法论](docs/reverse-guide.md)。
 
