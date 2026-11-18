@@ -189,6 +189,28 @@ class WechatMpParserTest(unittest.TestCase):
         self.assertIsNone(parser.get_real_video_url())
         self.assertEqual(parser.get_video_list(), [])
 
+    def test_detects_environment_verify_page(self):
+        response = Mock()
+        response.raise_for_status.return_value = None
+        response.text = '<html><head><link rel="stylesheet" href="//res.wx.qq.com/secitptpage/verify.css"></head><body><h2 class="weui-msg__title">环境异常</h2><p>当前环境异常，完成验证后即可继续访问。</p></body></html>'
+
+        with patch("requests.Session.get", return_value=response):
+            parser = WechatMpParser(self.URL)
+
+        self.assertIsNotNone(parser.terminal_error)
+        self.assertEqual(parser.terminal_error["error_code"], "WECHAT_MP_VERIFY_REQUIRED")
+
+    def test_detects_deleted_article(self):
+        response = Mock()
+        response.raise_for_status.return_value = None
+        response.text = '<html><body><h3>该内容已被发布者删除</h3></body></html>'
+
+        with patch("requests.Session.get", return_value=response):
+            parser = WechatMpParser(self.URL)
+
+        self.assertIsNotNone(parser.terminal_error)
+        self.assertEqual(parser.terminal_error["error_code"], "MEDIA_DELETED_OR_PRIVATE")
+
 
 if __name__ == "__main__":
     unittest.main()

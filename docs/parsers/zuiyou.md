@@ -9,6 +9,7 @@
 * **平台标识**：`最右`
 * **支持媒体类型**：高清视频 (MP4) / 多图图集 (原图 / WebP) / 实况图 (Live Photo 封面 + 动态片段) / 封面 / 帖子正文 / 作者信息
 * **常见链接形态**：
+  * 短链接：`https://s.izuiyou.com/s/ABCDEF` 或 `https://s.izuiyou.com/...`
   * 分享落地页：`https://share.xiaochuankeji.cn/hybrid/share/post?pid=423835942&vid=2542343457`
   * 图文帖子页：`https://share.xiaochuankeji.cn/hybrid/share/post?pid=419346905`
 * **Cookie 依赖**：无需 Cookie。

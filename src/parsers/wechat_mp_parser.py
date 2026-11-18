@@ -36,6 +36,21 @@ class WechatMpParser(BaseParser):
             response = self.session.get(self.real_url, headers=headers, timeout=12)
             response.raise_for_status()
             html = response.text
+
+            if "环境异常" in html and ("secitptpage/verify" in html or "完成验证后即可继续访问" in html):
+                self.terminal_error = {
+                    "error_code": "WECHAT_MP_VERIFY_REQUIRED",
+                    "detail_msg": "微信公众号访问触发安全验证，请稍后重试",
+                }
+                return {"title": None, "desc": None, "video_url": None, "video_list": [], "cover_url": None, "author": None, "image_list": []}
+
+            if any(kw in html for kw in ("该内容已被发布者删除", "此内容因违规无法查看", "此内容已被发布者删除", "该内容因违规无法查看")):
+                self.terminal_error = {
+                    "error_code": "MEDIA_DELETED_OR_PRIVATE",
+                    "detail_msg": "该公众号文章已被作者删除或违规下架",
+                }
+                return {"title": None, "desc": None, "video_url": None, "video_list": [], "cover_url": None, "author": None, "image_list": []}
+
             soup = BeautifulSoup(html, "html.parser")
 
             # 1. 标题提取 (优先 JS 变量，其次 meta，再次 h1)

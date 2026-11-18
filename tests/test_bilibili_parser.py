@@ -194,6 +194,45 @@ class BilibiliParserTest(unittest.TestCase):
                 timeout=10,
             )
 
+    def test_parses_aid_url(self):
+        mock_response = Mock()
+        mock_response.json.return_value = {
+            "code": 0,
+            "data": {"title": "AV视频测试", "bvid": "BV1xx411c7mD", "pages": [{"cid": 1001}]}
+        }
+        mock_response.raise_for_status = Mock()
+
+        with patch("requests.Session.get", return_value=mock_response) as mock_get:
+            parser = BilibiliParser("https://www.bilibili.com/video/av117586188636547")
+            self.assertEqual(parser.aid, "117586188636547")
+            self.assertEqual(parser.bvid, "BV1xx411c7mD")
+            mock_get.assert_called_with(
+                parser.API_VIEW,
+                params={"aid": "117586188636547"},
+                headers=parser.view_headers,
+                timeout=10,
+            )
+
+    def test_video_deleted_or_invisible_sets_terminal_error(self):
+        mock_response = Mock()
+        mock_response.json.return_value = {"code": 62002, "message": "稿件不可见"}
+        mock_response.raise_for_status = Mock()
+
+        with patch("requests.Session.get", return_value=mock_response):
+            parser = BilibiliParser("https://www.bilibili.com/video/BV1asTR6FEWu")
+            self.assertIsNotNone(parser.terminal_error)
+            self.assertEqual(parser.terminal_error["error_code"], "MEDIA_DELETED_OR_PRIVATE")
+
+    def test_dynamic_invisible_sets_terminal_error(self):
+        mock_response = Mock()
+        mock_response.json.return_value = {"code": 4101152, "message": "动态不可见"}
+        mock_response.raise_for_status = Mock()
+
+        with patch("requests.Session.get", return_value=mock_response):
+            parser = BilibiliParser("https://t.bilibili.com/1082636825840844823")
+            self.assertIsNotNone(parser.terminal_error)
+            self.assertEqual(parser.terminal_error["error_code"], "MEDIA_DELETED_OR_PRIVATE")
+
 
 if __name__ == "__main__":
     unittest.main()

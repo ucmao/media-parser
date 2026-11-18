@@ -286,6 +286,16 @@
                                 </tr>
                                 <tr>
                                     <td class="px-3.5 py-2.5"><span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-mono font-medium bg-rose-50 text-rose-700 border border-rose-200/60">400</span></td>
+                                    <td class="px-3.5 py-2.5"><code class="font-mono text-xs font-semibold text-slate-800 bg-slate-100/90 px-2 py-0.5 rounded border border-slate-200/60">ITEM_NOT_FOUND</code></td>
+                                    <td class="px-3.5 py-2.5 text-slate-600 leading-relaxed">闲鱼商品已被卖家下架、删除或不存在（终态不可重试）。</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-3.5 py-2.5"><span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-mono font-medium bg-rose-50 text-rose-700 border border-rose-200/60">400</span></td>
+                                    <td class="px-3.5 py-2.5"><code class="font-mono text-xs font-semibold text-slate-800 bg-slate-100/90 px-2 py-0.5 rounded border border-slate-200/60">WECHAT_MP_VERIFY_REQUIRED</code></td>
+                                    <td class="px-3.5 py-2.5 text-slate-600 leading-relaxed">微信公众号页面触发环境异常与安全验证拦截，需稍后重试或切换代理 IP。</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-3.5 py-2.5"><span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-mono font-medium bg-rose-50 text-rose-700 border border-rose-200/60">400</span></td>
                                     <td class="px-3.5 py-2.5"><code class="font-mono text-xs font-semibold text-slate-800 bg-slate-100/90 px-2 py-0.5 rounded border border-slate-200/60">MEDIA_UNDER_REVIEW</code></td>
                                     <td class="px-3.5 py-2.5 text-slate-600 leading-relaxed">抖音作品刚发布仍在审核中，暂时仅作者可见；等待几分钟后重试通常即可成功。</td>
                                 </tr>
@@ -521,6 +531,8 @@
     // 智能排障建议字典 (In-context Error Help)
     const ERROR_TIPS = {
         'COOKIE_REQUIRED': '💡 排查建议：该平台（如小红书、拼多多、微信）需要有效登录凭证。请在「系统设置 - Cookie管理」中配置有效 Cookie。',
+        'ITEM_NOT_FOUND': '💡 排查建议：该闲鱼宝贝已被卖家下架、删除或不存在，属于终态错误，无需重试。',
+        'WECHAT_MP_VERIFY_REQUIRED': '💡 排查建议：微信公众号页面触发了环境异常安全验证拦截，请稍后重试或切换代理 IP。',
         'INSUFFICIENT_CREDITS': '💡 排查建议：当前账号可用点数已耗尽（剩余 0 点）。请联系系统管理员充值点数或修改额度。',
         'EXPIRED_USER': '💡 排查建议：您的账号使用期限已到期。请联系系统超级管理员进行账号延期。',
         'ACCOUNT_EXPIRED': '💡 排查建议：您的账号尚未开通或已到期。请联系系统超级管理员进行账号延期。',

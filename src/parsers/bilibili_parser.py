@@ -34,9 +34,10 @@ class BilibiliParser(BaseParser):
             "Referer": "https://www.bilibili.com/",
         }
         self.bvid = self._extract_bvid(real_url)
+        self.aid = self._extract_aid(real_url) if not self.bvid else None
         self.ep_id = self._extract_ep_id(real_url)
         self.season_id = self._extract_season_id(real_url) if not self.ep_id else None
-        self.dynamic_id = None if (self.bvid or self.ep_id or self.season_id) else self._extract_dynamic_id(real_url)
+        self.dynamic_id = None if (self.bvid or self.aid or self.ep_id or self.season_id) else self._extract_dynamic_id(real_url)
         self.dynamic_info = {}
         self.season_info = {}
         self.bangumi_ep_info = {}
@@ -59,13 +60,21 @@ class BilibiliParser(BaseParser):
             if bvid := self._extract_bvid_from_dynamic(self.dynamic_info):
                 self.bvid = bvid
 
-        self.video_info = self._fetch_video_info() if self.bvid else {}
+        self.video_info = self._fetch_video_info() if (self.bvid or self.aid) else {}
         self._play_info_by_cid = {}
 
     @staticmethod
     def _extract_bvid(url):
         """从 URL 中提取 BV 号，例如 ``BV1df421v7xm``。"""
         match = re.search(r"(BV[a-zA-Z0-9]+)", url or "")
+        if match:
+            return match.group(1)
+        return None
+
+    @staticmethod
+    def _extract_aid(url):
+        """从 URL 中提取 AV 号，例如 ``av117586188636547`` 或 ``aid=123``。"""
+        match = re.search(r"(?:/video/av|aid=)(\d+)", url or "", re.IGNORECASE)
         if match:
             return match.group(1)
         return None
@@ -144,6 +153,13 @@ class BilibiliParser(BaseParser):
 
         if result.get("code") == 0:
             return result.get("data", {}).get("item") or {}
+        code = result.get("code")
+        msg = result.get("message") or ""
+        if code in (4101152, 4101153) or "不可见" in msg or "不存在" in msg:
+            self.terminal_error = {
+                "error_code": "MEDIA_DELETED_OR_PRIVATE",
+                "detail_msg": "该B站动态不存在、已被删除或不可见",
+            }
         logger.error(
             "B站动态 API 返回错误: code=%s, message=%s",
             result.get("code"),
@@ -164,12 +180,13 @@ class BilibiliParser(BaseParser):
         return None
 
     def _fetch_video_info(self):
-        if not self.bvid:
+        if not self.bvid and not getattr(self, "aid", None):
             return {}
+        params = {"bvid": self.bvid} if self.bvid else {"aid": self.aid}
         try:
             response = self.session.get(
                 self.API_VIEW,
-                params={"bvid": self.bvid},
+                params=params,
                 headers=self.view_headers,
                 timeout=10,
             )
@@ -180,11 +197,22 @@ class BilibiliParser(BaseParser):
             return {}
 
         if result.get("code") == 0:
-            return result.get("data") or {}
+            data = result.get("data") or {}
+            if not self.bvid and data.get("bvid"):
+                self.bvid = data["bvid"]
+            return data
+
+        code = result.get("code")
+        msg = result.get("message") or ""
+        if code in (62002, 62004, -404) or "不可见" in msg or "不存在" in msg:
+            self.terminal_error = {
+                "error_code": "MEDIA_DELETED_OR_PRIVATE",
+                "detail_msg": "该B站稿件不存在、已被作者删除或不可见",
+            }
         logger.error(
             "B站 API 返回错误: code=%s, message=%s",
-            result.get("code"),
-            result.get("message"),
+            code,
+            msg,
         )
         return {}
 
@@ -253,6 +281,12 @@ class BilibiliParser(BaseParser):
             return {}
 
         if result.get("code") != 0:
+            code = result.get("code")
+            if code == 87008 or "充电" in str(result.get("message")):
+                self.terminal_error = {
+                    "error_code": "MEDIA_DELETED_OR_PRIVATE",
+                    "detail_msg": "该视频为B站充电专属或付费视频，无法直接提取",
+                }
             logger.error(
                 "B站 API playurl 返回错误: code=%s, message=%s",
                 result.get("code"),

@@ -20,6 +20,9 @@
   * **多视频文章长链**：`https://mp.weixin.qq.com/s/aNmLs3qJVhFGcgtGxAVlig`
   * **视频消息动态**：`https://mp.weixin.qq.com/s/GQiMB7CC6r7wil54I0TMwQ`
   * **历史参数长链**：`https://mp.weixin.qq.com/s?__biz=MzA5...&mid=...&idx=1&sn=...`
+  * **视频详情落地页**：`https://mp.weixin.qq.com/s?__biz=...&mid=...&idx=1&sn=...&t=pages/video_detail_new&vid=...`
+  * **音频详情落地页**：`https://mp.weixin.qq.com/s?__biz=...&mid=...&idx=1&sn=...&t=pages/audio_detail&voice_id=...`
+  * **带校验和参数长链**：`https://mp.weixin.qq.com/s?__biz=...&mid=...&idx=1&sn=...&chksm=...`
 * **Cookie 依赖**：🟢 免配置（开箱即用）。
 
 ---
@@ -55,11 +58,16 @@
 * 从正文 `<mpvoice voice_encode_fileid="..." name="...">` 标签提取语音文件 ID；
 * 组装微信原生音频直链：`https://res.wx.qq.com/voice/getvoice?mediaid={voice_encode_fileid}`。
 
+### 6. 参数保真与 Base64 规范化处理
+微信公众号独立视频/音频页（如 `t=pages/video_detail_new&vid=...`、`t=pages/audio_detail&voice_id=...`）以及历史长链高度依赖 URL Query 参数。在预处理与清洗环节：
+* **关键参数全量保留**：系统定向保留 `__biz`、`mid`、`idx`、`sn`、`chksm`、`t`、`vid`、`vidsn`、`voice_id` 等业务参数，防止因参数被过度剔除导致 404；
+* **Base64 与路径符号防转义**：在重编码 URL 时指定 `safe='=/'`，避免 Base64 尾部填充等号 `=` 被错误转码为 `%3D` 或路径分隔符 `/` 被转为 `%2F` 引发微信服务反爬拦截或跳转异常。
+
 ---
 
-## 3. 视频直链访问与下载注意事项（防盗链与 302 重定向）
+## 3. 视频直链访问与状态识别注意事项
 
-腾讯视频 CDN（`mpvideo.qpic.cn`）具有以下访问机制，下载或播放时需注意：
+腾讯视频 CDN（`mpvideo.qpic.cn`）与公众号安全机制如下，调用或下载时需注意：
 
 1. **防盗链校验 (Referer)**：
    * 微信 CDN 强制校验来源。浏览器直接在地址栏打开直链会触发 `403 Forbidden`。
@@ -72,6 +80,11 @@
      ```
 3. **动态凭证时效性**：
    * 视频链接中的 `dis_k`、`dis_t`、`auth_key` 参数为动态限时签名，过期需重新调用解析接口获取最新链接。
+4. **环境异常反爬拦截识别 (`WECHAT_MP_VERIFY_REQUIRED`)**：
+   * 当微信服务端对频繁访问或特定机房 IP 触发安全验证时，页面会跳转至 `secitptpage/verify`（“环境异常，完成验证后即可继续访问”）。
+   * 解析器会自动识别该拦截页并抛出标准错误码 `WECHAT_MP_VERIFY_REQUIRED`（HTTP 400），提示调用方稍后重试或切换代理 IP，避免误判为空内容。
+5. **文章删除与违规终态识别 (`MEDIA_DELETED_OR_PRIVATE`)**：
+   * 当微信页面包含「该内容已被发布者删除」或「此内容因违规无法查看」等提示时，解析器直接将其标记为 `MEDIA_DELETED_OR_PRIVATE` 终态错误，阻断无意义的频繁轮询。
 
 ---
 

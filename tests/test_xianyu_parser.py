@@ -117,7 +117,9 @@ class XianyuParserTest(unittest.TestCase):
 
         self.assertEqual(parser.get_image_list(), [])
         self.assertIsNotNone(parser.get_terminal_detail())
+        self.assertIsNotNone(parser.terminal_error)
         self.assertEqual(parser.get_terminal_detail().get("error_code"), "ITEM_NOT_FOUND")
+        self.assertEqual(parser.terminal_error.get("error_code"), "ITEM_NOT_FOUND")
 
     def test_invalid_url_handles_gracefully(self):
         parser = XianyuParser("https://e.tb.cn/invalid")

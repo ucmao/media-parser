@@ -432,6 +432,24 @@ class WebFetcherTest(unittest.TestCase):
             self.assertIsNone(WebFetcher.fetch_redirect_url("https://v.douyin.com/start", max_redirects=5))
         self.assertEqual(get.call_count, 1)
 
+    def test_recognizes_newly_supported_subdomains(self):
+        self.assertEqual(UrlParser.get_platform("https://s.izuiyou.com/s/23Qeo"), "最右")
+        self.assertEqual(UrlParser.get_platform("https://adshare.toutiao.com/s/123"), "今日头条")
+        self.assertEqual(UrlParser.get_platform("https://mapp.api.weibo.cn/fx/abc.html"), "微博")
+
+    def test_preserves_wechat_mp_url_parameters(self):
+        v_url = "https://mp.weixin.qq.com/s?t=pages/video_detail_new&item_show_type=16&vid=wxv_123&__biz=MzAwMjMwMDAzMQ==&sn=abc"
+        res_v = UrlParser.extract_video_address(v_url)
+        self.assertIn("t=pages/video_detail_new", res_v)
+        self.assertIn("vid=wxv_123", res_v)
+        self.assertIn("item_show_type=16", res_v)
+        self.assertIn("__biz=MzAwMjMwMDAzMQ==", res_v)
+
+        art_url = "https://mp.weixin.qq.com/s?__biz=MzAwMjMwMDAzMQ==&mid=123&idx=1&sn=abc&chksm=xyz"
+        res_a = UrlParser.extract_video_address(art_url)
+        self.assertIn("chksm=xyz", res_a)
+        self.assertIn("__biz=MzAwMjMwMDAzMQ==", res_a)
+
     def test_returns_none_on_request_error_or_invalid_input(self):
         with patch(
             "utils.web_fetcher.requests.get",

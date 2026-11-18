@@ -1099,6 +1099,22 @@
                     tag: '作品状态'
                 };
             }
+            if (code === 'ITEM_NOT_FOUND') {
+                return {
+                    title: '宝贝已下架或删除',
+                    message: '该闲鱼商品已被卖家删除或下架，无法获取宝贝详情。',
+                    hint: '请确认商品链接有效并在闲鱼客户端内处于在售状态。',
+                    tag: '商品下架'
+                };
+            }
+            if (code === 'WECHAT_MP_VERIFY_REQUIRED') {
+                return {
+                    title: '触发安全验证',
+                    message: '微信公众号访问触发了环境异常安全验证，暂时无法直接抓取页面。',
+                    hint: '建议稍候几分钟再试，或更换网络环境后重试。',
+                    tag: '安全验证'
+                };
+            }
             if (code === 'NO_MEDIA_IN_CONTENT') {
                 return {
                     title: '未包含多媒体资源',

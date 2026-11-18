@@ -43,7 +43,7 @@ class WebFetcher:
         # 绿洲分享页会对通用桌面请求头返回 500，由解析器使用移动端请求头抓取。
         # 微博博文可通过 API 直接根据 ID 解析，直接访问网页端常触发访客系统重定向。
         domain = UrlParser.get_domain(url)
-        if domain not in {"t.cn", "b23.tv", "xhslink.cn", "xhslink.com", "hy.fan", "dw4.co", "yspapp.cn"}:
+        if domain not in {"t.cn", "b23.tv", "xhslink.cn", "xhslink.com", "hy.fan", "dw4.co", "yspapp.cn", "mapp.api.weibo.cn", "s.izuiyou.com", "adshare.toutiao.com"}:
             if UrlParser.get_platform(url) in {"知乎", "绿洲", "新片场", "夸克AI", "通义千问", "微博", "小云雀AI", "哔哩哔哩", "快影", "微信公众号", "海螺AI", "网易LOFTER", "得物", "央视"}:
                 return UrlParser.extract_video_address(url)
         try:
@@ -380,12 +380,16 @@ class UrlParser:
         elif platform == "微信公众号":
             query_params = parse_qs(parsed_url.query)
             preserved_params = []
-            for key in ("__biz", "mid", "idx", "sn", "scene", "subscene", "clicktime", "enterid"):
+            for key in (
+                "__biz", "mid", "idx", "sn", "chksm", "t", "vid", "vidsn",
+                "voice_id", "item_show_type", "scene", "subscene", "clicktime",
+                "enterid", "sharer_shareinfo", "sharer_shareinfo_first"
+            ):
                 value = query_params.get(key, [None])[0]
                 if value is not None:
                     preserved_params.append((key, value))
             if preserved_params:
-                address = f"{address}?{urlencode(preserved_params)}"
+                address = f"{address}?{urlencode(preserved_params, safe='=/')}"
         elif platform == "视频号":
             query_params = parse_qs(parsed_url.query)
             short_uri = query_params.get('id', [None])[0]

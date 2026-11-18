@@ -145,10 +145,11 @@ class XianyuParser(BaseParser):
             ret_code = ret[0] if isinstance(ret, list) and ret else ""
 
             if "FAIL_BIZ_ITEM_DEL_NOT_FOUND" in ret_code or "FAIL_BIZ_ITEM_QUERY_FAILED" in ret_code:
-                self.terminal_detail = {
+                self.terminal_error = {
                     "detail_msg": "该宝贝不存在或已被卖家删除/下架",
                     "error_code": "ITEM_NOT_FOUND",
                 }
+                self.terminal_detail = self.terminal_error
                 return
 
             if "RGV587_ERROR" in ret_code:
@@ -320,4 +321,4 @@ class XianyuParser(BaseParser):
         return self.image_list
 
     def get_terminal_detail(self):
-        return self.terminal_detail
+        return self.terminal_error or self.terminal_detail

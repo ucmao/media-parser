@@ -10,6 +10,7 @@
 * **支持媒体类型**：高清视频 (MP4，最高 1080P/720P) / 微头条图文图集 / 长文正文内嵌配图 / 封面图 / 标题与清洗正文 / 创作者信息
 * **常见链接形态**：
   * 短链接：`https://m.toutiao.com/is/fLrXD62Zo2U/` 或 `https://m.toutiao.com/is/geu37y7CA4w/`
+  * 推广/分享链接：`https://adshare.toutiao.com/s/...` 或 `https://adshare.toutiao.com/...`
   * 网页链接：`https://www.toutiao.com/video/7680960670263493172/` 或 `https://www.toutiao.com/article/7680960670263493172/`
   * 移动端落地页：`https://m.toutiao.com/video/7680960670263493172/` 或 `https://m.toutiao.com/i7680960670263493172/`
   * 微头条：`https://m.toutiao.com/w/1876628745217031/`（短链解析后通常落到该形态）

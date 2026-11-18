@@ -14,7 +14,7 @@
   * 视频标题与 UP 主/官方账号信息
 * **常见链接形态**：
   * 短链接：`https://b23.tv/xxxx`、`https://b23.tv/ep3372237`
-  * 网页端长链：`https://www.bilibili.com/video/BV1asTR6FEWu`
+  * 网页端长链 (BV/AV)：`https://www.bilibili.com/video/BV1asTR6FEWu`、`https://www.bilibili.com/video/av170001`
   * 番剧/剧集长链：`https://www.bilibili.com/bangumi/play/ep1231565`、`https://www.bilibili.com/bangumi/play/ss12345`
   * 动态/Opus 链接：`https://t.bilibili.com/1245189054385881096` 或 `https://www.bilibili.com/opus/1245189054385881096`
 * **Cookie 依赖**：
@@ -49,9 +49,9 @@ sequenceDiagram
 ```
 
 ### 2.1 步骤 1：获取视频/番剧详情与 `cid`
-* **常规视频**：`https://api.bilibili.com/x/web-interface/view?bvid={bvid}`
-* **番剧剧集**：`https://api.bilibili.com/pgc/view/web/season?ep_id={ep_id}`
-* **产出**：获取视频的 `cid`（内容分块 ID）、`title`、`pic`/`cover`（封面图）、`owner`/`up_info`（UP主）。
+* **常规视频**：支持 BV 号（`https://api.bilibili.com/x/web-interface/view?bvid={bvid}`）与旧版 AV 号（`https://api.bilibili.com/x/web-interface/view?aid={aid}`，如 `/video/av170001` 或 URL 中的 `aid=...`）；
+* **番剧剧集**：`https://api.bilibili.com/pgc/view/web/season?ep_id={ep_id}`；
+* **产出**：获取视频的标准 `bvid`、`cid`（内容分块 ID）、`title`、`pic`/`cover`（封面图）、`owner`/`up_info`（UP主）。
 
 ### 2.2 步骤 2：获取无需合成的单文件 MP4 流 (`PlayURL`)
 * **常规视频**：`https://api.bilibili.com/x/player/playurl?bvid={bvid}&cid={cid}&platform=html5&fnval=3&qn=112`
@@ -70,6 +70,11 @@ sequenceDiagram
 3. **云服务器/机房 IP 触发 412 (Precondition Failed) 风控拦截**：
    * 在云服务器/数据中心（如 Docker 部署）环境下，使用 PC 浏览器（Chrome/Firefox 等）User-Agent 访问视频详情接口 `https://api.bilibili.com/x/web-interface/view` 会被 B 站 WAF 拦截并返回 `HTTP 412 Precondition Failed`。
    * **解法**：视频详情接口单独使用非浏览器/客户端标识（如 `okhttp/4.9.3`），即可绕过该 WAF 拦截正常获取视频信息。
+4. **不可见/删除/付费等终态错误映射 (`MEDIA_DELETED_OR_PRIVATE`)**：
+   * **稿件不可见/已删除**：B 站详情接口返回错误码 `62002`（稿件不可见）、`62004`、`-404`（啥都木有）；
+   * **动态不可见/已删除**：动态接口返回错误码 `4101152`（动态不可见）、`4101153`；
+   * **充电专属/付费视频**：接口返回错误码 `87008`（需购买充电专属视频）；
+   * 解析器捕获上述状态码后会自动将错误提升并映射为 `MEDIA_DELETED_OR_PRIVATE` 终态错误，提示调用方内容不可查看，阻断客户端无意义重试。
 
 ---
 

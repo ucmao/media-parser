@@ -269,8 +269,12 @@ def _execute_parse(text, access):
 
 
 def _terminal_detail(parser):
-    for name in ('terminal_error', '_terminal_filter_detail'):
+    for name in ('terminal_error', '_terminal_filter_detail', 'terminal_detail'):
         detail = getattr(parser, name, None)
+        if isinstance(detail, dict) and detail:
+            return detail
+    if callable(getattr(parser, 'get_terminal_detail', None)):
+        detail = parser.get_terminal_detail()
         if isinstance(detail, dict) and detail:
             return detail
     return None
