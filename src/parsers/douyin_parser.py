@@ -50,6 +50,11 @@ API_MAX_ATTEMPTS = max(1, _get_env_int("DOUYIN_API_MAX_ATTEMPTS", 2))
 RETRY_BASE_DELAY = _get_env_float("DOUYIN_RETRY_BASE_DELAY", 0.2)
 RETRY_MAX_DELAY = _get_env_float("DOUYIN_RETRY_MAX_DELAY", 0.8)
 
+# 刚发布的作品在审核通过前，接口会返回 status_self_see（仅自己可见），几分钟后即可正常解析。
+# 作品发布不超过该时长（秒）且命中 status_self_see 时，按"审核中"返回可重试的错误码，而不是"已删除/私密"。
+UNDER_REVIEW_MAX_AGE = _get_env_int("DOUYIN_UNDER_REVIEW_MAX_AGE", 7200)
+UNDER_REVIEW_MESSAGE = "该作品刚发布，正在抖音审核中，暂时无法查看，请几分钟后重试"
+
 # 移动端 Feed 核心接口配置：免 ArgusSecurityPlugin 门禁的主路径（常规视频测试中 0 次 403）
 ENABLE_MOBILE_FEED = (os.getenv("DOUYIN_ENABLE_MOBILE_FEED", "1") or "1").strip().lower() in ("1", "true", "yes", "on")
 MOBILE_FEED_ENDPOINTS = [
@@ -301,6 +306,17 @@ class DouyinParser(BaseParser):
                 logger.warning(f"Failed to get dynamic ttwid: {e}")
                 return None
 
+    def _is_under_review(self, filter_reason):
+        """作品 ID 高 32 位是发布时间戳；刚发布就返回 status_self_see 的作品大概率仍在审核。"""
+        if filter_reason != 'status_self_see':
+            return False
+        try:
+            published = int(self.aweme_id) >> 32
+        except (TypeError, ValueError):
+            return False
+        age = time.time() - published
+        return -300 <= age <= UNDER_REVIEW_MAX_AGE
+
     def _is_terminal_failure(self, data):
         """
         判断接口响应是否为明确的不可重试终端状态（如作品已被删除、仅自己可见、朋友日常权限限制等）。
@@ -377,7 +393,10 @@ class DouyinParser(BaseParser):
                                       or "作品权限受限或已被删除")
                         filter_reason = (data.get('filter_detail') or {}).get('filter_reason') or "terminal_status"
                         logger.info(f"抖音接口返回明确的不可重试终端状态 ({filter_reason}: {filter_msg})，立即终止重试: {base_api.split('?')[0]}")
-                        self._terminal_filter_detail = data.get('filter_detail') or {"filter_reason": filter_reason, "detail_msg": filter_msg}
+                        detail = dict(data.get('filter_detail') or {"filter_reason": filter_reason, "detail_msg": filter_msg})
+                        if self._is_under_review(filter_reason):
+                            detail.update(error_code='MEDIA_UNDER_REVIEW', detail_msg=UNDER_REVIEW_MESSAGE)
+                        self._terminal_filter_detail = detail
                         self.terminal_error = self._terminal_filter_detail
                         return None
                 elif last_status != 200:

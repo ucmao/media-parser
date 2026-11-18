@@ -17,6 +17,13 @@ class XiaohongshuParser(BaseParser):
         self.note_data = {}
         self.fetch_and_parse()
 
+    @staticmethod
+    def _is_risk_redirect(url):
+        url = url or ""
+        return "xiaohongshu.com/404" in url and (
+            "/404/sec_" in url or "xhs_sec_server" in url or "error_code=300031" in url
+        )
+
     def fetch_and_parse(self):
         pc_ua = USER_AGENT_PC[0] if USER_AGENT_PC else "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
         mobile_ua = USER_AGENT_M[0] if USER_AGENT_M else "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
@@ -42,6 +49,15 @@ class XiaohongshuParser(BaseParser):
                         self.terminal_error = {"detail_msg": "该小红书笔记已被作者删除或不存在"}
                     continue
                 if resp.status_code != 200:
+                    continue
+                if self._is_risk_redirect(resp.url):
+                    # /404/sec_*（error_code=300031「当前笔记暂时无法浏览」）是安全风控拦截，
+                    # 公开笔记同样会命中，不能当成已删除；按 Cookie/风控处理以便换 IP 或更新凭据重试。
+                    if is_last:
+                        self.terminal_error = {
+                            "error_code": "XIAOHONGSHU_COOKIE_REQUIRED",
+                            "detail_msg": "访问被小红书安全风控拦截（当前笔记暂时无法浏览），请更新小红书 Cookie 或稍后重试",
+                        }
                     continue
                 if "xiaohongshu.com/404" in resp.url or "undertake_note_error" in resp.url:
                     if is_last:

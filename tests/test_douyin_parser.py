@@ -1,4 +1,5 @@
 import json
+import time
 import os
 import unittest
 import urllib.parse
@@ -749,6 +750,45 @@ class DouyinParserTest(unittest.TestCase):
                         # 应该跳过末级 SSR 兜底
                         mock_ssr.assert_not_called()
                         self.assertIsNone(parser.data)
+
+    def _terminal_parser(self, aweme_id, filter_reason):
+        payload = {
+            "status_code": 0,
+            "aweme_detail": None,
+            "filter_detail": {
+                "aweme_id": aweme_id,
+                "detail_msg": "因作品权限或已被删除，无法观看，去看看其他作品吧",
+                "filter_reason": filter_reason,
+                "notice": "抱歉，作品不见了",
+            },
+        }
+        mock_resp = Mock(status_code=200, text=json.dumps(payload))
+        mock_resp.json.return_value = payload
+        with patch.object(DouyinParser, "_request_mobile_feed", return_value=None):
+            with patch.object(DouyinParser, "_try_share_ssr_detail", return_value=None):
+                with patch.object(DouyinParser, "fetch_html_content"):
+                    with patch("requests.Session.get", return_value=mock_resp):
+                        return DouyinParser(f"https://www.douyin.com/video/{aweme_id}")
+
+    @staticmethod
+    def _aweme_id_published_at(ts):
+        return str((int(ts) << 32) | 123456)
+
+    def test_fresh_self_see_is_reported_as_under_review(self):
+        aweme_id = self._aweme_id_published_at(time.time() - 120)
+        parser = self._terminal_parser(aweme_id, "status_self_see")
+        self.assertEqual(parser.terminal_error["error_code"], "MEDIA_UNDER_REVIEW")
+        self.assertIn("审核", parser.terminal_error["detail_msg"])
+
+    def test_old_self_see_stays_private(self):
+        aweme_id = self._aweme_id_published_at(time.time() - 3 * 86400)
+        parser = self._terminal_parser(aweme_id, "status_self_see")
+        self.assertNotIn("error_code", parser.terminal_error)
+
+    def test_fresh_deleted_stays_deleted(self):
+        aweme_id = self._aweme_id_published_at(time.time() - 60)
+        parser = self._terminal_parser(aweme_id, "status_deleted")
+        self.assertNotIn("error_code", parser.terminal_error)
 
     def test_share_ssr_precedence_over_web_api(self):
         aweme_id = "7675236180098600202"

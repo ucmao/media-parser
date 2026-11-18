@@ -1083,6 +1083,14 @@
             }
 
             // 3. 作品自身状态（删除/私密/无媒体）
+            if (code === 'MEDIA_UNDER_REVIEW') {
+                return {
+                    title: '作品审核中',
+                    message: '该作品刚刚发布，平台仍在审核，暂时无法查看。',
+                    hint: '请等待几分钟，审核通过后再重新解析。',
+                    tag: '审核中'
+                };
+            }
             if (code === 'MEDIA_DELETED_OR_PRIVATE') {
                 return {
                     title: '作品不可查看',

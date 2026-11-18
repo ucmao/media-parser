@@ -136,8 +136,9 @@ curl -X POST "http://localhost:5000/api/v1/parse" \
 | `retcode` | `error_code` | `retdesc` 描述 | 说明与处理建议 |
 | :---: | :--- | :--- | :--- |
 | **400** | `MEDIA_DELETED_OR_PRIVATE` | `因作品权限或已被删除，无法观看...` | 作品已被作者删除、设置为仅自己可见、朋友可见或日常权限限制（终态不可重试） |
+| **400** | `MEDIA_UNDER_REVIEW` | `该作品刚发布，正在抖音审核中，暂时无法查看，请几分钟后重试` | 抖音作品刚发布（2 小时内）仍处于审核期，接口返回仅自己可见；稍后重试通常即可成功 |
 | **400** | `NO_MEDIA_IN_CONTENT` | `该分享内容仅包含文本对话，未包含图片或视频资源` | 豆包等 AI 对话分享仅有文字问答，无多媒体附件 |
-| **400** | `XIAOHONGSHU_COOKIE_REQUIRED` | `解析失败：该链接需要小红书登录 Cookie 校验...` | 小红书触发安全反爬校验，需在环境配置有效 Cookie |
+| **400** | `XIAOHONGSHU_COOKIE_REQUIRED` | `解析失败：该链接需要小红书登录 Cookie 校验...` | 小红书触发安全反爬校验（含 `/404/sec_*`、`error_code=300031`「当前笔记暂时无法浏览」风控页），需更新有效 Cookie 或稍后重试 |
 | **400** | `PINDUODUO_COOKIE_REQUIRED` | `解析失败：该链接需要拼多多登录 Cookie 校验...` | 拼多多 dsp 接口需 Cookie 凭据 |
 | **400** | `WECHAT_CHANNELS_COOKIE_REQUIRED` | `解析失败：该链接需要配置腾讯元宝 YUANBAO_COOKIE 凭证...` | 微信视频号解析通道凭据失效 |
 | **400** | `MEDIA_NOT_FOUND` | `提取媒体内容失败，请检查链接或稍后重试` | 未能从目标页面提取到有效音视频或图集 |
