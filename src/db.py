@@ -71,6 +71,16 @@ CREATE TABLE IF NOT EXISTS rate_limit_buckets (
     count INTEGER NOT NULL,
     PRIMARY KEY(subject, bucket_second)
 );
+CREATE TABLE IF NOT EXISTS email_verification_codes (
+    email TEXT NOT NULL COLLATE NOCASE,
+    purpose TEXT NOT NULL,
+    code_hash TEXT NOT NULL,
+    attempts INTEGER NOT NULL DEFAULT 0,
+    expires_at TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    request_ip TEXT,
+    PRIMARY KEY(email, purpose)
+);
 CREATE INDEX IF NOT EXISTS idx_logs_created_at ON request_logs(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_logs_user_id ON request_logs(user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_rate_limit_bucket_time ON rate_limit_buckets(bucket_second);
@@ -119,6 +129,7 @@ _COLUMN_MIGRATIONS = {
         "register_ip": "TEXT",
         "last_login_ip": "TEXT",
         "last_login_at": "TEXT",
+        "email": "TEXT",
     },
     "request_logs": {
         "client_ip": "TEXT",
@@ -133,6 +144,11 @@ def _migrate_columns(db):
             if column not in existing:
                 db.execute(f"ALTER TABLE {table} ADD COLUMN {column} {column_type}")
     db.execute("CREATE INDEX IF NOT EXISTS idx_users_register_ip ON users(register_ip)")
+    # 邮箱可为空（未配置 SMTP 时注册的账号没有邮箱），仅对已填写的邮箱做唯一约束
+    db.execute(
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email COLLATE NOCASE) "
+        "WHERE email IS NOT NULL"
+    )
     db.execute("CREATE INDEX IF NOT EXISTS idx_logs_client_ip ON request_logs(client_ip, created_at DESC)")
 
 
@@ -151,6 +167,7 @@ def init_db():
         "default_trial_days": "365",
         "default_initial_credits": "100",
         "registration_daily_limit": "30",
+        "email_verification_enabled": "1",
         "api_tip_enabled": "1",
         "api_tip_author": "ucmao",
         "api_tip_website": "https://github.com/ucmao/media-parser",

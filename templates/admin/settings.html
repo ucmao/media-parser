@@ -133,6 +133,27 @@
                             <div class="divide-y divide-slate-100 text-sm">
                                 <div class="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-4">
                                     <div>
+                                        <div class="font-medium text-slate-900">注册需邮箱验证</div>
+                                        {% if smtp_configured %}
+                                        <div class="text-xs text-slate-500 mt-0.5">已配置 SMTP（{{ config.get('SMTP_HOST') }}），开启后新用户需填写邮箱并输入验证码完成注册</div>
+                                        {% else %}
+                                        <div class="text-xs text-amber-600 mt-0.5">未配置 SMTP（环境变量 SMTP_HOST 等），当前仅用户名 + 密码注册；配置后重启即可启用</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="shrink-0">
+                                        <input type="hidden" name="email_verification_field" value="1">
+                                        <label class="switch-toggle" title="{{ '切换注册邮箱验证' if smtp_configured else '需先配置 SMTP' }}">
+                                            <input type="checkbox" name="email_verification_enabled"
+                                                {{ 'checked' if smtp_configured and settings.get('email_verification_enabled', '1') == '1' }}
+                                                {{ '' if smtp_configured else 'disabled' }}
+                                                onchange="triggerSettingsSubmit(this)">
+                                            <span class="switch-slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-4">
+                                    <div>
                                         <div class="font-medium text-slate-900">每日注册上限</div>
                                         <div class="text-xs text-slate-500 mt-0.5">全站最近 24 小时最多允许注册的新账号数，防批量注册 (0 表示不限制)</div>
                                     </div>
@@ -782,6 +803,9 @@
         }
         if (name === 'ip_blacklist') {
             return 'IP 黑名单已更新';
+        }
+        if (name === 'email_verification_enabled') {
+            return el.checked ? '已开启注册邮箱验证' : '已关闭注册邮箱验证';
         }
         if (name === 'registration_daily_limit') {
             return '每日注册上限已更新';

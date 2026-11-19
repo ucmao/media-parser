@@ -25,8 +25,22 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="space-y-1.5">
                     <label class="block text-xs font-semibold text-slate-700">用户名</label>
-                    <input name="username" minlength="3" maxlength="40" placeholder="请输入用户名" autocomplete="username" required autofocus class="w-full px-3.5 py-2.5 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-white text-slate-900">
+                    <input name="username" minlength="3" maxlength="40" placeholder="请输入用户名" autocomplete="username" required autofocus value="{{ form_username|default('') }}" class="w-full px-3.5 py-2.5 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-white text-slate-900">
                 </div>
+                {% if email_required %}
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-slate-700">邮箱</label>
+                    <input id="register-email" name="email" type="email" maxlength="254" placeholder="请输入常用邮箱" autocomplete="email" required value="{{ form_email|default('') }}" class="w-full px-3.5 py-2.5 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-white text-slate-900">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-slate-700">邮箱验证码</label>
+                    <div class="flex gap-2">
+                        <input name="email_code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="6 位数字验证码" autocomplete="one-time-code" required class="flex-1 min-w-0 px-3.5 py-2.5 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-white text-slate-900">
+                        <button type="button" id="send-code-btn" onclick="sendEmailCode(this)" class="shrink-0 w-28 h-[42px] rounded-lg border border-brand text-brand hover:bg-indigo-50 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-bold transition">获取验证码</button>
+                    </div>
+                    <p id="send-code-hint" class="text-[11px] text-slate-500 min-h-[1em]"></p>
+                </div>
+                {% endif %}
                 <div class="space-y-1.5">
                     <label class="block text-xs font-semibold text-slate-700">设置密码</label>
                     <div class="password-group relative">
@@ -67,6 +81,37 @@
 </main>
 
 <script>
+{% if email_required %}
+async function sendEmailCode(btn) {
+    const email = document.getElementById('register-email').value.trim();
+    const hint = document.getElementById('send-code-hint');
+    const setHint = (text, ok) => {
+        hint.textContent = text;
+        hint.className = 'text-[11px] min-h-[1em] ' + (ok ? 'text-emerald-600' : 'text-red-600');
+    };
+    if (!email) { setHint('请先填写邮箱', false); return; }
+    btn.disabled = true;
+    const body = new FormData();
+    body.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
+    body.append('email', email);
+    let wait = 0;
+    try {
+        const resp = await fetch('{{ url_for("auth.register_send_code") }}', { method: 'POST', body, credentials: 'same-origin' });
+        const data = await resp.json().catch(() => ({}));
+        setHint(data.message || (resp.ok ? '验证码已发送' : '发送失败，请稍后再试'), resp.ok && data.succ);
+        if (resp.ok && data.succ) wait = data.resend_after || 60;
+        else if (resp.status === 429) wait = 60;
+    } catch (e) {
+        setHint('网络异常，请稍后再试', false);
+    }
+    if (!wait) { btn.disabled = false; return; }
+    const timer = setInterval(() => {
+        if (wait <= 0) { clearInterval(timer); btn.disabled = false; btn.textContent = '重新获取'; return; }
+        btn.textContent = wait + 's 后重试';
+        wait -= 1;
+    }, 1000);
+}
+{% endif %}
 function togglePasswordVisibility(btn) {
     const group = btn.closest('.password-group');
     if (!group) return;

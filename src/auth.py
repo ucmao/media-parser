@@ -1,12 +1,13 @@
 import hashlib
 import hmac
+import re
 import secrets
 import string
 from datetime import datetime, timezone
 from functools import wraps
 from zoneinfo import ZoneInfo
 
-from flask import Blueprint, current_app, flash, g, redirect, render_template, request, session, url_for
+from flask import Blueprint, current_app, flash, g, jsonify, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from src.db import get_db, setting, utcnow
@@ -91,6 +92,62 @@ def registration_quota_exceeded():
         )
         return True
     return False
+
+
+EMAIL_PATTERN = re.compile(r"^[^@\s]{1,64}@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$")
+EMAIL_CODE_TTL_SECONDS = 600
+EMAIL_CODE_MAX_ATTEMPTS = 5
+EMAIL_CODE_RESEND_SECONDS = 60
+
+
+def email_verification_required():
+    """仅当已配置 SMTP 且管理员未关闭时才要求邮箱验证；否则沿用原有的用户名注册流程。"""
+    from src.mailer import smtp_configured
+    return smtp_configured() and setting("email_verification_enabled", "1") == "1"
+
+
+def normalize_email(value):
+    email = (value or "").strip().lower()
+    if len(email) > 254 or not EMAIL_PATTERN.match(email):
+        return None
+    return email
+
+
+def _hash_email_code(email, code):
+    pepper = current_app.config["SECRET_KEY"].encode()
+    return hmac.new(pepper, f"register:{email}:{code}".encode(), hashlib.sha256).hexdigest()
+
+
+def _email_taken(email):
+    return get_db().execute(
+        "SELECT 1 FROM users WHERE email = ? COLLATE NOCASE", (email,)
+    ).fetchone() is not None
+
+
+def verify_email_code(email, code, purpose="register"):
+    """校验验证码；成功后立即作废，失败累计次数，超限作废。返回错误文案或 None。"""
+    db = get_db()
+    row = db.execute(
+        "SELECT * FROM email_verification_codes WHERE email = ? AND purpose = ?", (email, purpose)
+    ).fetchone()
+    if row is None:
+        return "请先获取邮箱验证码"
+    if row["expires_at"] <= utcnow() or row["attempts"] >= EMAIL_CODE_MAX_ATTEMPTS:
+        db.execute("DELETE FROM email_verification_codes WHERE email = ? AND purpose = ?", (email, purpose))
+        db.commit()
+        return "验证码已失效，请重新获取"
+    if not code or not hmac.compare_digest(row["code_hash"], _hash_email_code(email, code)):
+        db.execute(
+            "UPDATE email_verification_codes SET attempts = attempts + 1 WHERE email = ? AND purpose = ?",
+            (email, purpose),
+        )
+        db.commit()
+        return "验证码错误"
+    return None
+
+
+def consume_email_code(db, email, purpose="register"):
+    db.execute("DELETE FROM email_verification_codes WHERE email = ? AND purpose = ?", (email, purpose))
 
 
 def csrf_protected(view):
@@ -190,28 +247,109 @@ def setup():
     return render_template("auth/setup.html")
 
 
+@bp.post("/register/send-code")
+def register_send_code():
+    """注册邮箱验证码：仅在启用邮箱验证时可用，返回 JSON 供注册页异步调用。"""
+    from src.api.access import consume_rate_limits, get_client_ip
+    from src.mailer import send_mail
+
+    def fail(message, status=400):
+        return jsonify({"succ": False, "message": message}), status
+
+    if setting("registration_enabled", "1") != "1":
+        return fail("当前未开放注册", 403)
+    if not email_verification_required():
+        return fail("当前未启用邮箱验证", 404)
+    if not validate_csrf():
+        return fail("页面已过期，请刷新后重试", 400)
+    email = normalize_email(request.form.get("email"))
+    if not email:
+        return fail("请输入有效的邮箱地址")
+    if _email_taken(email):
+        return fail("该邮箱已注册，请直接登录")
+
+    client_ip = get_client_ip()
+    email_digest = hashlib.sha256(email.encode()).hexdigest()
+    limited = consume_rate_limits([
+        (f"auth:email-code:email:{email_digest}", 1, EMAIL_CODE_RESEND_SECONDS),
+        (f"auth:email-code:email-day:{email_digest}", 5, 86400),
+        (f"auth:email-code:ip:{client_ip}", 5, 3600),
+        (f"auth:email-code:ip-day:{client_ip}", 20, 86400),
+    ])
+    if limited is not None:
+        return fail("发送过于频繁，请稍后再试", 429)
+
+    code = f"{secrets.randbelow(1000000):06d}"
+    now = datetime.now(timezone.utc)
+    db = get_db()
+    db.execute(
+        "INSERT INTO email_verification_codes(email,purpose,code_hash,attempts,expires_at,created_at,request_ip) "
+        "VALUES(?,?,?,0,?,?,?) ON CONFLICT(email,purpose) DO UPDATE SET "
+        "code_hash=excluded.code_hash, attempts=0, expires_at=excluded.expires_at, "
+        "created_at=excluded.created_at, request_ip=excluded.request_ip",
+        (email, "register", _hash_email_code(email, code),
+         (now + timedelta(seconds=EMAIL_CODE_TTL_SECONDS)).isoformat(timespec="seconds"),
+         now.isoformat(timespec="seconds"), client_ip),
+    )
+    db.commit()
+    try:
+        send_mail(
+            email,
+            f"【Media Parser】注册验证码 {code}",
+            f"您好！\n\n您正在注册 Media Parser 账号，验证码为：{code}\n\n"
+            f"验证码 {EMAIL_CODE_TTL_SECONDS // 60} 分钟内有效，请勿泄露给他人。如非本人操作，请忽略本邮件。\n",
+        )
+    except Exception as exc:
+        current_app.logger.error("[邮件发送失败] %s: %s", type(exc).__name__, exc)
+        db.execute("DELETE FROM email_verification_codes WHERE email = ? AND purpose = 'register'", (email,))
+        db.commit()
+        return fail("验证码发送失败，请稍后再试或联系管理员", 502)
+    return jsonify({"succ": True, "message": "验证码已发送，请查收邮箱", "resend_after": EMAIL_CODE_RESEND_SECONDS})
+
+
 @bp.route("/register", methods=("GET", "POST"))
 def register():
     if setting("registration_enabled", "1") != "1":
         flash("当前未开放注册", "error")
         return redirect(url_for("auth.login"))
+    email_required = email_verification_required()
+
+    def render_register(status=200):
+        return render_template(
+            "auth/register.html",
+            email_required=email_required,
+            form_username=request.form.get("username", "").strip(),
+            form_email=request.form.get("email", "").strip(),
+        ), status
+
     if request.method == "POST":
         if not validate_csrf():
             flash("页面已过期，请重试", "error")
         elif auth_rate_limited("register"):
             flash("注册尝试过于频繁，请稍后再试", "error")
-            return render_template("auth/register.html"), 429
+            return render_register(429)
         elif registration_quota_exceeded():
             flash("今日注册名额已满，请明天再试或联系管理员开通", "error")
-            return render_template("auth/register.html"), 429
+            return render_register(429)
         else:
             username = request.form.get("username", "").strip()
             password = request.form.get("password", "")
             confirm_password = request.form.get("confirm_password", "")
+            email = normalize_email(request.form.get("email")) if email_required else None
+            email_error = None
+            if email_required:
+                if not email:
+                    email_error = "请输入有效的邮箱地址"
+                elif _email_taken(email):
+                    email_error = "该邮箱已注册，请直接登录"
             if len(username) < 3 or len(password) < 6:
                 flash("用户名至少 3 位，密码至少 6 位", "error")
             elif password != confirm_password:
                 flash("两次输入的密码不一致", "error")
+            elif email_error:
+                flash(email_error, "error")
+            elif email_required and (code_error := verify_email_code(email, request.form.get("email_code", "").strip())):
+                flash(code_error, "error")
             else:
                 try:
                     trial_days = int(setting("default_trial_days", "365"))
@@ -221,12 +359,14 @@ def register():
                         expires_at = (datetime.now(timezone.utc) + timedelta(days=trial_days)).isoformat(timespec="seconds")
                     db = get_db()
                     cur = db.execute(
-                        "INSERT INTO users(username,password_hash,qps_limit,expires_at,credits,created_at,register_ip,last_login_ip,last_login_at) "
-                        "VALUES(?,?,?,?,?,?,?,?,?)",
+                        "INSERT INTO users(username,password_hash,qps_limit,expires_at,credits,created_at,register_ip,last_login_ip,last_login_at,email) "
+                        "VALUES(?,?,?,?,?,?,?,?,?,?)",
                         (username, generate_password_hash(password), int(setting("default_user_qps", "2")), expires_at, initial_credits, utcnow(),
-                         _client_ip(), _client_ip(), utcnow()),
+                         _client_ip(), _client_ip(), utcnow(), email),
                     )
                     user_id = cur.lastrowid
+                    if email:
+                        consume_email_code(db, email)
                     db.commit()
 
                     # 自动登录并签发会话
@@ -255,8 +395,9 @@ def register():
                 except Exception as exc:
                     if "UNIQUE" not in str(exc).upper():
                         raise
-                    flash("用户名已存在", "error")
-    return render_template("auth/register.html")
+                    get_db().rollback()
+                    flash("该邮箱已注册，请直接登录" if "email" in str(exc).lower() else "用户名已存在", "error")
+    return render_register()
 
 
 @bp.route("/login", methods=("GET", "POST"))

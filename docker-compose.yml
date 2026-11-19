@@ -33,6 +33,14 @@ services:
       - PROXY_MODE=${PROXY_MODE:-auto}
       - PROXY_POOL_SIZE=${PROXY_POOL_SIZE:-2}
       - PROXY_FETCH_PER_SECOND=${PROXY_FETCH_PER_SECOND:-1}
+      # 可选 SMTP：未设置 SMTP_HOST 时注册无需邮箱验证
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-}
+      - SMTP_SECURITY=${SMTP_SECURITY:-}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_FROM=${SMTP_FROM:-}
+      - SMTP_FROM_NAME=${SMTP_FROM_NAME:-}
       # 可选平台凭据（若在本地 .env 中配置将自动透传进容器）：
       - XHS_COOKIE=${XHS_COOKIE:-}
       - DOUYIN_COOKIE=${DOUYIN_COOKIE:-}

@@ -11,6 +11,7 @@ from src.web.portal import bp as portal_bp
 from src.web.admin import bp as admin_bp
 from src.db import init_app as init_database
 from src.utils.proxy_manager import ProxyManager
+from src.mailer import load_smtp_config
 from configs.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -60,6 +61,7 @@ def create_app(config=None):
     app.config['API_ONLY'] = os.getenv(
         'API_ONLY', ''
     ).strip().lower() in {'1', 'true', 'yes', 'on'}
+    app.config.update(load_smtp_config())
     if hasattr(app, 'json'):
         app.json.sort_keys = False
     if config:

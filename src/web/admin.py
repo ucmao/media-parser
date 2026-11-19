@@ -119,10 +119,12 @@ def settings():
         "pool_size": manager.pool_size,
         "fetch_per_second": round(1 / manager.fetch_interval),
     }
+    from src.mailer import smtp_configured
     return render_template(
         "admin/settings.html",
         settings=settings,
         proxy_options=proxy_options,
+        smtp_configured=smtp_configured(),
         active_nav="settings",
     )
 
@@ -152,6 +154,11 @@ def update_settings():
     for name in ("global_api_enabled", "homepage_enabled", "demo_enabled", "registration_enabled", "api_tip_enabled"):
         set_setting(name, "1" if request.form.get(name) else "0")
     set_setting("default_user_qps", _positive_int(request.form.get("default_user_qps"), 2))
+    # 未配置 SMTP 时开关为 disabled、不随表单提交，此时保留原值，避免被误改为关闭
+    if "email_verification_field" in request.form:
+        from src.mailer import smtp_configured
+        if smtp_configured():
+            set_setting("email_verification_enabled", "1" if request.form.get("email_verification_enabled") else "0")
     if "registration_daily_limit" in request.form:
         set_setting("registration_daily_limit", _non_negative_int(request.form.get("registration_daily_limit"), 30, 100000))
 
@@ -391,14 +398,18 @@ def cookies_canary():
 # 3. 客户账号 (Users)
 # ----------------------------------------------------------------------
 
+# 客户列表搜索与"全选批量操作"共用同一条件，保证批量操作的范围与列表所见一致
+USER_SEARCH_CLAUSE = "(u.username LIKE ? OR u.email LIKE ? OR u.register_ip LIKE ? OR u.last_login_ip LIKE ?)"
+
+
 @bp.get("/users")
 @admin_required
 def users():
     db = get_db()
     users_where, users_params = [], []
     if u_q := request.args.get("users_q", "").strip():
-        users_where.append("(u.username LIKE ? OR u.register_ip LIKE ? OR u.last_login_ip LIKE ?)")
-        users_params.extend([f"%{u_q}%", f"%{u_q}%", f"%{u_q}%"])
+        users_where.append(USER_SEARCH_CLAUSE)
+        users_params.extend([f"%{u_q}%"] * USER_SEARCH_CLAUSE.count("?"))
     if u_role := request.args.get("users_role", "").strip():
         users_where.append("u.role = ?")
         users_params.append(u_role)
@@ -550,8 +561,8 @@ def batch_users():
     if select_mode == "all":
         users_where, users_params = [], []
         if u_q := (request.form.get("users_q") or request.form.get("q") or "").strip():
-            users_where.append("u.username LIKE ?")
-            users_params.append(f"%{u_q}%")
+            users_where.append(USER_SEARCH_CLAUSE)
+            users_params.extend([f"%{u_q}%"] * USER_SEARCH_CLAUSE.count("?"))
         if u_role := (request.form.get("users_role") or request.form.get("role") or "").strip():
             users_where.append("u.role = ?")
             users_params.append(u_role)

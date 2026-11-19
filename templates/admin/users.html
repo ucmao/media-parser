@@ -19,7 +19,7 @@
             <!-- 筛选与搜索工具栏 -->
             <form method="get" action="{{ url_for('admin.users') }}" class="table-toolbar table-filter-form mb-5">
                 <div class="flex flex-wrap items-center gap-2.5">
-                    <input type="text" name="users_q" placeholder="搜索用户名/IP..." value="{{ users_table.query_params.q }}" class="filter-input-text px-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition w-48 bg-white">
+                    <input type="text" name="users_q" placeholder="搜索用户名/邮箱/IP..." value="{{ users_table.query_params.q }}" class="filter-input-text px-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition w-48 bg-white">
                     <select name="users_role" onchange="this.form.submit()" class="px-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition bg-white text-slate-700">
                         <option value="">全部角色</option>
                         <option value="admin" {{ 'selected' if request.args.get('users_role') == 'admin' }}>超级管理员</option>
@@ -92,7 +92,7 @@
                                 <input type="checkbox" class="row-checkbox rounded border-slate-300 text-brand focus:ring-brand/20 cursor-pointer" value="{{ user['id'] }}">
                             </td>
                             <td class="px-3 py-3 font-mono text-slate-400 font-medium">#{{ user['id'] }}</td>
-                            <td class="px-3 py-3 whitespace-nowrap font-bold text-slate-900 max-w-[160px] truncate" title="{{ user['username'] }}{% if user['register_ip'] %}&#10;注册 IP：{{ user['register_ip'] }}{% endif %}">{{ user['username'] }}</td>
+                            <td class="px-3 py-3 whitespace-nowrap font-bold text-slate-900 max-w-[160px] truncate" title="{{ user['username'] }}{% if user['email'] %}&#10;邮箱：{{ user['email'] }}{% endif %}{% if user['register_ip'] %}&#10;注册 IP：{{ user['register_ip'] }}{% endif %}">{{ user['username'] }}</td>
                             <td class="px-3 py-3 whitespace-nowrap text-center">
                                 <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold {{ 'bg-indigo-50 text-brand border border-indigo-200' if user['role']=='admin' else 'bg-slate-100 text-slate-600 border border-slate-200' }}">
                                     {{ '管理员' if user['role']=='admin' else '客户' }}
@@ -133,7 +133,7 @@
                                 <div class="flex items-center justify-end gap-1.5">
                                     {% if user['role'] != 'admin' %}
                                     <button type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition shadow-xs"
-                                        onclick="openAdminEditUserModal({{ user['id'] }}, {{ user['username']|tojson|forceescape }}, {{ user['credits'] if user['credits'] is not none else -1 }}, {{ user['qps_limit'] or 2 }}, '{{ format_local_date(user['expires_at']) if user['expires_at'] else '' }}')">
+                                        onclick="openAdminEditUserModal({{ user['id'] }}, {{ user['username']|tojson|forceescape }}, {{ user['credits'] if user['credits'] is not none else -1 }}, {{ user['qps_limit'] or 2 }}, '{{ format_local_date(user['expires_at']) if user['expires_at'] else '' }}', {{ (user['email'] or '')|tojson|forceescape }})">
                                         编辑
                                     </button>
                                     <div class="action-dropdown relative inline-block text-left" data-dropdown="user-{{ user['id'] }}">
@@ -295,6 +295,11 @@
                 </div>
 
                 <div class="space-y-1">
+                    <label class="block text-xs font-semibold text-slate-700">邮箱</label>
+                    <input type="text" id="admin-edit-user-email" disabled class="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-200 bg-slate-50 text-slate-500">
+                </div>
+
+                <div class="space-y-1">
                     <div class="flex items-center justify-between">
                         <label class="text-xs font-semibold text-slate-700">剩余积分</label>
                         <label class="inline-flex items-center gap-1.5 text-xs cursor-pointer text-brand font-semibold select-none">
@@ -404,12 +409,13 @@ function unformatThousands(val) {
     return String(val).replace(/,/g, '').trim();
 }
 
-function openAdminEditUserModal(userId, username, credits, qps, expires) {
+function openAdminEditUserModal(userId, username, credits, qps, expires, email) {
     const m = document.getElementById('admin-edit-user-modal-backdrop');
     const form = document.getElementById('admin-edit-user-form');
     if (!m || !form) return;
     form.action = '/admin/users/' + userId;
     document.getElementById('admin-edit-user-username').value = username;
+    document.getElementById('admin-edit-user-email').value = email || '未绑定';
 
     const unlimCreditsCb = document.getElementById('admin-edit-user-unlimited-credits');
     const creditsInput = document.getElementById('admin-edit-user-credits');
