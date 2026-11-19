@@ -19,7 +19,7 @@
   * 网页探索长链：`https://www.xiaohongshu.com/explore/6a8fbccc000000002a03825a`
 * **Cookie 依赖**：
   * **建议配置**：小红书针对高频/服务器 IP 匿名抓取会频繁发起风控并 302 重定向至 `/login` 登录页。
-  * **配置方式**：在 `.env` 或 Docker 环境中配置 `XHS_COOKIE="a1=...; webId=...; web_session=..."`。
+  * **配置方式**：在 `.env` 或 Docker 环境中配置 `XIAOHONGSHU_COOKIE="a1=...; webId=...; web_session=..."`。
   * **核心字段**：仅需包含设备凭据 `a1`、访客 `webId` 或登录凭证 `web_session`。配置后解析成功率可达 99%+。
 
 ---

@@ -18,35 +18,14 @@ services:
       - ./logs:/app/logs
       # 持久化用户、API Key、开关和调用日志
       - ./data:/app/data
-    # 基础运行环境（开箱即用，无需配置 Cookie 即可直接启动）
+    # 全部配置写在 .env 中（参考 .env.example），整体传入容器；文件不存在时使用默认值启动
+    env_file:
+      - path: .env
+        required: false
+    # 以下为容器内固定值，优先级高于 .env
     environment:
-      - TZ=Asia/Shanghai
-      # 后端监听端口（默认 8051,改一处即同时作用于映射与健康检查）
+      - TZ=${TZ:-Asia/Shanghai}
+      # 后端监听端口（默认 8051，改一处即同时作用于映射与健康检查）
       - WEB_PORT=${WEB_PORT:-8051}
-      - SECRET_KEY=${SECRET_KEY:-}
+      # 数据库固定在挂载目录 ./data 中，避免容器重建后数据丢失
       - DATABASE_PATH=/app/data/media_parser.db
-      - TRUST_PROXY_HEADERS=${TRUST_PROXY_HEADERS:-false}
-      # 纯 API / 微服务模式（开启后不挂载 Web UI，全接口免 API Key 直接调用且不写请求日志）
-      - API_ONLY=${API_ONLY:-false}
-      # Cookie 触发的动态代理提取地址
-      - DYNAMIC_PROXY_API_URL=${DYNAMIC_PROXY_API_URL:-${JULIANG_PROXY_API_URL:-}}
-      - PROXY_MODE=${PROXY_MODE:-auto}
-      - PROXY_POOL_SIZE=${PROXY_POOL_SIZE:-2}
-      - PROXY_FETCH_PER_SECOND=${PROXY_FETCH_PER_SECOND:-1}
-      # 可选 SMTP：未设置 SMTP_HOST 时注册无需邮箱验证
-      - SMTP_HOST=${SMTP_HOST:-}
-      - SMTP_PORT=${SMTP_PORT:-}
-      - SMTP_SECURITY=${SMTP_SECURITY:-}
-      - SMTP_USER=${SMTP_USER:-}
-      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
-      - SMTP_FROM=${SMTP_FROM:-}
-      - SMTP_FROM_NAME=${SMTP_FROM_NAME:-}
-      # 可选平台凭据（若在本地 .env 中配置将自动透传进容器）：
-      - XHS_COOKIE=${XHS_COOKIE:-}
-      - DOUYIN_COOKIE=${DOUYIN_COOKIE:-}
-      - DOUBAO_COOKIE=${DOUBAO_COOKIE:-}
-      - YUANBAO_COOKIE=${YUANBAO_COOKIE:-}
-      - PINDUODUO_COOKIE=${PINDUODUO_COOKIE:-}
-      - KUAISHOU_COOKIE=${KUAISHOU_COOKIE:-}
-      - JIMENG_COOKIE=${JIMENG_COOKIE:-}
-      - WEIBO_COOKIE=${WEIBO_COOKIE:-}

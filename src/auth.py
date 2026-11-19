@@ -267,6 +267,8 @@ def register_send_code():
         return fail("请输入有效的邮箱地址")
     if _email_taken(email):
         return fail("该邮箱已注册，请直接登录")
+    if registration_quota_exceeded():
+        return fail("今日注册名额已满，请明天再试或联系管理员开通", 429)
 
     client_ip = get_client_ip()
     email_digest = hashlib.sha256(email.encode()).hexdigest()

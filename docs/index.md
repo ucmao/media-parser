@@ -108,7 +108,7 @@ DOUBAO_COOKIE="sessionid_ss=your_doubao_sessionid_ss"
 YUANBAO_COOKIE="hy_user=xxx; hy_token=yyy;"
 
 # 3. 小红书防风控 / 高频解析 (可选，解决服务器 IP 遭遇的 302 登录拦截)
-XHS_COOKIE="a1=xxx; webId=yyy; web_session=zzz;"
+XIAOHONGSHU_COOKIE="a1=xxx; webId=yyy; web_session=zzz;"
 
 # 4. 抖音 LivePhoto 实况流 / 放映厅 (可选，常规短视频免 Cookie 毫秒级直出；云端提取实况动图流可填入含 UIFID 的 Cookie)
 DOUYIN_COOKIE="UIFID=xxx; passport_csrf_token=yyy;"

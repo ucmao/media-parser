@@ -98,7 +98,7 @@ COOKIE_REGISTRY = {
     "xiaohongshu": {
         "platform_name": "小红书",
         "db_keys": ["cookie_xiaohongshu"],
-        "env_keys": ["XHS_COOKIE", "XIAOHONGSHU_COOKIE"],
+        "env_keys": ["XIAOHONGSHU_COOKIE", "XHS_COOKIE"],
         "required_fields": [],
         "optional_fields": ["a1", "webId", "web_session"],
         "severity": "fallback",

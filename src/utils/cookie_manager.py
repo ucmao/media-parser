@@ -21,8 +21,8 @@ def without_platform_cookies():
 
 # 平台 Cookie 环境变量及别名映射表
 PLATFORM_COOKIE_ALIASES = {
-    "xhs": ["XHS_COOKIE", "XIAOHONGSHU_COOKIE"],
-    "xiaohongshu": ["XHS_COOKIE", "XIAOHONGSHU_COOKIE"],
+    "xhs": ["XIAOHONGSHU_COOKIE", "XHS_COOKIE"],
+    "xiaohongshu": ["XIAOHONGSHU_COOKIE", "XHS_COOKIE"],
     "pinduoduo": ["PINDUODUO_COOKIE", "PDD_COOKIE"],
     "douyin": ["DOUYIN_COOKIE", "DY_COOKIE"],
     "yuanbao": ["YUANBAO_COOKIE", "WECHAT_CHANNELS_COOKIE"],
@@ -47,9 +47,9 @@ def get_platform_cookie(platform_key: str, env_var: str | None = None) -> str:
 
     按优先级依次检查：
     1. 后台数据库系统配置 (system_settings 表中的 cookie_{platform})；
-    2. 指定的环境变量 (如 env_var="XHS_COOKIE")；
+    2. 指定的环境变量 (如 env_var="XIAOHONGSHU_COOKIE")；
     3. 标准环境变量 ({PLATFORM}_COOKIE)；
-    4. 别名列表 (如 XIAOHONGSHU_COOKIE)。
+    4. 别名列表 (如 XHS_COOKIE)。
     """
     if cookies_suppressed():
         return ""

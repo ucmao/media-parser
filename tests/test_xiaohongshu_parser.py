@@ -96,7 +96,7 @@ class XiaohongshuParserTest(unittest.TestCase):
         resp.text = '<script>window.__INITIAL_STATE__ = {"note": {"firstNoteId": "123", "noteDetailMap": {"123": {"note": {"title": "带Cookie标题", "imageList": []}}}}}</script>'
 
         with patch("requests.Session.get", return_value=resp) as mock_get:
-            with patch.dict(os.environ, {"XHS_COOKIE": "a1=test_cookie_value;"}):
+            with patch.dict(os.environ, {"XIAOHONGSHU_COOKIE": "a1=test_cookie_value;", "XHS_COOKIE": ""}):
                 parser = XiaohongshuParser("https://www.xiaohongshu.com/explore/123")
                 self.assertEqual(parser.get_title_content(), "带Cookie标题")
                 call_headers = mock_get.call_args[1]["headers"]
@@ -112,7 +112,7 @@ class XiaohongshuParserTest(unittest.TestCase):
         resp.text = '<html><head><title>登录</title></head></html>'
 
         with patch("requests.Session.get", return_value=resp):
-            with patch.dict(os.environ, {"XHS_COOKIE": ""}):
+            with patch.dict(os.environ, {"XIAOHONGSHU_COOKIE": "", "XHS_COOKIE": ""}):
                 parser = XiaohongshuParser("https://www.xiaohongshu.com/explore/456")
                 self.assertIsNotNone(parser.terminal_error)
                 self.assertIn("需在后台系统设置中配置小红书 Cookie", parser.terminal_error["detail_msg"])
@@ -123,7 +123,7 @@ class XiaohongshuParserTest(unittest.TestCase):
         import os
         resp = Mock(status_code=200, url=final_url, text="<html></html>")
         with patch("requests.Session.get", return_value=resp):
-            with patch.dict(os.environ, {"XHS_COOKIE": ""}):
+            with patch.dict(os.environ, {"XIAOHONGSHU_COOKIE": "", "XHS_COOKIE": ""}):
                 return XiaohongshuParser("https://www.xiaohongshu.com/discovery/item/69fc84830000000023016c37")
 
     def test_security_404_is_risk_control_not_deleted(self):

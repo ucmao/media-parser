@@ -46,9 +46,7 @@ def create_app(config=None):
     app.config['DATABASE'] = os.getenv(
         'DATABASE_PATH', os.path.join(app.instance_path, 'media_parser.db')
     )
-    proxy_url = (os.getenv('DYNAMIC_PROXY_API_URL') or os.getenv('JULIANG_PROXY_API_URL') or '').strip()
-    app.config['DYNAMIC_PROXY_API_URL'] = proxy_url
-    app.config['JULIANG_PROXY_API_URL'] = proxy_url
+    app.config['DYNAMIC_PROXY_API_URL'] = (os.getenv('DYNAMIC_PROXY_API_URL') or '').strip()
     app.config['PROXY_MODE'] = (os.getenv('PROXY_MODE') or '').strip().lower()
     app.config['PROXY_POOL_SIZE'] = (os.getenv('PROXY_POOL_SIZE') or '').strip()
     app.config['PROXY_FETCH_PER_SECOND'] = (os.getenv('PROXY_FETCH_PER_SECOND') or '').strip()

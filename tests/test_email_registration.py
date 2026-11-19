@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import patch
 
 from app import create_app
-from src.db import get_db, set_setting
+from src.db import get_db, set_setting, utcnow
 
 SMTP_CONFIG = {"SMTP_HOST": "smtp.example.test", "SMTP_PORT": 465, "SMTP_SECURITY": "ssl",
                "SMTP_USER": "bot@example.test", "SMTP_PASSWORD": "x", "SMTP_FROM": "bot@example.test"}
@@ -107,6 +107,17 @@ class EmailRegistrationTest(unittest.TestCase):
         self.assertEqual(resp.status_code, 502)
         with self.app.app_context():
             self.assertIsNone(get_db().execute("SELECT 1 FROM email_verification_codes").fetchone())
+
+    def test_send_code_respects_daily_quota(self):
+        self.make_app(smtp=True)
+        with self.app.app_context():
+            set_setting("registration_daily_limit", "1")
+            get_db().execute("INSERT INTO users(username,password_hash,created_at) VALUES('q','x',?)",
+                             (utcnow(),))
+            get_db().commit()
+        resp, code = self.send_code("quota@example.com")
+        self.assertEqual(resp.status_code, 429)
+        self.assertIsNone(code)
 
     def test_admin_can_disable_email_verification(self):
         self.make_app(smtp=True)

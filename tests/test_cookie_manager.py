@@ -17,9 +17,13 @@ class CookieManagerTest(unittest.TestCase):
             self.assertEqual(cookie, "token=custom_456;")
 
     def test_falls_back_to_alias_env(self):
-        with patch.dict(os.environ, {"XIAOHONGSHU_COOKIE": "a1=from_alias_789;", "XHS_COOKIE": ""}):
+        with patch.dict(os.environ, {"XHS_COOKIE": "a1=from_alias_789;", "XIAOHONGSHU_COOKIE": ""}):
             cookie = get_platform_cookie("xiaohongshu")
             self.assertEqual(cookie, "a1=from_alias_789;")
+
+    def test_xiaohongshu_official_name_wins_over_alias(self):
+        with patch.dict(os.environ, {"XIAOHONGSHU_COOKIE": "a1=official;", "XHS_COOKIE": "a1=alias;"}):
+            self.assertEqual(get_platform_cookie("xiaohongshu"), "a1=official;")
 
     def test_returns_empty_string_when_not_configured(self):
         with patch.dict(os.environ, {}, clear=True):

@@ -10,7 +10,7 @@
 
 | 平台名称 | 环境变量 Key | 别名支持 | 必要性 / 使用场景 | 推荐精简字段 |
 | :--- | :--- | :--- | :--- | :--- |
-| **小红书** | `XHS_COOKIE` | `XIAOHONGSHU_COOKIE` | 🟡 **兜底 (防风控)**：日常免 Cookie 解析；机房 IP 遭遇 302 登录拦截时配置 | `a1=xxx; webId=xxx; web_session=xxx;` |
+| **小红书** | `XIAOHONGSHU_COOKIE` | `XHS_COOKIE` | 🟡 **兜底 (防风控)**：日常免 Cookie 解析；机房 IP 遭遇 302 登录拦截时配置 | `a1=xxx; webId=xxx; web_session=xxx;` |
 | **微信视频号** | `YUANBAO_COOKIE` | `WECHAT_CHANNELS_COOKIE` | 🔐 **必需 (媒体流与标题)**：提取视频号无水印视频直链、视频标题与高清图集（微信官方加强了匿名 `generalToken` 鉴权，匿名模式下视频直链与标题为空，必须依赖元宝 Cookie） | `hy_user=xxx; hy_token=xxx;` |
 | **快手** | `KUAISHOU_COOKIE` | `KS_COOKIE` | 🟡 **兜底 (防风控)**：日常免 Cookie 解析；触发 `result: 2` 反爬时配置 | `kpf=PC_WEB; kpn=KUAISHOU_VISION; did=xxx;` |
 | **拼多多** | `PINDUODUO_COOKIE` | `PDD_COOKIE` | 🟡 **增强 (部分依赖)**：实物/评价秀免 Cookie；多多视频短视频流解析需要 | `PDDAccessToken=xxx;` |
@@ -50,7 +50,7 @@ flowchart TD
 YUANBAO_COOKIE="hy_user=xxx; hy_token=xxx;"
 
 # 小红书
-XHS_COOKIE="a1=xxx; webId=xxx; web_session=xxx;"
+XIAOHONGSHU_COOKIE="a1=xxx; webId=xxx; web_session=xxx;"
 ```
 YUANBAO_COOKIE="hy_user=xxx; hy_token=yyy;"
 
@@ -93,14 +93,14 @@ docker compose up -d
 
 ## 3. 各平台 Cookie 提取步骤 (How-to Guide)
 
-### 3.1 小红书 (`XHS_COOKIE`)
+### 3.1 小红书 (`XIAOHONGSHU_COOKIE`)
 1. 使用电脑浏览器打开 [小红书网页版 (xiaohongshu.com)](https://www.xiaohongshu.com/) 并登录账号。
 2. 按 `F12` 打开浏览器开发者工具，切换到 **Application (应用) -> Cookies -> https://www.xiaohongshu.com**。
 3. 提取以下核心字段拼装成字符串：
    ```text
    a1=你的a1值; webId=你的webId值; web_session=你的web_session值;
    ```
-4. 填入 `.env` 中的 `XHS_COOKIE`。
+4. 填入 `.env` 中的 `XIAOHONGSHU_COOKIE`。
 
 ### 3.2 腾讯元宝 / 微信视频号 (`YUANBAO_COOKIE`)
 > 视频号解析依托腾讯元宝的官方智能联网协议，因此需配置腾讯元宝登录态。
@@ -231,7 +231,7 @@ docker compose up -d
 
 | 错误码 (`error_code`) | 含义说明 | 解决方案 |
 | :--- | :--- | :--- |
-| `XIAOHONGSHU_COOKIE_REQUIRED` | 小红书触发服务器 IP 拦截，需要登录 Cookie 校验 | 在 `.env` 中配置或更新 `XHS_COOKIE` |
+| `XIAOHONGSHU_COOKIE_REQUIRED` | 小红书触发服务器 IP 拦截，需要登录 Cookie 校验 | 在 `.env` 中配置或更新 `XIAOHONGSHU_COOKIE` |
 | `KUAISHOU_COOKIE_REQUIRED` | 快手触发反爬风控校验（`result: 2` / `ANTICRAWL_DEFAULT`） | 在 `.env` 中配置或更新 `KUAISHOU_COOKIE` |
 | `WECHAT_CHANNELS_COOKIE_REQUIRED` | 视频号缺少腾讯元宝凭证，无法提取无水印流 | 在 `.env` 中配置有效的 `YUANBAO_COOKIE` |
 | `PINDUODUO_COOKIE_REQUIRED` | 拼多多短视频接口返回 403 鉴权失败 | 在 `.env` 中配置最新的 `PINDUODUO_COOKIE` |
