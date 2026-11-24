@@ -1452,6 +1452,50 @@ class DouyinParser(BaseParser):
             logger.warning(f"Failed to parse cover URL: {e}")
             return None
 
+    @staticmethod
+    def _extract_audio_from_music(music):
+        """
+        从音乐对象 (music / music_info) 中提取可用音频播放直链。
+        优先读取 play_url.url_list；若原声被平台下架或标记不可用（play_url 为空），
+        则自动从 extra.original_song_url 中提取底层有效的签名直链。
+        """
+        if not isinstance(music, dict):
+            return None
+
+        # 1. 常规 play_url 结构
+        play_url = music.get('play_url') or music.get('playUrl') or {}
+        if isinstance(play_url, dict):
+            url_list = play_url.get('url_list') or play_url.get('urlList') or []
+            for u in url_list:
+                if u and isinstance(u, str) and u.startswith('http'):
+                    return u
+            uri = play_url.get('uri') or ''
+            if isinstance(uri, str) and uri.startswith('http'):
+                return uri
+        elif isinstance(play_url, str) and play_url.startswith('http'):
+            return play_url
+
+        # 2. 从 extra 中提取 original_song_url（原声被下架或标记不可用时，底层仍保留的有效签名直链）
+        extra = music.get('extra')
+        if extra:
+            if isinstance(extra, str):
+                try:
+                    extra = json.loads(extra)
+                except Exception:
+                    extra = None
+            if isinstance(extra, dict):
+                for k in ('original_song_url', 'original_sound_url'):
+                    orig = extra.get(k)
+                    if orig and isinstance(orig, str) and orig.startswith('http'):
+                        return orig
+
+        for k in ('original_song_url', 'original_sound_url'):
+            orig = music.get(k)
+            if orig and isinstance(orig, str) and orig.startswith('http'):
+                return orig
+
+        return None
+
     def get_audio_url(self):
         try:
             data_dict = self.data
@@ -1460,39 +1504,46 @@ class DouyinParser(BaseParser):
 
             if self.is_music:
                 music_info = data_dict.get('music_info') or {}
-                play_url = music_info.get('play_url') or {}
-                url_list = play_url.get('url_list') or []
-                if url_list:
-                    return url_list[0]
-                return None
+                return self._extract_audio_from_music(music_info)
 
             if self.is_lvdetail:
                 ep_info = data_dict.get('episode_info') or (data_dict.get('lvideo_detail') or {}).get('episode_info') or {}
                 aweme_detail = data_dict.get('aweme_detail') or {}
                 music = ep_info.get('music') or aweme_detail.get('music') or {}
-                if isinstance(music, dict):
-                    play_url = music.get('play_url') or music.get('playUrl') or {}
-                    url_list = play_url.get('url_list') or play_url.get('urlList') or []
-                    if url_list:
-                        return url_list[0]
+                audio_url = self._extract_audio_from_music(music)
+                if audio_url:
+                    return audio_url
+
                 video = aweme_detail.get('video') or ep_info.get('video') or {}
                 dynamic_video = (video.get('videoModel') or {}).get('dynamicVideo') or (video.get('video_model') or {}).get('dynamic_video') or {}
                 if isinstance(dynamic_video, dict):
                     dyn_audio = dynamic_video.get('dynamic_audio_list') or dynamic_video.get('dynamicAudioList') or []
-                    if dyn_audio:
-                        for a in dyn_audio:
-                            u = a.get('main_url') or a.get('backup_url')
-                            if u:
-                                return u
-
-            if not data_dict.get('aweme_detail'):
+                    for a in dyn_audio:
+                        u = a.get('main_url') or a.get('backup_url')
+                        if u:
+                            return u
                 return None
+
             detail = data_dict.get('aweme_detail') or {}
-            music = detail.get('music') or {}
-            play_url = music.get('play_url') or {}
-            url_list = play_url.get('url_list') or []
-            if url_list:
-                return url_list[0]
+            if not detail and self.is_collection and data_dict.get('aweme_list'):
+                detail = data_dict['aweme_list'][0]
+
+            if detail:
+                music = detail.get('music') or {}
+                audio_url = self._extract_audio_from_music(music)
+                if audio_url:
+                    return audio_url
+
+                # 兜底检查视频的分离音轨（如 dynamic_video / bit_rate_audio）
+                video = detail.get('video') or {}
+                dynamic_video = (video.get('videoModel') or {}).get('dynamicVideo') or (video.get('video_model') or {}).get('dynamic_video') or {}
+                if isinstance(dynamic_video, dict):
+                    dyn_audio = dynamic_video.get('dynamic_audio_list') or dynamic_video.get('dynamicAudioList') or []
+                    for a in dyn_audio:
+                        u = a.get('main_url') or a.get('backup_url')
+                        if u:
+                            return u
+
             return None
         except (KeyError, json.JSONDecodeError, TypeError) as e:
             logger.warning(f"Failed to parse background music: {e}")

@@ -204,6 +204,43 @@ class KuaishouSessionCompatibilityTest(unittest.TestCase):
         self.assertEqual(get.call_count, 2)
         self.assertEqual(parser.get_real_video_url(), 'https://cdn.example/video.mp4')
 
+    def test_get_audio_url_sound_track_and_music(self):
+        # 1. 测试 ATLAS / VIDEO 模式下的创作者原声 (soundTrack)
+        parser = KuaishouParser.__new__(KuaishouParser)
+        parser.page_type = "ATLAS"
+        payload = {
+            "photo": {
+                "soundTrack": {
+                    "audioUrls": [{"cdn": "hw.a.yximgs.com", "url": "https://hw.a.yximgs.com/sound.m4a"}]
+                }
+            }
+        }
+        with patch.object(parser, "_get_atlas_payload", return_value=payload):
+            self.assertEqual(parser.get_audio_url(), "https://hw.a.yximgs.com/sound.m4a")
+
+        # 2. 测试 GRAPHQL 模式下的创作者原声 (soundTrack)
+        parser.page_type = "GRAPHQL"
+        parser.structured_data = {
+            "photo": {
+                "soundTrack": {
+                    "url": "https://hw.a.yximgs.com/graphql_sound.m4a"
+                }
+            }
+        }
+        self.assertEqual(parser.get_audio_url(), "https://hw.a.yximgs.com/graphql_sound.m4a")
+
+        # 3. 测试常规背景音乐 (music)
+        parser.page_type = "VIDEO"
+        payload_music = {
+            "photo": {
+                "music": {
+                    "audioUrls": ["https://hw.a.yximgs.com/bgm.mp3"]
+                }
+            }
+        }
+        with patch.object(parser, "_get_atlas_payload", return_value=payload_music):
+            self.assertEqual(parser.get_audio_url(), "https://hw.a.yximgs.com/bgm.mp3")
+
 
 if __name__ == "__main__":
     unittest.main()

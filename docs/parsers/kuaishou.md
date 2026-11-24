@@ -89,6 +89,11 @@ flowchart TD
 * 快手图文内容在数据结构中标识为 `ATLAS`，图片路径列表位于 `photo.atlas.list` 或 `ext_params.atlas`。
 * 优先选择 WebP 高清格式，结合 CDN 域名（`atlas.cdn` / `atlas.cdnList`）拼接完整大图 URL。
 
+### 3.3 音频与作品原声提取 (Audio / soundTrack)
+* **创作者作品原声 (`photo.soundTrack`)**：针对使用创作者自带原声的作品，从 `soundTrack.audioUrls` 提取高保真独立音频直链（M4A 格式，如 `https://*.a.yximgs.com/bs2/ost/...m4a`）。
+* **背景音乐 (`photo.music`)**：针对引用公开音乐库的作品，从 `photo.music.audioUrls` 提取 MP3/M4A 播放直链。
+* **老版图集背景音乐 (`atlas.music`)**：针对图集内嵌音频，结合 `atlas.musicCdnList` 拼接完整音频下载地址。
+
 ---
 
 ## 4. 常见踩坑记录 (Gotchas)

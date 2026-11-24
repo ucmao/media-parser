@@ -577,27 +577,43 @@ class KuaishouParser(BaseParser):
     def get_audio_url(self):
         """
         获取独立的音频链接。
-        仅返回快手页面数据里直接暴露的音频地址；如果没有，则返回 None。
+        支持从创作者原声 (soundTrack)、背景音乐 (music) 及图集音乐 (atlas.music) 提取音频直链。
         """
-        if self.page_type in ("ATLAS", "VIDEO"):
-            try:
-                payload = self._get_atlas_payload()
-                photo_music = payload.get("photo", {}).get("music", {})
-                audio_url = (
-                        self._first_url(photo_music.get("audioUrls"))
-                        or self._normalize_url(photo_music.get("url"))
-                )
-                if audio_url:
-                    return audio_url
+        try:
+            if self.page_type == "GRAPHQL":
+                photo = self.structured_data.get("photo", {})
+                for key in ("soundTrack", "sound_track", "music"):
+                    music_obj = photo.get(key)
+                    if isinstance(music_obj, dict):
+                        audio_url = (
+                            self._first_url(music_obj.get("audioUrls"))
+                            or self._normalize_url(music_obj.get("url"))
+                        )
+                        if audio_url:
+                            return audio_url
+                return None
 
-                atlas = payload.get("atlas", {})
+            if self.page_type in ("ATLAS", "VIDEO"):
+                payload = self._get_atlas_payload()
+                photo = payload.get("photo", {}) if isinstance(payload, dict) else {}
+                for key in ("soundTrack", "sound_track", "music"):
+                    music_obj = photo.get(key)
+                    if isinstance(music_obj, dict):
+                        audio_url = (
+                            self._first_url(music_obj.get("audioUrls"))
+                            or self._normalize_url(music_obj.get("url"))
+                        )
+                        if audio_url:
+                            return audio_url
+
+                atlas = payload.get("atlas", {}) if isinstance(payload, dict) else {}
                 return self._build_resource_url(
                     self._first_cdn({"cdnList": atlas.get("musicCdnList", [])}),
                     atlas.get("music")
                 )
-            except Exception as e:
-                logger.warning(f"Failed to parse atlas audio URL: {e}")
-                return None
+        except Exception as e:
+            logger.warning(f"Failed to parse atlas audio URL: {e}")
+            return None
         return None
 
     def get_image_list(self):

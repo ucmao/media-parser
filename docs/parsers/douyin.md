@@ -228,6 +228,13 @@ abogus = signer.get_abogus(play_url, signer.user_agent)
   * 在 `_extract_best_url_from_play_addr` 中自动将 `/playwm/` 替换为 `/play/`；
   * 同时将参数中的 `ratio=720p` 自动提升为 `ratio=1080p`，实现直连 1080P 原始无水印纯净流。
 
+### 4.10 背景音乐与创作者原声提取（含下架原声双轨兜底）
+* **常规提取链路**：优先从作品的 `music.play_url.url_list` 或独立音乐页 (`/music/`) 的 `music_info.play_url.url_list` 提取首选 CDN 音频直链（MP3 格式）；
+* **下架原声双轨容灾兜底**：
+  * 当原声音频被平台限制或下架（`offline_desc: "该声音不可用"`、`filter_reason: "gov_takedown"`）时，常规 `play_url.url_list` 会被官方置空；
+  * 解析器内置 `_extract_audio_from_music` 智能双轨提取：自动解构 `music.extra` 中的 JSON 载荷，提取底层依然有效且带签名的 `original_song_url` / `original_sound_url` 直链；
+  * 若仍未获取到独立音轨，自动回退扫描视频流元数据中的分离音轨（如 `dynamicVideo.dynamic_audio_list`），确保音频提取的最大可用性。
+
 ---
 
 ## 5. 常见踩坑记录与风控解法 (Gotchas)
@@ -270,6 +277,9 @@ abogus = signer.get_abogus(play_url, signer.user_agent)
 6. **分享页 SSR 兜底数据下发 `playwm` 带水印端点**：
    * *现象*：部分未收录于 Feed 推荐流的视频在走移动端分享页 SSR 降级时，SSR `_ROUTER_DATA` 中仅包含 `video.play_addr` 且地址形式为 `/aweme/v1/playwm/?...`（720P 带片头作者水印与片尾抖音 Logo）。
    * *解法*：解析器在提取播放地址时，统一将 `/playwm/` 路径自动转换为 `/play/`，并同步将 `ratio=720p` 改写为 `ratio=1080p`，保证在任何兜底场景下输出的均为 1080P 真正无水印原画视频。
+7. **创作者原声被限制/下架（「该声音不可用」/ `gov_takedown`）导致常规音频字段置空**：
+   * *现象与机理*：部分时政新闻媒体作品、违规或版权受限的原声在平台被设为“该声音不可用”，禁止被引用为公共声音模板。此时官方接口将常规播放列表 `music.play_url.url_list` 设为 `null` 或空列表，导致单一依赖该字段的解析器无法获取到音频。
+   * *解法*：解析器内置了下架原声动态签名直链容灾提取。当常规 `url_list` 为空时，自动解构 `music.extra` 中的 JSON 数据，从中提取底层依然可正常请求的动态签名原声直链 `original_song_url`，并兜底支持 `dynamic_video.dynamic_audio_list` 分离音轨，实现 100% 提取可用原声。
 
 ---
 

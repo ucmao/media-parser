@@ -483,6 +483,48 @@ class DouyinParserTest(unittest.TestCase):
         self.assertEqual(author["nickname"], "抖音音乐人")
         self.assertEqual(author["author_id"], "999888777")
 
+    def test_audio_url_fallback_to_original_song_url(self):
+        data = {
+            "aweme_detail": {
+                "desc": "原声被标记不可用的作品",
+                "music": {
+                    "offline_desc": "该声音不可用",
+                    "play_url": {"url_list": None},
+                    "extra": json.dumps({
+                        "filter_reason": "gov_takedown",
+                        "original_song_url": "https://sf26-sign.douyinstatic.com/ies-music/test_orig.mp3?x-expires=123"
+                    })
+                }
+            }
+        }
+        parser = self.make_parser(data)
+        self.assertEqual(
+            parser.get_audio_url(),
+            "https://sf26-sign.douyinstatic.com/ies-music/test_orig.mp3?x-expires=123"
+        )
+
+    def test_audio_url_fallback_with_dict_extra_and_music_page(self):
+        music_data = {
+            "music_info": {
+                "title": "已下架原声",
+                "offline_desc": "该声音不可用",
+                "play_url": {"url_list": []},
+                "extra": {
+                    "original_sound_url": "https://sf26-sign.douyinstatic.com/ies-music/test_sound.mp3"
+                }
+            }
+        }
+        with patch.object(DouyinParser, "fetch_html_content", return_value="<html></html>"):
+            with patch.object(DouyinParser, "fetch_html_data", return_value=music_data):
+                with patch("utils.signer.bytedance.bogus_signer.BogusSigner.get_ms_token", return_value="mock_token"):
+                    parser = DouyinParser("https://www.douyin.com/music/7123456789012345678")
+                    parser.data = music_data
+
+        self.assertEqual(
+            parser.get_audio_url(),
+            "https://sf26-sign.douyinstatic.com/ies-music/test_sound.mp3"
+        )
+
     def test_collection_standalone_link_parsing(self):
         collection_data = {
             "mix_info": {
